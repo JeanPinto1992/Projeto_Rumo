@@ -1,4 +1,4 @@
-// src/components/TabbedAdminDashboard.tsx
+// src/components/TabbedAdminDashboard.jsx
 import React, { useState, useMemo } from 'react';
 import { 
   Box, 
@@ -11,10 +11,8 @@ import {
   Paper,
   useTheme
 } from '@mui/material';
-import DashboardTable from './DashboardTable';
+import DashboardTable from './DashboardTable.jsx';
 import { styled } from '@mui/material/styles';
-
-type TabType = 'DASHBOARD' | 'ADMINISTRATIVO' | 'ALMOXARIFADO' | 'COMERCIAL' | 'MANUTENÇÃO' | 'LOGÍSTICA' | 'IMPOSTOS' | 'RH';
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
@@ -31,11 +29,11 @@ const StyledTab = styled(Tab)(({ theme }) => ({
   },
 }));
 
-function TabbedAdminDashboard() {
-  const [activeTab, setActiveTab] = useState<TabType>('ADMINISTRATIVO');
+const TabbedAdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState('ADMINISTRATIVO');
   const theme = useTheme();
 
-  const tabs: TabType[] = useMemo(() => [
+  const tabs = useMemo(() => [
     'DASHBOARD',
     'ADMINISTRATIVO',
     'ALMOXARIFADO',
@@ -46,7 +44,7 @@ function TabbedAdminDashboard() {
     'RH',
   ], []);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: TabType) => {
+  const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 

@@ -1,6 +1,6 @@
-// src/components/DashboardTable.tsx
+// src/components/DashboardTable.jsx
 import { useEffect, useState, useMemo } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient.js';
 import {
   Box,
   Paper,
@@ -19,35 +19,12 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon } from '@mui/icons-material';
 
-interface DadosAdministrativo {
-  id: number;
-  categoria: string;
-  Janeiro: number;
-  Fevereiro: number;
-  Marco: number;
-  Abril: number;
-  Maio: number;
-  Junho: number;
-  Julho: number;
-  Agosto: number;
-  Setembro: number;
-  Outubro: number;
-  Novembro: number;
-  Dezembro: number;
-  Total_Anual: number;
-  Media_Anual?: number;
-  ano: number;
-}
-
-type Meses = 'Janeiro' | 'Fevereiro' | 'Marco' | 'Abril' | 'Maio' | 'Junho' |
-             'Julho' | 'Agosto' | 'Setembro' | 'Outubro' | 'Novembro' | 'Dezembro';
-
-const monthKeys: Meses[] = [
+const monthKeys = [
   'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
-const newRowInitialState: Omit<DadosAdministrativo, 'id' | 'Media_Anual'> = {
+const newRowInitialState = {
   categoria: '',
   Janeiro: 0,
   Fevereiro: 0,
@@ -64,10 +41,6 @@ const newRowInitialState: Omit<DadosAdministrativo, 'id' | 'Media_Anual'> = {
   Total_Anual: 0,
   ano: new Date().getFullYear(),
 };
-
-interface DashboardTableProps {
-    tableName: string;
-}
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   '&.MuiTableCell-head': {
@@ -89,15 +62,15 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function DashboardTable({ tableName }: DashboardTableProps) {
-  const [dados, setDados] = useState<DadosAdministrativo[]>([]);
-  const [newRow, setNewRow] = useState<Omit<DadosAdministrativo, 'id' | 'Media_Anual'>>(newRowInitialState);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [isAddingRow, setIsAddingRow] = useState<boolean>(false);
-  const [editingCell, setEditingCell] = useState<{id: number | null, field: keyof DadosAdministrativo | null}>({id: null, field: null});
-  const [editingValue, setEditingValue] = useState<string>('');
+function DashboardTable({ tableName }) {
+  const [dados, setDados] = useState([]);
+  const [newRow, setNewRow] = useState(newRowInitialState);
+  const [loading, setLoading] = useState(true);
+  const [isAddingRow, setIsAddingRow] = useState(false);
+  const [editingCell, setEditingCell] = useState({id: null, field: null});
+  const [editingValue, setEditingValue] = useState('');
 
-  const parseNumber = (value: string | number | null | undefined): number => {
+  const parseNumber = (value) => {
     if (value === null || value === undefined || value === '') return 0;
     if (typeof value === 'number') return isNaN(value) ? 0 : value;
     if (typeof value === 'string') {
@@ -108,24 +81,24 @@ function DashboardTable({ tableName }: DashboardTableProps) {
     return 0;
   };
 
-  const formatNumberForInput = (num: number | null | undefined): string => {
+  const formatNumberForInput = (num) => {
     const validNum = parseNumber(num);
     return validNum === 0 ? '' : validNum.toFixed(2).replace('.', ',');
   };
 
-  const formatNumberForDisplay = (num: number | null | undefined): string => {
+  const formatNumberForDisplay = (num) => {
     const validNum = parseNumber(num);
     return validNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const calculateTotalAnual = (row: Omit<DadosAdministrativo, 'id' | 'Media_Anual'> | DadosAdministrativo): number => {
+  const calculateTotalAnual = (row) => {
     return monthKeys.reduce((sum, month) => {
         const value = parseNumber(row[month]);
         return sum + value;
     }, 0);
   };
 
-  const calculateMediaAnual = (row: Omit<DadosAdministrativo, 'id' | 'Media_Anual'> | DadosAdministrativo): number => {
+  const calculateMediaAnual = (row) => {
       const filledMonths = monthKeys.filter(month => parseNumber(row[month]) > 0);
       if (filledMonths.length === 0) return 0;
 
@@ -134,7 +107,7 @@ function DashboardTable({ tableName }: DashboardTableProps) {
   };
 
   const columnTotals = useMemo(() => {
-    const totals: Omit<DadosAdministrativo, 'id' | 'categoria' | 'ano'> = {
+    const totals = {
       Janeiro: 0,
       Fevereiro: 0,
       Marco: 0,
@@ -207,7 +180,7 @@ function DashboardTable({ tableName }: DashboardTableProps) {
             ano: parseNumber(item.ano || new Date().getFullYear()),
             Total_Anual: 0,
             Media_Anual: 0,
-           } as DadosAdministrativo;
+           };
            rowData.Total_Anual = calculateTotalAnual(rowData);
            rowData.Media_Anual = calculateMediaAnual(rowData);
            return rowData;
@@ -227,8 +200,8 @@ function DashboardTable({ tableName }: DashboardTableProps) {
   }, [tableName]);
 
   const handleNewRowCellChange = (
-    value: string,
-    field: keyof Omit<DadosAdministrativo, 'id' | 'Media_Anual'>
+    value,
+    field
   ) => {
       setNewRow(prev => {
         const updatedRow = { ...prev };
@@ -236,21 +209,21 @@ function DashboardTable({ tableName }: DashboardTableProps) {
           updatedRow[field] = value;
         } else if (field !== 'Total_Anual' && field !== 'ano') {
           const parsedValue = parseNumber(value);
-          updatedRow[field as Meses] = parsedValue;
+          updatedRow[field] = parsedValue;
             const rowWithMedia = { ...updatedRow, Media_Anual: 0 };
             rowWithMedia.Total_Anual = calculateTotalAnual(rowWithMedia);
             rowWithMedia.Media_Anual = calculateMediaAnual(rowWithMedia);
 
-            return { ...updatedRow, Total_Anual: rowWithMedia.Total_Anual } as Omit<DadosAdministrativo, 'id' | 'Media_Anual'>;
+            return { ...updatedRow, Total_Anual: rowWithMedia.Total_Anual };
         }
         return updatedRow;
       });
   };
 
   const handleSaveCell = async (
-    id: number,
-    field: keyof DadosAdministrativo,
-    value: string
+    id,
+    field,
+    value
   ) => {
     const parsedValue = field === 'categoria' ? value : parseNumber(value);
 
@@ -262,15 +235,15 @@ function DashboardTable({ tableName }: DashboardTableProps) {
 
     const updatedRowData = { ...originalRow };
       if (field === 'categoria') {
-        updatedRowData[field] = parsedValue as string;
+        updatedRowData[field] = parsedValue;
     } else if (field !== 'id' && field !== 'Total_Anual' && field !== 'ano' && field !== 'Media_Anual') {
-        updatedRowData[field as Meses] = parsedValue as number;
+        updatedRowData[field] = parsedValue;
     }
     updatedRowData.Total_Anual = calculateTotalAnual(updatedRowData);
     updatedRowData.Media_Anual = calculateMediaAnual(updatedRowData);
 
     try {
-      const updatePayload: any = { [field]: parsedValue, Total_Anual: updatedRowData.Total_Anual };
+      const updatePayload = { [field]: parsedValue, Total_Anual: updatedRowData.Total_Anual };
 
       const { error } = await supabase
         .from(tableName)
@@ -309,7 +282,7 @@ function DashboardTable({ tableName }: DashboardTableProps) {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        const addedRow = { ...data[0] } as DadosAdministrativo;
+        const addedRow = { ...data[0] };
         addedRow.Total_Anual = calculateTotalAnual(addedRow);
         addedRow.Media_Anual = calculateMediaAnual(addedRow);
 
@@ -328,7 +301,7 @@ function DashboardTable({ tableName }: DashboardTableProps) {
     }
   };
 
-  const handleDeleteRow = async (id: number) => {
+  const handleDeleteRow = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir esta linha?')) {
       setLoading(true);
       try {
