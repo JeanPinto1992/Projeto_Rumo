@@ -1,5 +1,5 @@
 // src/components/DashboardTable.jsx
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import {
   Box,
@@ -10,14 +10,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Button,
-  IconButton,
   TextField,
   Typography,
-  useTheme,
-  styled
+  Button,
+  IconButton,
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon } from '@mui/icons-material';
+import { styled, useTheme } from '@mui/material/styles';
+import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material';
 
 const monthKeys = [
   'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -44,12 +43,20 @@ const newRowInitialState = {
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   '&.MuiTableCell-head': {
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: '#003865',
     color: theme.palette.common.white,
     fontWeight: 'bold',
   },
+  '&.MuiTableCell-sticky': {
+    position: 'sticky',
+    left: 0,
+    zIndex: 999,
+    backgroundColor: '#003865',
+    color: theme.palette.common.white,
+  },
   '&.MuiTableCell-body': {
     fontSize: 14,
+    minWidth: '20px',
   },
 }));
 
@@ -62,13 +69,25 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
+const StyledInvisibleTableCell = styled(TableCell)(({ theme }) => ({
+  width: '120px',
+  minWidth: '120px',
+  padding: 0,
+  border: 'none',
+  backgroundColor: theme.palette.background.paper,
+  visibility: 'hidden',
+  overflow: 'hidden',
+  pointerEvents: 'none',
+  flexShrink: 0,
+}));
+
 function DashboardTable({ tableName }) {
   const [dados, setDados] = useState([]);
-  const [newRow, setNewRow] = useState(newRowInitialState);
   const [loading, setLoading] = useState(true);
-  const [isAddingRow, setIsAddingRow] = useState(false);
   const [editingCell, setEditingCell] = useState({id: null, field: null});
   const [editingValue, setEditingValue] = useState('');
+  const tableContainerRef = useRef(null);
+  const theme = useTheme();
 
   const parseNumber = (value) => {
     if (value === null || value === undefined || value === '') return 0;
@@ -147,8 +166,6 @@ function DashboardTable({ tableName }) {
 
   useEffect(() => {
     const carregarDados = async () => {
-      setIsAddingRow(false);
-      setNewRow(newRowInitialState);
       setEditingCell({id: null, field: null});
       setEditingValue('');
 
@@ -214,7 +231,7 @@ function DashboardTable({ tableName }) {
             rowWithMedia.Total_Anual = calculateTotalAnual(rowWithMedia);
             rowWithMedia.Media_Anual = calculateMediaAnual(rowWithMedia);
 
-            return { ...updatedRow, Total_Anual: rowWithMedia.Total_Anual };
+            return { ...updatedRow, Total_Anual: rowWithMedia.Total_Anual, Media_Anual: rowWithMedia.Media_Anual };
         }
         return updatedRow;
       });
@@ -236,14 +253,14 @@ function DashboardTable({ tableName }) {
     const updatedRowData = { ...originalRow };
       if (field === 'categoria') {
         updatedRowData[field] = parsedValue;
-    } else if (field !== 'id' && field !== 'Total_Anual' && field !== 'ano' && field !== 'Media_Anual') {
+    } else if (field !== 'id' && field !== 'Total_Anual' && field !== 'ano') {
         updatedRowData[field] = parsedValue;
     }
     updatedRowData.Total_Anual = calculateTotalAnual(updatedRowData);
     updatedRowData.Media_Anual = calculateMediaAnual(updatedRowData);
 
     try {
-      const updatePayload = { [field]: parsedValue, Total_Anual: updatedRowData.Total_Anual };
+      const updatePayload = { [field]: parsedValue, Total_Anual: updatedRowData.Total_Anual, Media_Anual: updatedRowData.Media_Anual };
 
       const { error } = await supabase
         .from(tableName)
@@ -252,214 +269,128 @@ function DashboardTable({ tableName }) {
 
       if (error) throw error;
 
-      console.log(`Célula salva com sucesso na tabela '${tableName}'!`)
-
-      setDados(prev =>
-        prev.map(row =>
-          row.id === id ? updatedRowData : row
-        )
-      );
-
+      setDados(prev => prev.map(row => row.id === id ? updatedRowData : row));
+      setEditingCell({id: null, field: null});
+      console.log('Célula atualizada com sucesso!', updatedRowData);
     } catch (error) {
-      console.error(`Erro ao salvar ${field} na tabela '${tableName}' do Supabase:`, error);
-      alert(`Erro ao salvar ${field} em ${tableName}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      console.error('Erro ao salvar célula:', error);
+      alert(`Erro ao salvar célula: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
   };
 
-  const handleAddRow = async () => {
-    if (!newRow.categoria.trim()) {
-      alert('Por favor, insira uma categoria para a nova linha.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from(tableName)
-        .insert([newRow])
-        .select();
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const addedRow = { ...data[0] };
-        addedRow.Total_Anual = calculateTotalAnual(addedRow);
-        addedRow.Media_Anual = calculateMediaAnual(addedRow);
-
-        setDados(prev => [...prev, addedRow]);
-        setNewRow(newRowInitialState);
-        setIsAddingRow(false);
-        console.log(`Nova linha adicionada com sucesso na tabela '${tableName}'!`)
-      }
-    } catch (error) {
-      console.error(`Erro ao adicionar linha na tabela '${tableName}':`, error);
-      alert(`Erro ao adicionar linha em ${tableName}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-      setNewRow(newRowInitialState);
-      setIsAddingRow(false);
-    } finally {
-      setLoading(false);
-    }
+  const handleCellClick = (id, field, value) => {
+    setEditingCell({ id, field });
+    setEditingValue(formatNumberForInput(value));
   };
 
-  const handleDeleteRow = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir esta linha?')) {
-      setLoading(true);
-      try {
-        const { error } = await supabase
-          .from(tableName)
-          .delete()
-          .eq('id', id);
-
-        if (error) throw error;
-
-        console.log(`Linha com ID ${id} excluída com sucesso da tabela '${tableName}'!`)
-
-        setDados(prev => prev.filter(row => row.id !== id));
-
-      } catch (error) {
-        console.error(`Erro ao excluir linha com ID ${id} da tabela '${tableName}':`, error);
-        alert(`Erro ao excluir linha em ${tableName}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+  // Função utilitária para saber se é coluna de total
+  const isTotalColumn = (col) => col === 'Total Anual' || col === 'Média Anual';
 
   if (loading) {
     return <div className="page-loading">Carregando...</div>; // Usando classe
   }
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5" component="h2">
-          {tableName.charAt(0).toUpperCase() + tableName.slice(1)}
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => setIsAddingRow(true)}
-        >
-          Adicionar Linha
-        </Button>
-      </Box>
-
-      <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 200px)' }}>
-        <Table stickyHeader>
+    <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+      <TableContainer 
+        component={Paper} 
+        ref={tableContainerRef} 
+        sx={{
+          overflowX: 'auto',
+          maxHeight: 'calc(100vh - 180px)',
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          },
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        <Table aria-label="customized table" sx={{ minWidth: '2400px' }}>
           <TableHead>
             <TableRow>
-              <StyledTableCell>Categoria</StyledTableCell>
+              <StyledTableCell className="MuiTableCell-sticky" sx={{ fontSize: '15px' }}>Categoria</StyledTableCell>
               {monthKeys.map((month) => (
-                <StyledTableCell key={month} align="right">
-                  {month}
-                </StyledTableCell>
+                <StyledTableCell key={month} sx={{ textAlign: 'center', fontSize: '15px', minWidth: '152.5px' }}>{month}</StyledTableCell>
               ))}
-              <StyledTableCell align="right">Total Anual</StyledTableCell>
-              <StyledTableCell align="right">Média Anual</StyledTableCell>
-              <StyledTableCell align="center">Ações</StyledTableCell>
+              <StyledTableCell sx={{ backgroundColor: '#003865', color: '#fff', textAlign: 'center', fontSize: '15px', minWidth: '152.5px' }}>Total Anual</StyledTableCell>
+              <StyledTableCell sx={{ backgroundColor: '#1565a3', color: '#fff', textAlign: 'center', fontSize: '15px', minWidth: '152.5px' }}>Média Anual</StyledTableCell>
+              {Array.from({ length: 13 }).map((_, index) => (
+                <StyledInvisibleTableCell key={`invisible-head-${index}`}></StyledInvisibleTableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {dados.map((row) => (
+            {dados.map((row, idx) => (
               <StyledTableRow key={row.id}>
-                <StyledTableCell component="th" scope="row">
-                  {editingCell.id === row.id && editingCell.field === 'categoria' ? (
-                    <TextField
-                      value={editingValue}
-                      onChange={(e) => setEditingValue(e.target.value)}
-                      onBlur={() => handleSaveCell(row.id, 'categoria', editingValue)}
-                      size="small"
-                      fullWidth
-                    />
-                  ) : (
-                    <span onClick={() => {
-                      setEditingCell({ id: row.id, field: 'categoria' });
-                      setEditingValue(row.categoria);
-                    }}>
-                      {row.categoria}
-                    </span>
-                  )}
-                </StyledTableCell>
+                <StyledTableCell className="MuiTableCell-sticky" sx={{ fontWeight: 'bold' }}>{row.categoria}</StyledTableCell>
                 {monthKeys.map((month) => (
-                  <StyledTableCell key={month} align="right">
+                  <StyledTableCell key={month} sx={{ textAlign: 'center', minWidth: '152.5px' }}>
                     {editingCell.id === row.id && editingCell.field === month ? (
                       <TextField
                         value={editingValue}
                         onChange={(e) => setEditingValue(e.target.value)}
                         onBlur={() => handleSaveCell(row.id, month, editingValue)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSaveCell(row.id, month, editingValue);
+                          }
+                        }}
+                        autoFocus
                         size="small"
-                        type="number"
                         fullWidth
                       />
                     ) : (
-                      <span onClick={() => {
-                        setEditingCell({ id: row.id, field: month });
-                        setEditingValue(formatNumberForInput(row[month]));
-                      }}>
+                      <div onClick={() => handleCellClick(row.id, month, row[month])}>
                         {formatNumberForDisplay(row[month])}
-                      </span>
+                      </div>
                     )}
                   </StyledTableCell>
                 ))}
-                <StyledTableCell align="right">
-                  {formatNumberForDisplay(row.Total_Anual)}
-                </StyledTableCell>
-                <StyledTableCell align="right">
-                  {formatNumberForDisplay(row.Media_Anual)}
-                </StyledTableCell>
-                <StyledTableCell align="center">
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDeleteRow(row.id)}
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </StyledTableCell>
+                <StyledTableCell sx={{ backgroundColor: '#003865', color: '#fff', textAlign: 'center', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(row.Total_Anual)}</StyledTableCell>
+                <StyledTableCell sx={{ textAlign: 'center', fontWeight: 'bold', minWidth: '152.5px', backgroundColor: '#1565a3', color: '#fff' }}>{formatNumberForDisplay(row.Media_Anual)}</StyledTableCell>
+                {Array.from({ length: 13 }).map((_, index) => (
+                  <StyledInvisibleTableCell key={`invisible-body-${row.id}-${index}`}></StyledInvisibleTableCell>
+                ))}
               </StyledTableRow>
             ))}
-            {isAddingRow && (
-              <StyledTableRow>
-                <StyledTableCell>
-                  <TextField
-                    value={newRow.categoria}
-                    onChange={(e) => handleNewRowCellChange(e.target.value, 'categoria')}
-                    size="small"
-                    fullWidth
-                  />
-                </StyledTableCell>
-                {monthKeys.map((month) => (
-                  <StyledTableCell key={month} align="right">
-                    <TextField
-                      value={formatNumberForInput(newRow[month])}
-                      onChange={(e) => handleNewRowCellChange(e.target.value, month)}
-                      size="small"
-                      type="number"
-                      fullWidth
-                    />
-                  </StyledTableCell>
-                ))}
-                <StyledTableCell align="right">
-                  {formatNumberForDisplay(newRow.Total_Anual)}
-                </StyledTableCell>
-                <StyledTableCell align="right">
-                  {formatNumberForDisplay(calculateMediaAnual(newRow))}
-                </StyledTableCell>
-                <StyledTableCell align="center">
-                  <IconButton
-                    color="primary"
-                    onClick={handleAddRow}
-                    size="small"
-                  >
-                    <SaveIcon />
-                  </IconButton>
-                </StyledTableCell>
-              </StyledTableRow>
-            )}
+            <StyledTableRow>
+              <StyledTableCell className="MuiTableCell-sticky" sx={{ backgroundColor: '#003865', color: '#fff', fontSize: '15px', fontWeight: 'bold' }}>Total</StyledTableCell>
+              {monthKeys.map((month) => (
+                <StyledTableCell key={month} sx={{ backgroundColor: '#003865', color: '#fff', textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals[month])}</StyledTableCell>
+              ))}
+              <StyledTableCell sx={{ backgroundColor: '#003865', color: '#fff', textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals.Total_Anual)}</StyledTableCell>
+              <StyledTableCell sx={{ backgroundColor: '#1565a3', color: '#fff', textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals.Media_Anual)}</StyledTableCell>
+              {Array.from({ length: 13 }).map((_, index) => (
+                <StyledInvisibleTableCell key={`invisible-total-${index}`}></StyledInvisibleTableCell>
+              ))}
+            </StyledTableRow>
           </TableBody>
         </Table>
       </TableContainer>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, backgroundColor: '#fff', padding: '16px 0 0 0' }}>
+        <IconButton sx={{ color: '#003865' }} onClick={() => {
+          if (tableContainerRef.current) {
+            const firstCell = tableContainerRef.current.querySelector('th:not(.MuiTableCell-sticky)');
+            if (firstCell) {
+              const columnWidth = firstCell.offsetWidth;
+              tableContainerRef.current.scrollBy({ left: -columnWidth, behavior: 'smooth' });
+            }
+          }
+        }}>
+          <ArrowBackIos />
+        </IconButton>
+        <IconButton sx={{ color: '#003865' }} onClick={() => {
+          if (tableContainerRef.current) {
+            const firstCell = tableContainerRef.current.querySelector('th:not(.MuiTableCell-sticky)');
+            if (firstCell) {
+              const columnWidth = firstCell.offsetWidth;
+              tableContainerRef.current.scrollBy({ left: columnWidth, behavior: 'smooth' });
+            }
+          }
+        }}>
+          <ArrowForwardIos />
+        </IconButton>
+      </Box>
     </Box>
   );
 }

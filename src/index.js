@@ -7,7 +7,7 @@ import TabbedAdminDashboard from './components/TabbedAdminDashboard.jsx';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#003865',
     },
     secondary: {
       main: '#dc004e',

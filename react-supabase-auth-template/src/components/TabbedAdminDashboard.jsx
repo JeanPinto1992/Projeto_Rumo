@@ -15,18 +15,30 @@ import DashboardTable from './DashboardTable.jsx';
 import { styled } from '@mui/material/styles';
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
-  backgroundColor: theme.palette.primary.main,
+  backgroundColor: 'transparent',
   '& .MuiTabs-indicator': {
-    backgroundColor: theme.palette.secondary.main,
-    height: 3,
+    display: 'none',
   },
 }));
 
 const StyledTab = styled(Tab)(({ theme }) => ({
-  color: theme.palette.common.white,
+  color: theme.palette.text.primary,
+  backgroundColor: theme.palette.grey[200],
+  borderTopLeftRadius: theme.shape.borderRadius,
+  borderTopRightRadius: theme.shape.borderRadius,
+  minWidth: 120,
+  textTransform: 'none',
+  marginRight: theme.spacing(1),
+  opacity: 1,
   '&.Mui-selected': {
-    color: theme.palette.secondary.main,
+    color: '#003865 !important',
+    backgroundColor: theme.palette.background.paper,
+    borderBottomColor: theme.palette.background.paper,
+    fontWeight: theme.typography.fontWeightBold,
+    zIndex: 1,
   },
+  border: `1px solid ${theme.palette.divider}`,
+  borderBottom: 'none',
 }));
 
 const TabbedAdminDashboard = () => {
@@ -63,7 +75,7 @@ const TabbedAdminDashboard = () => {
         );
       default:
         return (
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ flexGrow: 1 }}>
             <DashboardTable tableName={activeTab.toLowerCase()} />
           </Box>
         );
@@ -72,36 +84,42 @@ const TabbedAdminDashboard = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="static" color="primary" elevation={0}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Projeto Rumo
-          </Typography>
+      <AppBar position="static" sx={{ backgroundColor: theme.palette.common.white }} elevation={0}>
+        <Toolbar sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: '100px',
+          padding: '0 16px',
+        }}>
+          <img src="/logo-usifix.png" alt="Logo Usifix" style={{ height: '140px' }} />
+          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+            <StyledTabs
+              value={activeTab}
+              onChange={handleTabChange}
+              aria-label="navigation tabs"
+              centered
+            >
+              {tabs.map((tab) => (
+                <StyledTab
+                  key={tab}
+                  value={tab}
+                  label={tab}
+                />
+              ))}
+            </StyledTabs>
+          </Box>
         </Toolbar>
-        <StyledTabs
-          value={activeTab}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-          aria-label="navigation tabs"
-        >
-          {tabs.map((tab) => (
-            <StyledTab
-              key={tab}
-              value={tab}
-              label={tab}
-            />
-          ))}
-        </StyledTabs>
       </AppBar>
 
-      <Container maxWidth="xl" sx={{ flexGrow: 1, py: 3 }}>
-        <Paper 
+      <Container disableGutters maxWidth={false} sx={{ flexGrow: 1 }}>
+        <Paper
           elevation={0}
-          sx={{ 
-            p: 2,
+          sx={{
+            flexGrow: 1,
+            width: '100%',
             backgroundColor: theme.palette.background.default,
-            borderRadius: 2
+            borderRadius: 0
           }}
         >
           {renderContent()}
