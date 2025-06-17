@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "react-supabase-auth-template/package.json",
+      "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build"
@@ -12,7 +12,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "react-supabase-auth-template/build/index.html"
+      "dest": "client/build/index.html"
     }
   ]
-} 
+}
