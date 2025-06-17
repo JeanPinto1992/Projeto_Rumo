@@ -1,8 +1,15 @@
 import { useState } from 'react'
 import { supabase } from './lib/supabaseClient.js'
-import './LoginPage.css'
+import {
+  Button,
+  Card,
+  Input,
+  Title,
+  Form,
+  FormGroup,
+} from './styles'
 
-function LoginPage({ onLogin }) {
+function LoginPage({ onLogin, goToRegister, goToRecover }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -19,33 +26,37 @@ function LoginPage({ onLogin }) {
   }
 
   return (
-    <div className="login-page">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
+    <Card>
+      <Title>Login</Title>
+      <Form onSubmit={handleSubmit}>
+        <FormGroup>
           <label htmlFor="email">Email</label>
-          <input
+          <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
-        <div>
+        </FormGroup>
+        <FormGroup>
           <label htmlFor="password">Senha</label>
-          <input
+          <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </div>
+        </FormGroup>
         {error && <p className="error">{error}</p>}
-        <button type="submit">Entrar</button>
-      </form>
-    </div>
+        <Button type="submit">Entrar</Button>
+        <Button type="button" onClick={goToRegister}>Registrar</Button>
+        <Button type="button" onClick={goToRecover}>
+          Esqueceu a senha?
+        </Button>
+      </Form>
+    </Card>
   )
 }
 
