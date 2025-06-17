@@ -1,8 +1,13 @@
 # React + Vite
 
-This project now includes authentication with Supabase. Copy `.env.example` to `.env` and fill in your Supabase credentials.
+This project now includes authentication with Supabase. Copy `.env.example` to `.env` and fill in your Supabase credentials:
 
-For Vercel deployments, configure the `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` environment variables in the project settings.
+```
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+When deploying to Vercel, set the same variables in the project environment settings so the application can connect to Supabase in production.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

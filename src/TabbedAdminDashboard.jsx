@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Title } from './styles';
+import { Button, Card, Title } from './styles';
 
 const tabs = [
   'DASHBOARD',
@@ -27,13 +27,13 @@ export default function TabbedAdminDashboard() {
       <Title>Admin Dashboard</Title>
       <div className="tabs">
         {tabs.map((tab) => (
-          <button
+          <Button
             key={tab}
             className={`tab ${active === tab ? 'tab-active' : ''}`}
             onClick={() => setActive(tab)}
           >
             {tab}
-          </button>
+          </Button>
         ))}
       </div>
       <Card>{renderContent()}</Card>
