@@ -1,5 +1,5 @@
 import React from 'react'
-import '../index.css'
+import '../../index.css'
 
 export function TabbedOverlay({ isOpen, title, children }) {
   if (!isOpen) return null
