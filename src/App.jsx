@@ -3,9 +3,11 @@ import LoginPage from './LoginPage.jsx'
 import RegisterPage from './RegisterPage.jsx'
 import PasswordRecovery from './PasswordRecovery.jsx'
 import { supabase } from './lib/supabaseClient.js'
+import DashboardTable from './DashboardTable.jsx'
 
 function App() {
   const [session, setSession] = useState(null)
+  const [page, setPage] = useState('login')
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -22,8 +24,6 @@ function App() {
       listener.subscription.unsubscribe()
     }
   }, [])
-
-  const [page, setPage] = useState('login')
 
   if (!session) {
     if (page === 'register') {
@@ -46,7 +46,39 @@ function App() {
     )
   }
 
-  return <div>Bem-vindo!</div>
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(120deg, #4f8cff 0%, #2ecba6 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <h2 style={{ color: '#222' }}>Todos os dados do Supabase</h2>
+      <DashboardTable />
+      <button
+        onClick={async () => {
+          await supabase.auth.signOut();
+          setSession(null);
+          setPage('login');
+        }}
+        style={{
+          marginTop: 20,
+          padding: '10px 24px',
+          borderRadius: 8,
+          border: 'none',
+          background: '#4f8cff',
+          color: '#fff',
+          fontWeight: 600,
+          fontSize: 16,
+          cursor: 'pointer'
+        }}
+      >
+        Sair
+      </button>
+    </div>
+  )
 }
 
 export default App
