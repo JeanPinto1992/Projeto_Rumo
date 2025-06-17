@@ -23,3 +23,11 @@ npm run dev
 This project includes a small themed component library under `src/styles`. The sample app demonstrates login, registration with email verification, and password recovery flows.
 
 To connect to your own Supabase instance create a `.env` file containing the variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. After logging in the application fetches rows from the `profiles` table and displays them in a themed table.
+
+## Production Build
+
+Run `npm run build` to create a production bundle using Vite.
+
+## Theming
+
+All styled components rely on CSS variables defined in `src/styles/variables.css`. Adjust those values to customize colors and spacing while retaining dark mode support.
