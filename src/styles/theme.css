@@ -1,0 +1,73 @@
+:root {
+  --primary: #646cff;
+  --text-primary: #213547;
+  --background: #ffffff;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 2rem;
+}
+
+[data-theme='dark'] {
+  --text-primary: rgba(255, 255, 255, 0.87);
+  --background: #242424;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+}
+
+.btn {
+  background-color: var(--primary);
+  color: var(--background);
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.card {
+  padding: var(--spacing-lg);
+  border-radius: 4px;
+  background-color: var(--background);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.input {
+  padding: var(--spacing-sm);
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+}
+
+.title {
+  margin-bottom: var(--spacing-md);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.overlay-content {
+  background-color: var(--background);
+  color: var(--text-primary);
+  padding: var(--spacing-lg);
+  border-radius: 4px;
+}
