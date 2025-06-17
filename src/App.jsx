@@ -19,7 +19,7 @@ export default function App() {
   }, []);
 
   if (!session) {
-    return <Login onLogin={() => {}} />;
+    return <Login />;
   }
 
   return <TabbedAdminDashboard />;

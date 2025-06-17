@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Button, Card, Input, Title, Form, FormGroup } from './styles';
-import { TabbedOverlay } from './styles/components/overlays/TabbedOverlay.jsx';
-import { useTabbedOverlay } from './styles/components/overlays/useTabbedOverlay.js';
+import { TabbedOverlay, useTabbedOverlay } from './styles/components/overlays';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin } = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const overlay = useTabbedOverlay();
@@ -20,7 +19,7 @@ export default function Login({ onLogin }) {
     if (error) {
       overlay.open();
     } else {
-      onLogin();
+      if (onLogin) onLogin();
     }
   }
 
