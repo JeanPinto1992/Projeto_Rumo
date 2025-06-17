@@ -1,6 +1,6 @@
 // src/components/DashboardTable.jsx
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { supabase } from '../lib/supabaseClient.js';
+import { supabase } from './lib/supabaseClient.js';
 import {
   Box,
   Paper,
