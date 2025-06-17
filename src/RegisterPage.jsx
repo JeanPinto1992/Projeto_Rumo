@@ -6,9 +6,7 @@ import {
   Input,
   Title,
   Form,
-  FormGroup,
-  TabbedOverlay,
-  useTabbedOverlay,
+  FormGroup
 } from './styles'
 
 function RegisterPage({ onRegister, goToLogin }) {
