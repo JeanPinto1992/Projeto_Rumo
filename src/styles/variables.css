@@ -1,0 +1,17 @@
+:root {
+  --primary: #646cff;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --text-primary: #213547;
+  --background: #ffffff;
+  --overlay-background: rgba(0, 0, 0, 0.5);
+  --card-background: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: rgba(255, 255, 255, 0.87);
+    --background: #242424;
+    --card-background: #1a1a1a;
+  }
+}

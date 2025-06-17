@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import TabbedAdminDashboard from './TabbedAdminDashboard.jsx'
-import LoginPage from './LoginPage.jsx'
+import HomePage from './HomePage.jsx'
+import RegisterPage from './RegisterPage.jsx'
+import PasswordRecovery from './PasswordRecovery.jsx'
 import { supabase } from './lib/supabaseClient.js'
 
 function App() {
@@ -22,11 +23,30 @@ function App() {
     }
   }, [])
 
+  const [page, setPage] = useState('login')
+
   if (!session) {
-    return <LoginPage onLogin={() => {}} />
+    if (page === 'register') {
+      return (
+        <RegisterPage
+          onRegister={() => setPage('login')}
+          goToLogin={() => setPage('login')}
+        />
+      )
+    }
+    if (page === 'recover') {
+      return <PasswordRecovery goToLogin={() => setPage('login')} />
+    }
+    return (
+      <HomePage
+        onLogin={() => setSession(true)}
+        goToRegister={() => setPage('register')}
+        goToRecover={() => setPage('recover')}
+      />
+    )
   }
 
-  return <TabbedAdminDashboard />
+  return <div>Bem-vindo!</div>
 }
 
 export default App
