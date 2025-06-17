@@ -1,12 +1,12 @@
 // src/components/TabbedAdminDashboard.jsx
 import React, { useState, useMemo } from 'react';
-import { 
-  Box, 
-  Tabs, 
-  Tab, 
-  AppBar, 
-  Toolbar, 
-  Typography, 
+import {
+  Box,
+  Tabs,
+  Tab,
+  AppBar,
+  Toolbar,
+  Typography,
   Container,
   Paper,
   useTheme
@@ -40,6 +40,10 @@ const StyledTab = styled(Tab)(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
   borderBottom: 'none',
 }));
+
+const Logo = styled('img')({
+  height: 140,
+});
 
 const TabbedAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('ADMINISTRATIVO');
@@ -92,7 +96,7 @@ const TabbedAdminDashboard = () => {
           minHeight: '100px',
           padding: '0 16px',
         }}>
-          <img src="/logo-usifix.png" alt="Logo Usifix" style={{ height: '140px' }} />
+          <Logo src="/logo-usifix.png" alt="Logo Usifix" />
           <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
             <StyledTabs
               value={activeTab}
