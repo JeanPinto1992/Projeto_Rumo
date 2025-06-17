@@ -5,7 +5,7 @@
       "src": "react-supabase-auth-template/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "react-supabase-auth-template/build"
+        "distDir": "build"
       }
     }
   ],
