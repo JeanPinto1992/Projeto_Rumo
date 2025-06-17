@@ -43,7 +43,7 @@ const newRowInitialState = {
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   '&.MuiTableCell-head': {
-    backgroundColor: '#003865',
+    backgroundColor: theme.palette.primary.main,
     color: theme.palette.common.white,
     fontWeight: 'bold',
   },
@@ -51,13 +51,27 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     position: 'sticky',
     left: 0,
     zIndex: 999,
-    backgroundColor: '#003865',
+    backgroundColor: theme.palette.primary.main,
     color: theme.palette.common.white,
   },
   '&.MuiTableCell-body': {
     fontSize: 14,
     minWidth: '20px',
   },
+}));
+
+const StickyHeadRow = styled(TableRow)(({ theme }) => ({
+  position: 'sticky',
+  top: 0,
+  zIndex: 998,
+  backgroundColor: theme.palette.primary.main,
+}));
+
+const StickyFooterRow = styled(TableRow)(({ theme }) => ({
+  position: 'sticky',
+  bottom: 0,
+  zIndex: 998,
+  backgroundColor: theme.palette.primary.main,
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -307,7 +321,7 @@ function DashboardTable({ tableName }) {
       >
         <Table aria-label="customized table" sx={{ minWidth: '2400px' }}>
           <TableHead>
-            <TableRow>
+            <StickyHeadRow>
               <StyledTableCell className="MuiTableCell-sticky" sx={{ fontSize: '15px' }}>Categoria</StyledTableCell>
               {monthKeys.map((month) => (
                 <StyledTableCell key={month} sx={{ textAlign: 'center', fontSize: '15px', minWidth: '152.5px' }}>{month}</StyledTableCell>
@@ -317,7 +331,7 @@ function DashboardTable({ tableName }) {
               {Array.from({ length: 13 }).map((_, index) => (
                 <StyledInvisibleTableCell key={`invisible-head-${index}`}></StyledInvisibleTableCell>
               ))}
-            </TableRow>
+            </StickyHeadRow>
           </TableHead>
           <TableBody>
             {dados.map((row, idx) => (
@@ -353,7 +367,7 @@ function DashboardTable({ tableName }) {
                 ))}
               </StyledTableRow>
             ))}
-            <StyledTableRow>
+            <StickyFooterRow>
               <StyledTableCell className="MuiTableCell-sticky" sx={{ backgroundColor: '#003865', color: '#fff', fontSize: '15px', fontWeight: 'bold' }}>Total</StyledTableCell>
               {monthKeys.map((month) => (
                 <StyledTableCell key={month} sx={{ backgroundColor: '#003865', color: '#fff', textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals[month])}</StyledTableCell>
@@ -363,7 +377,7 @@ function DashboardTable({ tableName }) {
               {Array.from({ length: 13 }).map((_, index) => (
                 <StyledInvisibleTableCell key={`invisible-total-${index}`}></StyledInvisibleTableCell>
               ))}
-            </StyledTableRow>
+            </StickyFooterRow>
           </TableBody>
         </Table>
       </TableContainer>
