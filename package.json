@@ -1,4 +1,12 @@
 {
+  "name": "projeto-rumo-root",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm --prefix react-supabase-auth-template install",
+    "start": "npm --prefix react-supabase-auth-template run start",
+    "build": "npm --prefix react-supabase-auth-template run build",
+    "vercel-build": "npm run build"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
