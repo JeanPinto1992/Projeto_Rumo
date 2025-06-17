@@ -1,4 +1,11 @@
 {
+  "name": "projeto-rumo-root",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm install --prefix react-supabase-auth-template",
+    "start": "npm start --prefix react-supabase-auth-template",
+    "build": "npm run build --prefix react-supabase-auth-template"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
