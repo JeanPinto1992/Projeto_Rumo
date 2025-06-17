@@ -1,34 +1,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import theme from '../react-supabase-auth-template/src/theme.js';
 import CssBaseline from '@mui/material/CssBaseline';
 import TabbedAdminDashboard from './components/TabbedAdminDashboard.jsx';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#003865',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-  },
-  components: {
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          boxShadow: 'none',
-        },
-      },
-    },
-  },
-});
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Failed to find the root element');
