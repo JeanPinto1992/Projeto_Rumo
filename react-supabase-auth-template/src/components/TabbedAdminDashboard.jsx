@@ -31,7 +31,7 @@ const StyledTab = styled(Tab)(({ theme }) => ({
   marginRight: theme.spacing(1),
   opacity: 1,
   '&.Mui-selected': {
-    color: '#003865 !important',
+    color: theme.palette.primary.main,
     backgroundColor: theme.palette.background.paper,
     borderBottomColor: theme.palette.background.paper,
     fontWeight: theme.typography.fontWeightBold,

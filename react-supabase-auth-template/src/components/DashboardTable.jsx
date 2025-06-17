@@ -43,7 +43,7 @@ const newRowInitialState = {
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   '&.MuiTableCell-head': {
-    backgroundColor: '#003865',
+    backgroundColor: theme.palette.primary.main,
     color: theme.palette.common.white,
     fontWeight: 'bold',
   },
@@ -51,7 +51,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     position: 'sticky',
     left: 0,
     zIndex: 999,
-    backgroundColor: '#003865',
+    backgroundColor: theme.palette.primary.main,
     color: theme.palette.common.white,
   },
   '&.MuiTableCell-body': {
@@ -312,8 +312,8 @@ function DashboardTable({ tableName }) {
               {monthKeys.map((month) => (
                 <StyledTableCell key={month} sx={{ textAlign: 'center', fontSize: '15px', minWidth: '152.5px' }}>{month}</StyledTableCell>
               ))}
-              <StyledTableCell sx={{ backgroundColor: '#003865', color: '#fff', textAlign: 'center', fontSize: '15px', minWidth: '152.5px' }}>Total Anual</StyledTableCell>
-              <StyledTableCell sx={{ backgroundColor: '#1565a3', color: '#fff', textAlign: 'center', fontSize: '15px', minWidth: '152.5px' }}>Média Anual</StyledTableCell>
+              <StyledTableCell sx={{ backgroundColor: theme.palette.primary.main, color: theme.palette.common.white, textAlign: 'center', fontSize: '15px', minWidth: '152.5px' }}>Total Anual</StyledTableCell>
+              <StyledTableCell sx={{ backgroundColor: theme.palette.secondary.main, color: theme.palette.common.white, textAlign: 'center', fontSize: '15px', minWidth: '152.5px' }}>Média Anual</StyledTableCell>
               {Array.from({ length: 13 }).map((_, index) => (
                 <StyledInvisibleTableCell key={`invisible-head-${index}`}></StyledInvisibleTableCell>
               ))}
@@ -346,20 +346,20 @@ function DashboardTable({ tableName }) {
                     )}
                   </StyledTableCell>
                 ))}
-                <StyledTableCell sx={{ backgroundColor: '#003865', color: '#fff', textAlign: 'center', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(row.Total_Anual)}</StyledTableCell>
-                <StyledTableCell sx={{ textAlign: 'center', fontWeight: 'bold', minWidth: '152.5px', backgroundColor: '#1565a3', color: '#fff' }}>{formatNumberForDisplay(row.Media_Anual)}</StyledTableCell>
+                <StyledTableCell sx={{ backgroundColor: theme.palette.primary.main, color: theme.palette.common.white, textAlign: 'center', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(row.Total_Anual)}</StyledTableCell>
+                <StyledTableCell sx={{ textAlign: 'center', fontWeight: 'bold', minWidth: '152.5px', backgroundColor: theme.palette.secondary.main, color: theme.palette.common.white }}>{formatNumberForDisplay(row.Media_Anual)}</StyledTableCell>
                 {Array.from({ length: 13 }).map((_, index) => (
                   <StyledInvisibleTableCell key={`invisible-body-${row.id}-${index}`}></StyledInvisibleTableCell>
                 ))}
               </StyledTableRow>
             ))}
             <StyledTableRow>
-              <StyledTableCell className="MuiTableCell-sticky" sx={{ backgroundColor: '#003865', color: '#fff', fontSize: '15px', fontWeight: 'bold' }}>Total</StyledTableCell>
+              <StyledTableCell className="MuiTableCell-sticky" sx={{ backgroundColor: theme.palette.primary.main, color: theme.palette.common.white, fontSize: '15px', fontWeight: 'bold' }}>Total</StyledTableCell>
               {monthKeys.map((month) => (
-                <StyledTableCell key={month} sx={{ backgroundColor: '#003865', color: '#fff', textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals[month])}</StyledTableCell>
+                <StyledTableCell key={month} sx={{ backgroundColor: theme.palette.primary.main, color: theme.palette.common.white, textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals[month])}</StyledTableCell>
               ))}
-              <StyledTableCell sx={{ backgroundColor: '#003865', color: '#fff', textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals.Total_Anual)}</StyledTableCell>
-              <StyledTableCell sx={{ backgroundColor: '#1565a3', color: '#fff', textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals.Media_Anual)}</StyledTableCell>
+              <StyledTableCell sx={{ backgroundColor: theme.palette.primary.main, color: theme.palette.common.white, textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals.Total_Anual)}</StyledTableCell>
+              <StyledTableCell sx={{ backgroundColor: theme.palette.secondary.main, color: theme.palette.common.white, textAlign: 'center', fontSize: '15px', fontWeight: 'bold', minWidth: '152.5px' }}>{formatNumberForDisplay(columnTotals.Media_Anual)}</StyledTableCell>
               {Array.from({ length: 13 }).map((_, index) => (
                 <StyledInvisibleTableCell key={`invisible-total-${index}`}></StyledInvisibleTableCell>
               ))}
@@ -367,8 +367,8 @@ function DashboardTable({ tableName }) {
           </TableBody>
         </Table>
       </TableContainer>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, backgroundColor: '#fff', padding: '16px 0 0 0' }}>
-        <IconButton sx={{ color: '#003865' }} onClick={() => {
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, backgroundColor: theme.palette.common.white, padding: '16px 0 0 0' }}>
+        <IconButton sx={{ color: theme.palette.primary.main }} onClick={() => {
           if (tableContainerRef.current) {
             const firstCell = tableContainerRef.current.querySelector('th:not(.MuiTableCell-sticky)');
             if (firstCell) {
@@ -379,7 +379,7 @@ function DashboardTable({ tableName }) {
         }}>
           <ArrowBackIos />
         </IconButton>
-        <IconButton sx={{ color: '#003865' }} onClick={() => {
+        <IconButton sx={{ color: theme.palette.primary.main }} onClick={() => {
           if (tableContainerRef.current) {
             const firstCell = tableContainerRef.current.querySelector('th:not(.MuiTableCell-sticky)');
             if (firstCell) {
