@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "react-supabase-auth-template/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "react-supabase-auth-template/build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "react-supabase-auth-template/build/index.html"
+    }
+  ]
+} 
