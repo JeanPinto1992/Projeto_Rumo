@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import TabbedAdminDashboard from './TabbedAdminDashboard.jsx'
 import LoginPage from './LoginPage.jsx'
 import { supabase } from './lib/supabaseClient.js'
 
