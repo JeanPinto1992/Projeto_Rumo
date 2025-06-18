@@ -72,7 +72,7 @@ button:focus-visible {
   min-height: 100vh;
   min-width: 100vw;         /* Adicione esta linha */
   width: 100vw;             /* Adicione esta linha */
-  background: linear-gradient(120deg, #4f8cff 0%, #2ecba6 100%);
+  background: linear-gradient(120deg, #00B0F0);
   display: flex;
   align-items: center;
   justify-content: center;
