@@ -22,8 +22,8 @@ export default function LoginPage({ onLogin, goToRegister, goToRecover }) {
   return (
     <div className="login-bg">
       <div className="login-card">
-        <img src="/logo-usifix.jpg" alt="Logo Usifix" className="login-logo" />
-        <h2 className="login-title">Bem-vindo ao Projeto Rumo</h2>
+        <img src="/logo-usifix.jpg" alt="Logo Usifix" className="login-logo" style={{ width: '140px', height: 'auto', marginBottom: '18px' }} />
+        <h2 className="login-title">Bem-vindo ao Relatório Rumo</h2>
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="login-input-group">
             <span className="login-input-icon">📧</span>
