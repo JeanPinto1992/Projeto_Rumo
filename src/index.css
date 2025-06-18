@@ -70,6 +70,8 @@ button:focus-visible {
 /* === LOGIN PAGE CUSTOM STYLES === */
 .login-bg {
   min-height: 100vh;
+  min-width: 100vw;         /* Adicione esta linha */
+  width: 100vw;             /* Adicione esta linha */
   background: linear-gradient(120deg, #4f8cff 0%, #2ecba6 100%);
   display: flex;
   align-items: center;
