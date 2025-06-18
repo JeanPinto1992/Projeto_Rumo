@@ -20,117 +20,151 @@ export default function LoginPage({ onLogin, goToRegister, goToRecover }) {
   }
 
   return (
-    <div style={styles.bg}>
-      <form style={styles.card} onSubmit={handleSubmit}>
-        <img src="/logo-usifix.jpg" alt="Logo Usifix" style={styles.logo} />
-        <h2 style={styles.title}>Bem-vindo ao Projeto Rumo</h2>
-        <div style={styles.inputGroup}>
-          <input
-            style={styles.input}
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div style={styles.inputGroup}>
-          <input
-            style={styles.input}
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Senha"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <span
-            style={styles.eye}
-            onClick={() => setShowPassword(s => !s)}
-            title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-          >👁️</span>
-        </div>
-        {error && <p style={styles.error}>{error}</p>}
-        <button type="submit" style={styles.button}>Entrar</button>
-        <div style={styles.links}>
+    <div className="login-bg">
+      <div className="login-card">
+        <img src="/logo-usifix.jpg" alt="Logo Usifix" className="login-logo" />
+        <h2 className="login-title">Bem-vindo ao Projeto Rumo</h2>
+        <form className="login-form" onSubmit={handleSubmit}>
+          <div className="login-input-group">
+            <span className="login-input-icon">📧</span>
+            <input
+              className="login-input"
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="login-input-group">
+            <span className="login-input-icon">🔒</span>
+            <input
+              className="login-input"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Senha"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <span
+              className="login-eye"
+              onClick={() => setShowPassword(s => !s)}
+              title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+            >{showPassword ? '🙈' : '👁️'}</span>
+          </div>
+          <div className="login-password-info">Sua senha é protegida com criptografia avançada</div>
+          {error && <p className="login-error">{error}</p>}
+          <button type="submit" className="login-btn">Entrar</button>
+        </form>
+        <div className="login-links">
           <a href="#" onClick={e => { e.preventDefault(); goToRecover(); }}>Esqueceu sua senha?</a>
           <br />
           <a href="#" onClick={e => { e.preventDefault(); goToRegister(); }}>Não possui uma conta? Cadastre-se</a>
         </div>
-      </form>
+      </div>
     </div>
   )
 }
 
-const styles = {
-  bg: {
-    minHeight: '100vh',
-    background: 'linear-gradient(120deg, #4f8cff 0%, #2ecba6 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  card: {
-    background: '#fff',
-    borderRadius: 20,
-    boxShadow: '0 4px 32px rgba(0,0,0,0.08)',
-    padding: 40,
-    width: 350,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  logo: {
-    width: 80,
-    marginBottom: 16,
-  },
-  title: {
-    marginBottom: 24,
-    fontWeight: 700,
-    color: '#222',
-    textAlign: 'center',
-  },
-  inputGroup: {
-    width: '100%',
-    marginBottom: 16,
-    position: 'relative',
-  },
-  input: {
-    width: '100%',
-    padding: '12px 40px 12px 12px',
-    borderRadius: 8,
-    border: '1px solid #d0d0d0',
-    fontSize: 16,
-    outline: 'none',
-  },
-  eye: {
-    position: 'absolute',
-    right: 12,
-    top: 12,
-    cursor: 'pointer',
-    fontSize: 18,
-    color: '#888',
-  },
-  button: {
-    width: '100%',
-    padding: '12px 0',
-    borderRadius: 8,
-    border: 'none',
-    background: '#4f8cff',
-    color: '#fff',
-    fontWeight: 600,
-    fontSize: 16,
-    marginBottom: 12,
-    cursor: 'pointer',
-  },
-  links: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#4f8cff',
-    marginTop: 8,
-  },
-  error: {
-    color: 'red',
-    marginBottom: 8,
-    textAlign: 'center',
-  }
+// Adicione o CSS correspondente em seu arquivo de estilos global (ex: src/index.css):
+/*
+.login-bg {
+  min-height: 100vh;
+  background: linear-gradient(120deg, #4f8cff 0%, #2ecba6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.login-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  padding: 48px 32px 32px 32px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login-logo {
+  width: 96px;
+  margin-bottom: 18px;
+}
+.login-title {
+  margin-bottom: 28px;
+  font-weight: 700;
+  color: #222;
+  text-align: center;
+  font-size: 1.5rem;
+}
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.login-input-group {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.login-input-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 1.2rem;
+  color: #4f8cff;
+  pointer-events: none;
+}
+.login-input {
+  width: 100%;
+  padding: 12px 40px 12px 38px;
+  border-radius: 8px;
+  border: 1px solid #d0d0d0;
+  font-size: 16px;
+  outline: none;
+  background: #f5f8ff;
+}
+.login-eye {
+  position: absolute;
+  right: 12px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #888;
+}
+.login-password-info {
+  font-size: 0.95rem;
+  color: #888;
+  margin-bottom: 4px;
+  text-align: left;
+  margin-top: -10px;
+  margin-left: 2px;
+}
+.login-btn {
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 8px;
+  border: none;
+  background: #4f8cff;
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.login-btn:hover {
+  background: #2563eb;
+}
+.login-links {
+  text-align: center;
+  font-size: 15px;
+  color: #4f8cff;
+  margin-top: 18px;
+}
+.login-error {
+  color: red;
+  margin-bottom: 8px;
+  text-align: center;
+}
+*/
