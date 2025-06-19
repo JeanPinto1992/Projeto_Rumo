@@ -4,7 +4,6 @@ import RegisterPage from './RegisterPage.jsx'
 import PasswordRecovery from './PasswordRecovery.jsx'
 import Dashboard from './Dashboard.jsx'
 import { supabase } from './lib/supabaseClient.js'
-import './styles/usifix-theme.css'
 
 function App() {
   const [session, setSession] = useState(null)

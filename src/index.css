@@ -1,9 +1,12 @@
 :root {
-  --primary-500: #4f46e5;
-  --primary-600: #4338ca;
-  --primary-700: #3730a3;
-  --secondary-500: #06b6d4;
-  --secondary-600: #0891b2;
+  --primary-300: #95c6eb;
+  --primary-400: #4ba3d1;
+  --primary-500: #008dd0;
+  --primary-600: #006ba3;
+  --primary-700: #005a8a;
+  --secondary-400: #4ba3d1;
+  --secondary-500: #4ba3d1;
+  --secondary-600: #95c6eb;
   --success-500: #10b981;
   --error-500: #ef4444;
   --warning-500: #f59e0b;
@@ -155,6 +158,24 @@ body {
   inset: 0;
   background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 50%, var(--primary-600) 100%);
   z-index: 0;
+}
+
+/* Marca d'água para a página de login */
+.login-background::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 500px;
+  background-image: url('/USIFIX VETOR MINI.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.04;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .gradient-orb {

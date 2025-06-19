@@ -1,11 +1,11 @@
 /* Paleta de cores baseada na logo Usifix */
 :root {
   /* Cores principais da logo */
-  --usifix-blue-dark: #008dd0;
-  --usifix-blue-light: #95c6eb;
-  --usifix-blue-medium: #4ba3d1;
-  --usifix-blue-hover: #006ba3;
-  --usifix-blue-active: #005a8a;
+  --usifix-blue-dark: #008dd0 !important;
+  --usifix-blue-light: #95c6eb !important;
+  --usifix-blue-medium: #4ba3d1 !important;
+  --usifix-blue-hover: #006ba3 !important;
+  --usifix-blue-active: #005a8a !important;
   
   /* Cores complementares */
   --usifix-white: #ffffff;

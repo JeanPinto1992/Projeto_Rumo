@@ -1,12 +1,76 @@
 /* Dashboard Styles - Tema Usifix */
 
+/* Reset específico para remover espaçamentos que impedem posicionamento absoluto */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+}
+
 .dashboard {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #06b6d4 75%, #0ea5e9 100%);
+  background: linear-gradient(135deg, var(--usifix-blue-light) 0%, var(--usifix-blue-medium) 25%, var(--usifix-blue-dark) 75%, var(--usifix-blue-hover) 100%);
   font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
+  position: relative;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Logo no canto superior direito como marca d'água */
+.top-right-logo {
+  position: fixed;
+  top: -25px !important;
+  right: 18px !important;
+  z-index: 9999;
+  transition: all var(--usifix-transition-normal);
+  opacity: 0.7;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: translate(0, 0) !important;
+  overflow: visible !important;
+}
+
+.top-right-logo:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.header-logo {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.2));
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  vertical-align: top !important;
+}
+
+/* Ocultar logo no modo fullscreen para não competir com o botão de sair */
+.dashboard.fullscreen-mode .top-right-logo {
+  display: none;
+}
+
+/* Marca d'água com logo */
+.dashboard::before {
+  content: '';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  background-image: url('/USIFIX VETOR MINI.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.05;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* Modo Fullscreen - Oculta sidebar e abinha */
@@ -341,13 +405,32 @@
 
 .content-body {
   flex: 1;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #06b6d4 75%, #0ea5e9 100%);
+  background: linear-gradient(135deg, var(--usifix-blue-light) 0%, var(--usifix-blue-medium) 25%, var(--usifix-blue-dark) 75%, var(--usifix-blue-hover) 100%);
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 100%;
   display: flex;
   flex-direction: column;
   padding-top: 50px; /* Muito mais espaço no topo para baixar o conteúdo */
+  position: relative;
+}
+
+/* Marca d'água específica para o content-body */
+.content-body::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 400px;
+  background-image: url('/USIFIX VETOR MINI.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.03;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* Loading states */
@@ -443,6 +526,17 @@
     margin-left: 24px;
     width: calc(100% - 24px);
   }
+
+  /* Logo responsiva para tablet */
+  .top-right-logo {
+    top: -30px !important;
+    right: -10px !important;
+  }
+
+  .header-logo {
+    width: 100px;
+    height: 100px;
+  }
   
   .sidebar-toggle-tab {
     top: 12px;
@@ -472,7 +566,7 @@
   }
   
   .content-body {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #06b6d4 75%, #0ea5e9 100%);
+    background: linear-gradient(135deg, var(--usifix-blue-light) 0%, var(--usifix-blue-medium) 25%, var(--usifix-blue-dark) 75%, var(--usifix-blue-hover) 100%);
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 100%;
@@ -559,13 +653,24 @@
   }
   
   .content-body {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #06b6d4 75%, #0ea5e9 100%);
+    background: linear-gradient(135deg, var(--usifix-blue-light) 0%, var(--usifix-blue-medium) 25%, var(--usifix-blue-dark) 75%, var(--usifix-blue-hover) 100%);
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 100%;
     display: flex;
     flex-direction: column;
     padding-top: 12px;
+  }
+
+  /* Logo responsiva para mobile */
+  .top-right-logo {
+    top: -30px !important;
+    right: -10px !important;
+  }
+
+  .header-logo {
+    width: 85px;
+    height: 85px;
   }
 }
 
@@ -646,13 +751,24 @@
   }
   
   .content-body {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #06b6d4 75%, #0ea5e9 100%);
+    background: linear-gradient(135deg, var(--usifix-blue-light) 0%, var(--usifix-blue-medium) 25%, var(--usifix-blue-dark) 75%, var(--usifix-blue-hover) 100%);
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 100%;
     display: flex;
     flex-direction: column;
     padding-top: 40px; /* Mais espaço também no mobile */
+  }
+
+  /* Logo responsiva para telas muito pequenas */
+  .top-right-logo {
+    top: -30px !important;
+    right: -10px !important;
+  }
+
+  .header-logo {
+    width: 70px;
+    height: 70px;
   }
 }
 
