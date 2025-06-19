@@ -1,0 +1,166 @@
+/* Paleta de cores baseada na logo Usifix */
+:root {
+  /* Cores principais da logo */
+  --usifix-blue-dark: #008dd0;
+  --usifix-blue-light: #95c6eb;
+  --usifix-blue-medium: #4ba3d1;
+  --usifix-blue-hover: #006ba3;
+  --usifix-blue-active: #005a8a;
+  
+  /* Cores complementares */
+  --usifix-white: #ffffff;
+  --usifix-gray-50: #f8fafc;
+  --usifix-gray-100: #f1f5f9;
+  --usifix-gray-200: #e2e8f0;
+  --usifix-gray-300: #cbd5e1;
+  --usifix-gray-400: #94a3b8;
+  --usifix-gray-500: #64748b;
+  --usifix-gray-600: #475569;
+  --usifix-gray-700: #334155;
+  --usifix-gray-800: #1e293b;
+  --usifix-gray-900: #0f172a;
+  
+  /* Estados */
+  --usifix-success: #10b981;
+  --usifix-warning: #f59e0b;
+  --usifix-error: #ef4444;
+  --usifix-info: var(--usifix-blue-dark);
+  
+  /* Sombras */
+  --usifix-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --usifix-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --usifix-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --usifix-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* Raios de borda */
+  --usifix-radius-sm: 0.375rem;
+  --usifix-radius-md: 0.5rem;
+  --usifix-radius-lg: 0.75rem;
+  --usifix-radius-xl: 1rem;
+  --usifix-radius-2xl: 1.5rem;
+  
+  /* Transições */
+  --usifix-transition-fast: 0.15s ease-in-out;
+  --usifix-transition-normal: 0.3s ease-in-out;
+  --usifix-transition-slow: 0.5s ease-in-out;
+}
+
+/* Loading global */
+.app-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--usifix-blue-light) 0%, var(--usifix-blue-dark) 100%);
+  color: var(--usifix-white);
+  font-family: 'Inter', sans-serif;
+}
+
+.loading-spinner-app {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid var(--usifix-white);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Utilitários globais */
+.usifix-btn-primary {
+  background: linear-gradient(135deg, var(--usifix-blue-dark), var(--usifix-blue-medium));
+  color: var(--usifix-white);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--usifix-radius-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--usifix-transition-normal);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.usifix-btn-primary:hover {
+  background: linear-gradient(135deg, var(--usifix-blue-hover), var(--usifix-blue-dark));
+  transform: translateY(-1px);
+  box-shadow: var(--usifix-shadow-lg);
+}
+
+.usifix-btn-primary:active {
+  transform: translateY(0);
+}
+
+.usifix-btn-secondary {
+  background: var(--usifix-white);
+  color: var(--usifix-blue-dark);
+  border: 2px solid var(--usifix-blue-dark);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--usifix-radius-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--usifix-transition-normal);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.usifix-btn-secondary:hover {
+  background: var(--usifix-blue-dark);
+  color: var(--usifix-white);
+  transform: translateY(-1px);
+  box-shadow: var(--usifix-shadow-lg);
+}
+
+.usifix-card {
+  background: var(--usifix-white);
+  border-radius: var(--usifix-radius-xl);
+  box-shadow: var(--usifix-shadow-lg);
+  border: 1px solid var(--usifix-gray-200);
+  overflow: hidden;
+}
+
+.usifix-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--usifix-gray-300);
+  border-radius: var(--usifix-radius-lg);
+  font-size: 1rem;
+  transition: all var(--usifix-transition-fast);
+  outline: none;
+}
+
+.usifix-input:focus {
+  border-color: var(--usifix-blue-dark);
+  box-shadow: 0 0 0 3px rgba(0, 141, 208, 0.1);
+}
+
+.usifix-text-primary {
+  color: var(--usifix-blue-dark);
+}
+
+.usifix-text-secondary {
+  color: var(--usifix-gray-600);
+}
+
+.usifix-text-muted {
+  color: var(--usifix-gray-500);
+}
+
+.usifix-bg-primary {
+  background: var(--usifix-blue-dark);
+}
+
+.usifix-bg-light {
+  background: var(--usifix-blue-light);
+}
+
+.usifix-bg-gray {
+  background: var(--usifix-gray-50);
+} 

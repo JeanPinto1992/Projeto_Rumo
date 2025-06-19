@@ -1,170 +1,172 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from './lib/supabaseClient'
 
 export default function LoginPage({ onLogin, goToRegister, goToRecover }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  useEffect(() => {
+    // Trigger animations after component mounts
+    const timer = setTimeout(() => {
+      setIsInitialized(true)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    // Se quiser usar Supabase, descomente as linhas abaixo:
-    // const { error } = await supabase.auth.signInWithPassword({ email, password })
-    // if (error) {
-    //   setError(error.message)
-    // } else {
-    //   onLogin()
-    // }
-    onLogin() // Remova esta linha se usar Supabase acima
+    setIsLoading(true)
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      })
+      
+      if (error) {
+        setError(error.message)
+      } else {
+        // Login bem-sucedido
+        onLogin(data.user)
+      }
+    } catch (err) {
+      setError('Erro ao fazer login. Tente novamente.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    <div className="login-bg">
-      <div className="login-card">
-        <img src="/logo-usifix.jpg" alt="Logo Usifix" className="login-logo" style={{ width: '100%', maxWidth: '420px', height: 'auto', display: 'block', margin: '0 auto 18px auto' }} />
-        <h2 className="login-title">Bem-vindo ao Relatório Rumo</h2>
+    <div className="login-container">
+      <div className="login-background">
+        <div className="gradient-orb orb-1"></div>
+        <div className="gradient-orb orb-2"></div>
+        <div className="gradient-orb orb-3"></div>
+      </div>
+      
+      <div className={`login-card ${isInitialized ? 'initialized' : ''}`}>
+        <div className="logo-container">
+          <img 
+            src="/USIFIX VETOR MINI.svg" 
+            alt="Logo Usifix" 
+            className="login-logo"
+          />
+          <div className="logo-shine"></div>
+        </div>
+        
+        <div className="welcome-section">
+          <h1 className="login-title">Bem-vindo de volta!</h1>
+          <p className="login-subtitle">Acesse o Relatório Rumo</p>
+        </div>
+
         <form className="login-form" onSubmit={handleSubmit}>
-          <div className="login-input-group">
-            <span className="login-input-icon">📧</span>
-            <input
-              className="login-input"
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
+          <div className="input-group">
+            <div className="input-container">
+              <input
+                className="login-input"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+              <span className="input-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 8L12 13L21 8M3 8V18C3 18.5523 3.44772 19 4 19H20C20.5523 19 21 18.5523 21 18V8M3 8C3 7.44772 3.44772 7 4 7H20C20.5523 7 21 7.44772 21 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              <span className="input-label">Email</span>
+            </div>
           </div>
-          <div className="login-input-group">
-            <span className="login-input-icon">🔒</span>
-            <input
-              className="login-input"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Senha"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-            <span
-              className="login-eye"
-              onClick={() => setShowPassword(s => !s)}
-              title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-            >{showPassword ? '🙈' : '👁️'}</span>
+
+          <div className="input-group">
+            <div className="input-container">
+              <input
+                className="login-input"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Senha"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+              <span className="input-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 10V7C7 4.79086 8.79086 3 11 3H13C15.2091 3 17 4.79086 17 7V10M7 10H17M7 10H5C3.89543 10 3 10.8954 3 12V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V12C21 10.8954 20.1046 10 19 10H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(s => !s)}
+                title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                disabled={isLoading}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  {showPassword ? (
+                    <path d="M9.88 9.88C9.33 10.43 9 11.19 9 12S9.33 13.57 9.88 14.12C10.43 14.67 11.19 15 12 15S13.57 14.67 14.12 14.12C14.67 13.57 15 12.81 15 12S14.67 10.43 14.12 9.88M3 3L21 21M12 7C15.87 7 19.1 9.57 20 12C19.63 13.39 18.78 14.56 17.68 15.38M12 17C8.13 17 4.9 14.43 4 12C4.37 10.61 5.22 9.44 6.32 8.62" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  ) : (
+                    <path d="M12 5C15.87 5 19.1 7.57 20 10C19.1 12.43 15.87 15 12 15S4.9 12.43 4 10C4.9 7.57 8.13 5 12 5ZM12 9C10.34 9 9 10.34 9 12S10.34 15 12 15S15 13.66 15 12S13.66 9 12 9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  )}
+                </svg>
+              </button>
+              <span className="input-label">Senha</span>
+            </div>
+            <div className="password-strength">
+              <span>🔒 Protegido com criptografia avançada</span>
+            </div>
           </div>
-          <div className="login-password-info">Sua senha é protegida com criptografia avançada</div>
-          {error && <p className="login-error">{error}</p>}
-          <button type="submit" className="login-btn">Entrar</button>
+
+          {error && (
+            <div className="error-message">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            className={`login-btn ${isLoading ? 'loading' : ''}`}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <span className="loading-spinner"></span>
+                Entrando...
+              </>
+            ) : (
+              'Entrar'
+            )}
+          </button>
         </form>
+
         <div className="login-links">
-          <a href="#" onClick={e => { e.preventDefault(); goToRecover(); }}>Esqueceu sua senha?</a>
-          <br />
-          <a href="#" onClick={e => { e.preventDefault(); goToRegister(); }}>Não possui uma conta? Cadastre-se</a>
+          <button 
+            type="button" 
+            className="link-btn"
+            onClick={goToRecover}
+            disabled={isLoading}
+          >
+            Esqueceu sua senha?
+          </button>
+          <button 
+            type="button" 
+            className="link-btn register-link"
+            onClick={goToRegister}
+            disabled={isLoading}
+          >
+            Não possui uma conta? <strong>Cadastre-se</strong>
+          </button>
         </div>
       </div>
     </div>
   )
 }
-
-// Adicione o CSS correspondente em seu arquivo de estilos global (ex: src/index.css):
-/*
-.login-bg {
-  min-height: 100vh;
-  background: linear-gradient(120deg, #4f8cff 0%, #2ecba6 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.login-card {
-  background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-  padding: 48px 32px 32px 32px;
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.login-logo {
-  width: 96px;
-  margin-bottom: 18px;
-}
-.login-title {
-  margin-bottom: 28px;
-  font-weight: 700;
-  color: #222;
-  text-align: center;
-  font-size: 1.5rem;
-}
-.login-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-.login-input-group {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
-}
-.login-input-icon {
-  position: absolute;
-  left: 12px;
-  font-size: 1.2rem;
-  color: #4f8cff;
-  pointer-events: none;
-}
-.login-input {
-  width: 100%;
-  padding: 12px 40px 12px 38px;
-  border-radius: 8px;
-  border: 1px solid #d0d0d0;
-  font-size: 16px;
-  outline: none;
-  background: #f5f8ff;
-}
-.login-eye {
-  position: absolute;
-  right: 12px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: #888;
-}
-.login-password-info {
-  font-size: 0.95rem;
-  color: #888;
-  margin-bottom: 4px;
-  text-align: left;
-  margin-top: -10px;
-  margin-left: 2px;
-}
-.login-btn {
-  width: 100%;
-  padding: 12px 0;
-  border-radius: 8px;
-  border: none;
-  background: #4f8cff;
-  color: #fff;
-  font-weight: 600;
-  font-size: 16px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.login-btn:hover {
-  background: #2563eb;
-}
-.login-links {
-  text-align: center;
-  font-size: 15px;
-  color: #4f8cff;
-  margin-top: 18px;
-}
-.login-error {
-  color: red;
-  margin-bottom: 8px;
-  text-align: center;
-}
-*/

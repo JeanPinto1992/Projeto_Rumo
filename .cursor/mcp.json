@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "$env:SUPABASE_ACCESS_TOKEN='sbp_c44608e46854c74e66db7fe1a2cdc3b2c448cf11'; & 'C:\\Users\\Jean\\AppData\\Roaming\\npm\\mcp-server-supabase.cmd' --read-only --project-ref=rdrtbcnxxdjljbxmmkcj"
+      ]
+    }
+  }
+} 

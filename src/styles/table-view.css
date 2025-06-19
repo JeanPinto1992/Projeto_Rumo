@@ -1,0 +1,1003 @@
+/* Table View Styles - Tema Usifix */
+
+.table-view {
+  display: flex;
+  flex-direction: column;
+  height: auto; /* Altura automática baseada no conteúdo */
+  min-height: 0; /* Permitir encolhimento */
+  overflow: visible; /* Permitir conteúdo visível */
+  padding: 0; /* Remover padding para ocupar todo o espaço */
+}
+
+/* Estilos do cabeçalho removidos - exportação agora é feita pelo ícone de impressora no header principal */
+
+.table-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: auto; /* Altura automática baseada no conteúdo */
+  overflow: visible; /* Permitir conteúdo visível */
+  position: relative;
+  flex-shrink: 0; /* Não encolher */
+}
+
+/* Loading States */
+.table-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: rgba(255, 255, 255, 0.9); /* Cor branca para contraste com gradiente */
+  gap: 1rem;
+  background: transparent; /* Fundo transparente para mostrar gradiente */
+}
+
+.table-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.table-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.95); /* Fundo semi-transparente para contraste */
+  backdrop-filter: blur(10px);
+  border-radius: var(--usifix-radius-lg);
+  margin: 1rem;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.table-error h3 {
+  color: var(--usifix-error);
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.table-error p {
+  color: var(--usifix-gray-600);
+  margin: 0;
+}
+
+.table-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.95); /* Fundo semi-transparente para contraste */
+  backdrop-filter: blur(10px);
+  border-radius: var(--usifix-radius-lg);
+  margin: 1rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.table-empty h3 {
+  color: var(--usifix-gray-700);
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.table-empty p {
+  color: var(--usifix-gray-500);
+  margin: 0;
+}
+
+/* Table Container com Scroll Horizontal - MAIOR */
+.table-container {
+  background: transparent; /* Fundo transparente para mostrar o gradiente */
+  position: relative;
+  height: auto; /* Altura automática baseada no conteúdo */
+  overflow-x: hidden; /* Esconder scroll horizontal */
+  overflow-y: visible; /* Permitir conteúdo visível */
+  margin: 1rem; /* Margem para mostrar o gradiente */
+  border-radius: var(--usifix-radius-xl); /* Bordas arredondadas */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Garantir que editores de anotação não sejam cortados */
+.table-container:has(.notes-editor) {
+  overflow: visible !important;
+  z-index: 998 !important;
+}
+
+/* Container de Scroll para a Tabela */
+.table-scroll-container {
+  width: 100%;
+  height: auto; /* Altura automática baseada no conteúdo */
+  overflow-x: hidden; /* Esconder scroll horizontal */
+  overflow-y: visible; /* Conteúdo visível */
+  position: relative;
+  background: rgba(255, 255, 255, 0.95); /* Fundo semi-transparente apenas na área da tabela */
+  backdrop-filter: blur(10px);
+  border-radius: var(--usifix-radius-lg);
+  flex-shrink: 0; /* Não encolher */
+  pointer-events: auto; /* Garantir que eventos funcionem */
+}
+
+/* Garantir que editores de anotação não sejam cortados no scroll container */
+.table-scroll-container:has(.notes-editor) {
+  overflow: visible !important;
+  z-index: 997 !important;
+}
+
+/* Table Styles - Ajustada para caber na tela */
+.data-table {
+  width: 100%; /* Usar toda largura disponível */
+  border-collapse: collapse;
+  font-size: 0.75rem; /* Fonte menor para caber mais conteúdo */
+  background: transparent;
+  table-layout: fixed; /* Layout fixo para larguras consistentes */
+  position: relative;
+  height: auto; /* Altura automática baseada no conteúdo */
+  z-index: 10; /* Z-index baixo para não interferir com editores */
+}
+
+/* Quando há editor de anotação, ajustar overflow da tabela */
+.data-table:has(.notes-editor) {
+  overflow: visible !important;
+}
+
+/* CABEÇALHOS FIXOS - AJUSTADOS PARA HEADER CONSOLIDADO */
+.data-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 50; /* Abaixo do header consolidado (100) */
+  background: transparent;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* RODAPÉ FIXO */
+.data-table tfoot {
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+  background: transparent;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Cabeçalhos das colunas - COR AZUL */
+.data-table th {
+  background: #004488 !important; /* Cor sólida azul escuro */
+  color: var(--usifix-white);
+  padding: 0.75rem 0.5rem; /* Padding reduzido */
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.75rem; /* Fonte menor */
+  border-bottom: 3px solid #0066aa;
+  white-space: nowrap;
+  position: relative;
+  z-index: 51;
+}
+
+/* Cabeçalhos específicos das colunas Total Anual e Média Anual */
+.data-table th.total-col {
+  background: #333333 !important; /* Mesma cor da coluna Total Anual */
+  color: var(--usifix-white) !important;
+}
+
+.data-table th.average-col {
+  background: #888888 !important; /* Mesma cor da coluna Média Anual */
+  color: var(--usifix-white) !important;
+}
+
+/* COLUNA CATEGORIA - STICKY COM COR AZUL */
+.sticky-col {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 60 !important;
+  background: #004488 !important; /* Cor sólida azul escuro */
+  width: 12% !important; /* Largura percentual para responsividade */
+  min-width: 150px !important; 
+  max-width: 180px !important;
+  text-align: left !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Cabeçalho da coluna categoria (intersection) */
+.data-table thead th.sticky-col {
+  z-index: 65 !important; /* Intersection de sticky horizontal + vertical */
+  background: #004488 !important; /* Cor sólida azul escuro */
+  color: var(--usifix-white) !important;
+}
+
+/* Colunas dos Meses - Largura Otimizada e Centralizada */
+.month-col {
+  width: 6% !important; /* Largura percentual */
+  min-width: 70px !important;
+  max-width: 80px !important;
+  text-align: center !important; /* Garantir centralização */
+}
+
+/* Células específicas dos meses - Centralizar conteúdo */
+.month-col .cell-content {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.total-col {
+  background: #333333 !important; /* Cor sólida cinza muito escuro */
+  color: var(--usifix-white);
+  width: 8% !important; /* Largura percentual */
+  min-width: 90px !important;
+  max-width: 110px !important;
+}
+
+.average-col {
+  background: #888888 !important; /* Cor sólida cinza médio claro */
+  color: var(--usifix-white);
+  width: 8% !important; /* Largura percentual */
+  min-width: 90px !important;
+  max-width: 110px !important;
+}
+
+/* Linhas da tabela - SEM SCALING NO HOVER */
+.data-table tbody tr {
+  transition: background-color var(--usifix-transition-fast); /* Apenas transição de cor */
+}
+
+.data-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.2);
+  /* Removido transform: scale() para evitar comportamento indesejado */
+  /* Removido box-shadow para evitar "pulo" visual */
+}
+
+/* Células normais - CENTRALIZADAS */
+.data-table td {
+  padding: 0.5rem 0.25rem; /* Padding reduzido */
+  border-bottom: 1px solid var(--usifix-gray-200);
+  vertical-align: middle;
+  text-align: center !important; /* Forçar centralização */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem; /* Fonte menor */
+}
+
+/* CÉLULAS DA CATEGORIA - COR AZUL E UNIFORME */
+.category-cell {
+  position: sticky !important;
+  left: 0 !important;
+  background: #0066aa !important; /* Cor sólida azul uniforme */
+  font-weight: 600;
+  color: var(--usifix-white) !important;
+  text-align: left !important;
+  border-right: 2px solid #004488;
+  width: 12% !important; /* Largura percentual */
+  min-width: 150px !important;
+  max-width: 180px !important;
+  z-index: 55 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.12) !important;
+  font-size: 0.7rem !important; /* Fonte ainda menor */
+  padding: 0.4rem !important; /* Padding mais reduzido */
+  white-space: normal !important; /* Permitir quebra de linha */
+  word-wrap: break-word !important; /* Quebrar palavras longas */
+  line-height: 1.1 !important; /* Espaçamento de linha mais compacto */
+  position: relative !important; /* Para posicionar o ícone */
+  overflow: visible !important; /* Permitir que o editor apareça */
+}
+
+/* Quando o editor está ativo, aumentar o z-index da célula */
+.category-cell:has(.notes-editor) {
+  z-index: 999 !important;
+}
+
+/* Conteúdo da célula categoria - Alinhar à esquerda */
+.category-cell .cell-content {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+/* Ícone de anotações no canto superior direito */
+.notes-icon {
+  position: absolute !important;
+  top: 2px !important;
+  right: 4px !important;
+  width: 14px !important;
+  height: 14px !important;
+  background: transparent !important; /* Fundo transparente */
+  color: #ffffff !important; /* Cor branca */
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 10px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  z-index: 60 !important;
+  border: none !important; /* Sem borda */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important; /* Sombra no texto para melhor visibilidade */
+}
+
+.notes-icon:hover {
+  color: #f0f0f0 !important; /* Cor ligeiramente diferente no hover */
+  transform: scale(1.2) !important;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7) !important; /* Sombra mais forte no hover */
+}
+
+/* Editor de anotações */
+.notes-editor {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  width: 300px !important; /* Largura fixa */
+  background: #ffffff !important;
+  border: 2px solid #0066aa !important;
+  border-radius: 6px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important; /* Sombra mais forte */
+  z-index: 1000 !important; /* Z-index muito alto para aparecer à frente */
+  padding: 12px !important;
+  pointer-events: auto !important; /* Garantir que eventos funcionem */
+  user-select: auto !important; /* Permitir seleção */
+  max-height: 300px !important; /* Altura máxima */
+  overflow: visible !important; /* Permitir expansão */
+}
+
+.notes-textarea {
+  width: 100% !important;
+  min-height: 80px !important;
+  max-height: 250px !important; /* Altura máxima para não ficar gigante */
+  border: 1px solid #cccccc !important;
+  border-radius: 4px !important;
+  padding: 8px !important;
+  font-size: 0.8rem !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  resize: none !important; /* Remover resize manual, será automático */
+  outline: none !important;
+  color: #333333 !important;
+  background: #ffffff !important;
+  pointer-events: auto !important; /* Garantir que eventos de mouse funcionem */
+  user-select: text !important; /* Permitir seleção de texto */
+  -webkit-user-select: text !important; /* Compatibilidade webkit */
+  -moz-user-select: text !important; /* Compatibilidade firefox */
+  box-sizing: border-box !important;
+  line-height: 1.4 !important; /* Melhor espaçamento de linha */
+  overflow-y: auto !important; /* Scroll vertical quando necessário */
+  transition: height 0.2s ease !important; /* Transição suave na altura */
+}
+
+.notes-textarea:focus {
+  border-color: #0066aa !important;
+  box-shadow: 0 0 0 2px rgba(0, 102, 170, 0.2) !important;
+}
+
+/* Garantir que o textarea seja interativo */
+.notes-textarea:not([disabled]):not([readonly]) {
+  cursor: text !important;
+}
+
+/* Corrigir possíveis conflitos de z-index */
+.notes-editor * {
+  pointer-events: auto !important;
+}
+
+.notes-editor-hint {
+  font-size: 0.7rem !important;
+  color: #666666 !important;
+  margin-top: 6px !important;
+  text-align: center !important;
+  font-style: italic !important;
+}
+
+/* Backdrop para dar destaque ao editor quando ativo */
+.notes-editor::before {
+  content: '' !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.1) !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+}
+
+/* REMOVER INTERCALAÇÃO - TODAS AS LINHAS DA CATEGORIA IGUAIS */
+.data-table tbody tr:nth-child(even) .category-cell {
+  background: #0066aa !important; /* Mesma cor sólida azul */
+  color: var(--usifix-white) !important;
+}
+
+.data-table tbody tr:hover .category-cell {
+  background: #0066aa !important; /* Mesma cor sólida azul no hover */
+  color: var(--usifix-white) !important;
+  /* Removido transform: scale() */
+}
+
+.number-cell {
+  text-align: center !important; /* Centralizado */
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.total-cell {
+  background: #333333 !important; /* Cor sólida cinza muito escuro */
+  color: var(--usifix-white);
+  font-weight: 700;
+  width: 8% !important;
+  min-width: 90px !important;
+  max-width: 110px !important;
+}
+
+.average-cell {
+  background: #888888 !important; /* Cor sólida cinza médio claro */
+  color: var(--usifix-white);
+  font-weight: 700;
+  width: 8% !important;
+  min-width: 90px !important;
+  max-width: 110px !important;
+}
+
+/* Cell Content - SEM SCALING NO HOVER */
+.cell-content {
+  cursor: pointer;
+  padding: 0.2rem; /* Padding reduzido */
+  border-radius: var(--usifix-radius-sm);
+  transition: background-color var(--usifix-transition-fast); /* Apenas transição de cor */
+  min-height: 1.2rem; /* Altura reduzida */
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centralizado */
+  font-size: 0.75rem; /* Fonte menor */
+  text-align: center; /* Garantir centralização do texto */
+}
+
+.cell-content:hover {
+  background: rgba(68, 68, 68, 0.1);
+  /* Removido transform: scale() para evitar comportamento indesejado */
+}
+
+.cell-input {
+  width: 100%;
+  border: 2px solid #444444;
+  border-radius: var(--usifix-radius-sm);
+  padding: 0.3rem; /* Padding reduzido */
+  font-size: 0.75rem; /* Fonte menor */
+  background: var(--usifix-white);
+  color: var(--usifix-gray-900);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(68, 68, 68, 0.1);
+}
+
+.number-input {
+  text-align: center !important; /* Centralizado */
+}
+
+/* TOTALS ROW - COR AZUL */
+.totals-row {
+  background: #002244 !important; /* Cor sólida azul escurissimo */
+  color: var(--usifix-white);
+  font-weight: 700;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.totals-row td {
+  padding: 0.75rem 0.5rem; /* Padding ajustado */
+  border-top: 3px solid #003366;
+  border-bottom: none;
+  background: #002244 !important; /* Cor sólida azul escurissimo (para meses) */
+  font-size: 0.75rem; /* Fonte menor */
+}
+
+/* Sobrescrever cores específicas para Total Anual e Média Anual */
+.totals-row .grand-total {
+  background: #333333 !important; /* Mesma cor da coluna Total Anual */
+}
+
+.totals-row .average-total {
+  background: #888888 !important; /* Mesma cor da coluna Média Anual */
+}
+
+/* TOTAL LABEL - COR AZUL */
+.total-label {
+  position: sticky !important;
+  left: 0 !important;
+  background: #002244 !important; /* Cor sólida azul escurissimo */
+  text-align: left !important;
+  font-size: 0.75rem !important; /* Fonte menor */
+  font-weight: 700;
+  z-index: 65 !important; /* Intersection sticky */
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.15) !important;
+  color: var(--usifix-white) !important;
+  width: 12% !important; /* Largura percentual */
+  min-width: 150px !important;
+  max-width: 180px !important;
+}
+
+.total-value {
+  text-align: center !important; /* Centralizado */
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.75rem; /* Fonte menor */
+}
+
+.grand-total {
+  background: #333333 !important; /* Mesma cor da coluna Total Anual */
+  font-size: 0.8rem; /* Fonte um pouco maior para destaque */
+  font-weight: 800;
+}
+
+.average-total {
+  background: #888888 !important; /* Cor sólida cinza médio claro */
+  font-size: 0.8rem; /* Fonte um pouco maior para destaque */
+  font-weight: 800;
+}
+
+/* MAIOR VALOR DA LINHA - APENAS TEXTO VERMELHO */
+.max-value-cell {
+  color: #dc2626 !important; /* Apenas texto vermelho */
+  font-weight: 700 !important;
+}
+
+/* Table Navigation Bottom - Com Indicador de Posição */
+.table-navigation-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  height: 80px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+}
+
+.nav-arrow {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 2px solid #444444;
+  color: #444444;
+  padding: 0.75rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--usifix-transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.nav-arrow:hover:not(.disabled) {
+  background: #444444;
+  color: var(--usifix-white);
+  transform: scale(1.1);
+  box-shadow: var(--usifix-shadow-lg);
+}
+
+.nav-arrow.disabled {
+  background: var(--usifix-gray-100);
+  border-color: var(--usifix-gray-300);
+  color: var(--usifix-gray-400);
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+/* Indicador de Posição do Scroll */
+.scroll-indicator {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--usifix-radius-md);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--usifix-gray-700);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .table-view {
+    padding: 0;
+  }
+  
+  .table-error,
+  .table-empty {
+    margin: 0.75rem;
+  }
+  
+  .table-toolbar {
+    padding: 0.75rem 1rem;
+  }
+  
+  .table-title {
+    font-size: 1.125rem;
+  }
+  
+  .export-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+  
+  .table-wrapper {
+    height: auto;
+  }
+  
+  .table-navigation-bottom {
+    padding: 0.75rem 1rem;
+    height: 70px;
+  }
+  
+  .table-container {
+    height: auto;
+    margin: 0.75rem;
+  }
+  
+  .nav-arrow {
+    width: 40px;
+    height: 40px;
+    padding: 0.5rem;
+  }
+  
+  .data-table {
+    font-size: 0.8rem;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.5rem;
+  }
+  
+  .sticky-col {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+  }
+  
+  .category-cell {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+  }
+
+  .month-col {
+    width: 110px !important;
+    min-width: 110px !important;
+    max-width: 110px !important;
+  }
+
+  .total-col,
+  .average-col,
+  .total-cell,
+  .average-cell {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-view {
+    padding: 0;
+  }
+  
+  .table-error,
+  .table-empty {
+    margin: 0.5rem;
+  }
+  
+  .table-toolbar {
+    padding: 0.5rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+  
+  .toolbar-left {
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .toolbar-right {
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .table-title {
+    font-size: 1rem;
+  }
+  
+  .export-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    min-width: 60px;
+  }
+  
+  .table-wrapper {
+    height: auto;
+  }
+  
+  .table-navigation-bottom {
+    padding: 0.5rem;
+    height: 60px;
+  }
+  
+  .table-container {
+    height: auto;
+    margin: 0.5rem;
+  }
+  
+  .nav-arrow {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .data-table {
+    font-size: 0.75rem;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 0.4rem 0.3rem;
+  }
+  
+  .sticky-col {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+  }
+  
+  .category-cell {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+  }
+
+  .month-col {
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+  }
+  
+  .cell-content {
+    padding: 0.2rem;
+  }
+
+  .total-col,
+  .average-col,
+  .total-cell,
+  .average-cell {
+    width: 110px !important;
+    min-width: 110px !important;
+    max-width: 110px !important;
+  }
+
+  .scroll-indicator {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-view {
+    padding: 0;
+  }
+  
+  .table-error,
+  .table-empty {
+    margin: 0.25rem;
+  }
+  
+  .table-toolbar {
+    padding: 0.4rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .toolbar-left {
+    gap: 0.5rem;
+  }
+  
+  .table-title {
+    font-size: 0.9rem;
+  }
+  
+  .table-count {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+  }
+  
+  .export-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    min-width: 50px;
+  }
+  
+  .table-wrapper {
+    height: auto;
+  }
+  
+  .table-container {
+    height: auto;
+    margin: 0.25rem;
+  }
+  
+  .table-navigation-bottom {
+    padding: 0.5rem;
+    height: 50px;
+  }
+  
+  .nav-arrow {
+    width: 32px;
+    height: 32px;
+    padding: 0.25rem;
+  }
+  
+  .data-table {
+    font-size: 0.7rem;
+  }
+  
+  .sticky-col {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+  }
+  
+  .category-cell {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+  }
+
+  .month-col {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.3rem 0.2rem;
+  }
+
+  .total-col,
+  .average-col,
+  .total-cell,
+  .average-cell {
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+  }
+
+  .scroll-indicator {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* Animações */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.table-navigation-bottom {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.data-table tbody tr {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+.data-table tbody tr:nth-child(even) {
+  animation-delay: 0.05s;
+}
+
+/* Estados de edição */
+.cell-input:focus {
+  border-color: #444444;
+  box-shadow: 0 0 0 3px rgba(68, 68, 68, 0.2);
+}
+
+/* Garantir que o conteúdo não fique atrás dos elementos fixos */
+.data-table tbody {
+  position: relative;
+  z-index: 1;
+}
+
+/* Z-index hierarchy para tabelas:
+   65 - Intersecções sticky (header categoria)
+   60 - Coluna sticky horizontal (categoria)
+   55 - Células sticky da categoria
+   51 - Cabeçalhos normais
+   50 - thead/tfoot
+   10 - Navegação inferior
+   1  - Conteúdo normal
+*/
+
+/* Responsividade para telas menores */
+@media (max-width: 1400px) {
+  .data-table {
+    font-size: 0.7rem;
+  }
+  
+  .sticky-col {
+    min-width: 120px !important;
+    max-width: 150px !important;
+  }
+  
+  .month-col {
+    min-width: 60px !important;
+    max-width: 70px !important;
+  }
+  
+  .total-col, .average-col {
+    min-width: 80px !important;
+    max-width: 90px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .data-table {
+    font-size: 0.65rem;
+  }
+  
+  .sticky-col {
+    min-width: 100px !important;
+    max-width: 130px !important;
+  }
+  
+  .month-col {
+    min-width: 50px !important;
+    max-width: 60px !important;
+  }
+  
+  .total-col, .average-col {
+    min-width: 70px !important;
+    max-width: 80px !important;
+  }
+} 
