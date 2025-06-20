@@ -1,13 +1,25 @@
 /* Table View Styles - Tema Usifix */
 
-/* REMOVER TODAS AS BARRAS DE ROLAGEM */
+/* REMOVER TODAS AS BARRAS DE ROLAGEM - ABRANGENTE */
 .table-view,
 .table-wrapper,
 .table-container,
 .table-scroll-container,
 .data-table,
 .data-table *,
-.table-view * {
+.data-table tbody,
+.data-table tbody *,
+.data-table thead,
+.data-table thead *,
+.data-table tfoot,
+.data-table tfoot *,
+.data-table tr,
+.data-table tr *,
+.data-table td,
+.data-table th,
+.table-view *,
+body,
+html {
   overflow: hidden !important;
   -ms-overflow-style: none !important;  /* Internet Explorer 10+ */
   scrollbar-width: none !important;  /* Firefox */
@@ -17,8 +29,17 @@
 .table-wrapper::-webkit-scrollbar,
 .table-container::-webkit-scrollbar,
 .table-scroll-container::-webkit-scrollbar,
-.data-table::-webkit-scrollbar {
+.data-table::-webkit-scrollbar,
+.data-table tbody::-webkit-scrollbar,
+.data-table thead::-webkit-scrollbar,
+.data-table tfoot::-webkit-scrollbar,
+.data-table tr::-webkit-scrollbar,
+.data-table td::-webkit-scrollbar,
+.data-table th::-webkit-scrollbar,
+*::-webkit-scrollbar {
   display: none !important; /* Safari and Chrome */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .table-view {
@@ -144,6 +165,14 @@
   z-index: 998 !important;
 }
 
+/* Exceções para overflow visível - DROPDOWN e ANOTAÇÕES */
+.total-label-container,
+.notes-editor,
+.total-dropdown,
+.dropdown-option {
+  overflow: visible !important;
+}
+
 /* Controles de navegação FIXOS à direita da tabela */
 .scroll-controls-fixed {
   position: fixed;
@@ -221,7 +250,7 @@
   border-radius: var(--usifix-radius-lg);
   flex-shrink: 0; /* Não encolher */
   pointer-events: auto; /* Garantir que eventos funcionem */
-  margin-bottom: 120px; /* Espaço para o dropdown aparecer */
+  margin-bottom: 60px; /* Espaço reduzido para o dropdown aparecer */
 }
 
 /* Permitir que dropdown apareça fora do container */
@@ -1191,9 +1220,10 @@
 }
 
 .total-dropdown {
-  position: absolute !important; /* Position absolute relativo ao container */
-  top: 100% !important; /* Embaixo do TOTAL GERAL */
-  left: 0 !important; /* Alinhado à esquerda do texto */
+  position: fixed !important; /* Position fixed para garantir que apareça */
+  top: auto !important;
+  bottom: 60px !important; /* Posicionar logo acima de TOTAL GERAL */
+  left:0px !important; /* Posição mais à direita, próximo de VALE TRANSPORTE */
   background: var(--usifix-white);
   border: 2px solid #004488;
   border-radius: var(--usifix-radius-md);
@@ -1202,7 +1232,6 @@
   min-width: 140px;
   overflow: visible !important; /* Garantir que apareça */
   backdrop-filter: blur(10px);
-  margin-top: 2px; /* Pequeno espaço entre o texto e o dropdown */
 }
 
 .dropdown-option {
