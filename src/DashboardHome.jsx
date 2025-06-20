@@ -6,11 +6,13 @@ export default function DashboardHome() {
   const [stats, setStats] = useState({
     administrativo: { total: 0, count: 0 },
     almoxarifado: { total: 0, count: 0 },
-    comercial: { total: 0, count: 0 },
+    faturamento: { total: 0, count: 0 },
     impostos: { total: 0, count: 0 },
     logistica: { total: 0, count: 0 },
     manutencao: { total: 0, count: 0 },
-    rh: { total: 0, count: 0 }
+    rh_gastos_gerais: { total: 0, count: 0 },
+    rh_custos_totais: { total: 0, count: 0 },
+    rh_passivo_trabalhista: { total: 0, count: 0 }
   })
   const [loading, setLoading] = useState(true)
 
@@ -21,7 +23,7 @@ export default function DashboardHome() {
   const loadDashboardData = async () => {
     setLoading(true)
     try {
-      const tables = ['administrativo', 'almoxarifado', 'comercial', 'impostos', 'logistica', 'manutencao', 'rh']
+      const tables = ['administrativo', 'almoxarifado', 'faturamento', 'impostos', 'logistica', 'manutencao', 'rh_gastos_gerais', 'rh_custos_totais', 'rh_passivo_trabalhista']
       const newStats = {}
 
       for (const table of tables) {
@@ -65,14 +67,19 @@ export default function DashboardHome() {
   const departmentConfig = {
     administrativo: { name: 'Administrativo', icon: '📊', color: '#008dd0' },
     almoxarifado: { name: 'Almoxarifado', icon: '📦', color: '#95c6eb' },
-    comercial: { name: 'Comercial', icon: '💼', color: '#4ba3d1' },
+    faturamento: { name: 'Faturamento', icon: '💰', color: '#4ba3d1' },
     impostos: { name: 'Impostos', icon: '📋', color: '#006ba3' },
     logistica: { name: 'Logística', icon: '🚛', color: '#005a8a' },
     manutencao: { name: 'Manutenção', icon: '🔧', color: '#004e75' },
-    rh: { name: 'Recursos Humanos', icon: '👥', color: '#003d5c' }
+    rh_gastos_gerais: { name: 'RH - Gastos Gerais', icon: '💰', color: '#8B5CF6' },
+    rh_custos_totais: { name: 'RH - Custos Totais', icon: '📊', color: '#7C3AED' },
+    rh_passivo_trabalhista: { name: 'RH - Passivo Trabalhista', icon: '⚖️', color: '#6D28D9' }
   }
 
-  const totalGeral = Object.values(stats).reduce((sum, stat) => sum + stat.total, 0)
+  // Excluir faturamento do total geral (pois é receita, não gasto)
+  const totalGeral = Object.entries(stats)
+    .filter(([key]) => key !== 'faturamento')
+    .reduce((sum, [, stat]) => sum + stat.total, 0)
   const totalRegistros = Object.values(stats).reduce((sum, stat) => sum + stat.count, 0)
 
   if (loading) {

@@ -22,6 +22,7 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
   const [showTotalDropdown, setShowTotalDropdown] = useState(false)
   const [totalDisplayMode, setTotalDisplayMode] = useState('total') // 'total', 'media', 'comparativo'
   const [previousMonthData, setPreviousMonthData] = useState({})
+  const [currentRowIndex, setCurrentRowIndex] = useState(0) // Índice da primeira linha visível
   const tableRef = useRef(null)
   const notesTextareaRef = useRef(null) // Ref para o textarea das anotações
   const dropdownRef = useRef(null)
@@ -63,10 +64,10 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
     return total / filledMonths.length
   }
 
-  // Totais das colunas
+  // Totais das colunas (exceto para tabela impostos - não mostrar TOTAL GERAL)
   const columnTotals = { Total_Anual: 0, Media_Anual: 0 }
   
-  if (data && data.length > 0) {
+  if (data && data.length > 0 && tableName !== 'impostos') {
     monthKeys.forEach(month => {
       columnTotals[month] = data.reduce((sum, row) => sum + parseNumber(row[month]), 0)
     })
@@ -78,7 +79,7 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
       ? validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length 
       : 0
   } else {
-    // Inicializar totais como zero quando não há dados
+    // Inicializar totais como zero quando não há dados ou para tabela impostos
     monthKeys.forEach(month => {
       columnTotals[month] = 0
     })
@@ -172,7 +173,103 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
       })
       setNotes(notesData)
 
-      setData(processedData)
+      // Tratamentos especiais para diferentes tabelas
+      let finalData = processedData
+      
+      // Tratamento especial para tabela faturamento - criar linha "Faturamento X Meta"
+      if (tableName === 'faturamento') {
+        const faturamentoRow = processedData.find(row => row.categoria.toLowerCase().trim() === 'faturamento')
+        const metaRow = processedData.find(row => row.categoria.toLowerCase().trim() === 'meta')
+        
+        if (faturamentoRow && metaRow) {
+
+          
+          // Verificar se já existe linha "Faturamento X Meta"
+          const existingRow = processedData.find(row => row.categoria.toLowerCase().includes('faturamento x meta'))
+          
+          if (!existingRow) {
+            // Criar linha "Faturamento X Meta" automaticamente
+            const faturamentoMetaRow = {
+              id: Date.now(), // ID temporário único
+              categoria: 'Faturamento X Meta',
+              ano: new Date().getFullYear(),
+              anotacoes: ''
+            }
+            
+            // Calcular diferença para cada mês (Meta - Faturamento para inverter a lógica)
+            monthKeys.forEach(month => {
+              const faturamento = parseNumber(faturamentoRow[month])
+              const meta = parseNumber(metaRow[month])
+              faturamentoMetaRow[month] = meta - faturamento
+            })
+            
+            // Calcular totais da diferença
+            faturamentoMetaRow.Total_Anual = calculateTotal(faturamentoMetaRow)
+            faturamentoMetaRow.Media_Anual = calculateAverage(faturamentoMetaRow)
+            
+            // Adicionar linha após a linha Meta
+            const metaIndex = finalData.findIndex(row => row.categoria.toLowerCase() === 'meta')
+            if (metaIndex !== -1) {
+              finalData.splice(metaIndex + 1, 0, faturamentoMetaRow)
+            } else {
+              finalData.push(faturamentoMetaRow)
+            }
+          }
+        }
+
+        // Tratamento especial para tabela impostos - criar linha "Impostos" baseada no faturamento
+        if (tableName === 'impostos') {
+          try {
+            // Buscar dados de faturamento da tabela faturamento
+            const { data: faturamentoData, error: faturamentoError } = await supabase
+              .from('faturamento')
+              .select('*')
+              .order('id', { ascending: true })
+
+            if (!faturamentoError && faturamentoData && faturamentoData.length > 0) {
+              // Encontrar linha de faturamento (não "Meta" ou "Faturamento X Meta")
+              const faturamentoRow = faturamentoData.find(row => 
+                row.categoria && 
+                row.categoria.toLowerCase().trim() === 'faturamento'
+              )
+
+              if (faturamentoRow) {
+                // Verificar se já existe linha "Impostos"
+                const existingImpostosRow = finalData.find(row => 
+                  row.categoria && row.categoria.toLowerCase().trim() === 'impostos'
+                )
+
+                if (!existingImpostosRow) {
+                  // Criar linha "Impostos" automaticamente (16,33% do faturamento)
+                  const impostosRow = {
+                    id: Date.now(), // ID temporário único
+                    categoria: 'Impostos',
+                    ano: new Date().getFullYear()
+                  }
+
+                  // Calcular 16,33% do faturamento para cada mês
+                  const percentualImpostos = 0.1633 // 16,33%
+                  monthKeys.forEach(month => {
+                    const faturamentoMes = parseNumber(faturamentoRow[month])
+                    impostosRow[month] = faturamentoMes * percentualImpostos
+                  })
+
+                  // Calcular para Total Anual
+                  const faturamentoTotal = parseNumber(faturamentoRow.Total_Anual)
+                  impostosRow.Total_Anual = faturamentoTotal * percentualImpostos
+
+                  // Adicionar linha no início da tabela
+                  finalData.unshift(impostosRow)
+                }
+              }
+            }
+          } catch (faturamentoFetchError) {
+            console.warn('Erro ao buscar dados de faturamento para cálculo de impostos:', faturamentoFetchError)
+          }
+        }
+      }
+
+      setData(finalData)
     } catch (err) {
       console.error('Erro ao carregar dados:', err)
       setError('Erro ao carregar os dados da tabela')
@@ -187,6 +284,14 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
     
     const row = data.find(r => r.id === id)
     if (!row) return
+    
+    // Impedir edição de linhas calculadas automaticamente
+    if (tableName === 'impostos' && row.categoria && row.categoria.toLowerCase().trim() === 'impostos') {
+      return // Linha "Impostos" não pode ser editada
+    }
+    if (tableName === 'faturamento' && row.categoria && row.categoria.toLowerCase().includes('faturamento x meta')) {
+      return // Linha "Faturamento X Meta" não pode ser editada
+    }
     
     const currentValue = field === 'categoria' ? row[field] : formatForInput(row[field])
     setEditingCell({ id, field })
@@ -417,14 +522,14 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
     return averages
   }
 
-  // Função para calcular comparativo (tabela comercial: diferença com meta, outras: mês anterior)
+  // Função para calcular comparativo (tabela faturamento: diferença com meta, outras: mês anterior)
   const getPreviousMonthComparison = useMemo(() => {
     const comparisons = {}
     if (data && data.length > 0) {
-      if (tableName === 'comercial') {
-        // Para tabela comercial: mostrar diferença com a meta
-        const faturamentoRow = data.find(row => row.categoria.toLowerCase().includes('faturamento'))
-        const metaRow = data.find(row => row.categoria.toLowerCase().includes('meta'))
+      if (tableName === 'faturamento') {
+        // Para tabela faturamento: mostrar diferença com a meta (excluindo "Faturamento X Meta")
+        const faturamentoRow = data.find(row => row.categoria.toLowerCase().trim() === 'faturamento')
+        const metaRow = data.find(row => row.categoria.toLowerCase().trim() === 'meta')
         
         if (faturamentoRow && metaRow) {
           monthKeys.forEach(month => {
@@ -432,7 +537,7 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
             const meta = parseNumber(metaRow[month])
             
             if (meta > 0) {
-              const diferenca = faturamento - meta // Faturamento - Meta
+              const diferenca = meta - faturamento // Meta - Faturamento (invertido para consistência)
               comparisons[month] = diferenca
             } else {
               comparisons[month] = null
@@ -443,7 +548,7 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
           const faturamentoTotal = parseNumber(faturamentoRow.Total_Anual)
           const metaTotal = parseNumber(metaRow.Total_Anual)
           if (metaTotal > 0) {
-            comparisons.Total_Anual = faturamentoTotal - metaTotal
+            comparisons.Total_Anual = metaTotal - faturamentoTotal
           } else {
             comparisons.Total_Anual = null
           }
@@ -520,8 +625,8 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
           )
         }
         
-        // Para tabela comercial, mostrar valor absoluto da diferença com a meta
-        if (tableName === 'comercial') {
+        // Para tabela faturamento, mostrar valor absoluto da diferença com a meta
+        if (tableName === 'faturamento') {
           return formatFaturamentoMetaValue(variation)
         } else {
           // Para outras tabelas, mostrar percentual
@@ -533,8 +638,8 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
         }
       
       default: // 'total'
-        // Tratamento especial para tabela comercial - mostrar % de atingimento da meta
-        if (tableName === 'comercial') {
+        // Tratamento especial para tabela faturamento - mostrar % de atingimento da meta
+        if (tableName === 'faturamento') {
           const achievement = calculateGoalAchievement()
           const percentage = achievement[field] || 0
           return formatAchievement(percentage)
@@ -545,13 +650,13 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
     }
   }
 
-  // Função para calcular percentual de atingimento da meta (específico para tabela comercial)
+  // Função para calcular percentual de atingimento da meta (específico para tabela faturamento)
   const calculateGoalAchievement = () => {
     const achievement = {}
-    if (tableName === 'comercial' && data && data.length > 0) {
-      // Encontrar as linhas de Faturamento e Meta
-      const faturamentoRow = data.find(row => row.categoria.toLowerCase().includes('faturamento'))
-      const metaRow = data.find(row => row.categoria.toLowerCase().includes('meta'))
+    if (tableName === 'faturamento' && data && data.length > 0) {
+      // Encontrar as linhas de Faturamento e Meta (excluindo "Faturamento X Meta")
+      const faturamentoRow = data.find(row => row.categoria.toLowerCase().trim() === 'faturamento')
+      const metaRow = data.find(row => row.categoria.toLowerCase().trim() === 'meta')
       
       if (faturamentoRow && metaRow) {
         monthKeys.forEach(month => {
@@ -604,20 +709,20 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
     const numValue = parseNumber(value)
     if (numValue === 0) return formatNumber(0)
     
-    // Faturamento - Meta: se positivo (ultrapassou)=verde com +, se negativo (não atingiu)=vermelho com -
-    const color = numValue > 0 ? '#22c55e' : '#ef4444'
-    const sign = numValue > 0 ? '+' : '-'
+    // Inverter valor e sinal para lógica intuitiva: + = ultrapassou (verde), - = não atingiu (vermelho)
+    const invertedValue = -numValue
+    const color = invertedValue > 0 ? '#22c55e' : '#ef4444'
     
     return (
       <span style={{ color, fontWeight: 'bold' }}>
-        {sign}{formatNumber(Math.abs(numValue))}
+        {invertedValue > 0 ? '+' : ''}{formatNumber(invertedValue)}
       </span>
     )
   }
 
   // Função para obter o texto do label baseado no modo selecionado
   const getTotalLabel = () => {
-    if (tableName === 'comercial') {
+    if (tableName === 'faturamento') {
       switch (totalDisplayMode) {
         case 'media':
           return 'MÉDIA GERAL'
@@ -650,15 +755,15 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
       // Preparar dados para CSV
       const csvData = []
       
-      // Cabeçalho (sem Média Anual para tabela comercial)
-      const header = tableName === 'comercial' 
+      // Cabeçalho (sem Média Anual para tabela faturamento)
+      const header = tableName === 'faturamento' 
         ? ['Categoria', ...monthKeys, 'Total Anual']
         : ['Categoria', ...monthKeys, 'Total Anual', 'Média Anual']
       csvData.push(header)
       
-      // Dados das linhas (sem Média Anual para tabela comercial)
+      // Dados das linhas (sem Média Anual para tabela faturamento)
       data.forEach(row => {
-        const csvRow = tableName === 'comercial'
+        const csvRow = tableName === 'faturamento'
           ? [
               row.categoria,
               ...monthKeys.map(month => parseNumber(row[month])),
@@ -673,24 +778,26 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
         csvData.push(csvRow)
       })
       
-      // Linha de totais (tratamento especial para comercial)
-      let totalsRow
-      if (tableName === 'comercial') {
-        const achievement = calculateGoalAchievement()
-        totalsRow = [
-          'ATINGIMENTO META',
-          ...monthKeys.map(month => `${(achievement[month] || 0).toFixed(1)}%`),
-          `${(achievement.Total_Anual || 0).toFixed(1)}%`
-        ]
-      } else {
-        totalsRow = [
-          'TOTAL GERAL',
-          ...monthKeys.map(month => parseNumber(columnTotals[month])),
-          parseNumber(columnTotals.Total_Anual),
-          parseNumber(columnTotals.Media_Anual)
-        ]
+              // Linha de totais (tratamento especial para faturamento, excluir para impostos)
+      if (tableName !== 'impostos') {
+        let totalsRow
+        if (tableName === 'faturamento') {
+          const achievement = calculateGoalAchievement()
+          totalsRow = [
+            'ATINGIMENTO META',
+            ...monthKeys.map(month => `${(achievement[month] || 0).toFixed(1)}%`),
+            `${(achievement.Total_Anual || 0).toFixed(1)}%`
+          ]
+        } else {
+          totalsRow = [
+            'TOTAL GERAL',
+            ...monthKeys.map(month => parseNumber(columnTotals[month])),
+            parseNumber(columnTotals.Total_Anual),
+            parseNumber(columnTotals.Media_Anual)
+          ]
+        }
+        csvData.push(totalsRow)
       }
-      csvData.push(totalsRow)
       
       // Converter para CSV
       const csvContent = csvData.map(row => row.join(';')).join('\n')
@@ -719,15 +826,15 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
       // Preparar dados para Excel
       const wsData = []
       
-      // Cabeçalho (sem Média Anual para tabela comercial)
-      const header = tableName === 'comercial' 
+      // Cabeçalho (sem Média Anual para tabela faturamento)
+      const header = tableName === 'faturamento' 
         ? ['Categoria', ...monthKeys, 'Total Anual']
         : ['Categoria', ...monthKeys, 'Total Anual', 'Média Anual']
       wsData.push(header)
       
-      // Dados das linhas (sem Média Anual para tabela comercial)
+      // Dados das linhas (sem Média Anual para tabela faturamento)
       data.forEach(row => {
-        const excelRow = tableName === 'comercial'
+        const excelRow = tableName === 'faturamento'
           ? [
               row.categoria,
               ...monthKeys.map(month => parseNumber(row[month])),
@@ -742,24 +849,26 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
         wsData.push(excelRow)
       })
       
-      // Linha de totais (tratamento especial para comercial)
-      let totalsRow
-      if (tableName === 'comercial') {
-        const achievement = calculateGoalAchievement()
-        totalsRow = [
-          'ATINGIMENTO META',
-          ...monthKeys.map(month => `${(achievement[month] || 0).toFixed(1)}%`),
-          `${(achievement.Total_Anual || 0).toFixed(1)}%`
-        ]
-      } else {
-        totalsRow = [
-          'TOTAL GERAL',
-          ...monthKeys.map(month => parseNumber(columnTotals[month])),
-          parseNumber(columnTotals.Total_Anual),
-          parseNumber(columnTotals.Media_Anual)
-        ]
+      // Linha de totais (tratamento especial para faturamento, excluir para impostos)
+      if (tableName !== 'impostos') {
+        let totalsRow
+        if (tableName === 'faturamento') {
+          const achievement = calculateGoalAchievement()
+          totalsRow = [
+            'ATINGIMENTO META',
+            ...monthKeys.map(month => `${(achievement[month] || 0).toFixed(1)}%`),
+            `${(achievement.Total_Anual || 0).toFixed(1)}%`
+          ]
+        } else {
+          totalsRow = [
+            'TOTAL GERAL',
+            ...monthKeys.map(month => parseNumber(columnTotals[month])),
+            parseNumber(columnTotals.Total_Anual),
+            parseNumber(columnTotals.Media_Anual)
+          ]
+        }
+        wsData.push(totalsRow)
       }
-      wsData.push(totalsRow)
       
       // Criar workbook e worksheet
       const wb = XLSX.utils.book_new()
@@ -794,9 +903,9 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
       // Preparar dados para tabela
       const tableData = []
       
-      // Dados das linhas (sem Média Anual para tabela comercial)
+      // Dados das linhas (sem Média Anual para tabela faturamento)
       data.forEach(row => {
-        const pdfRow = tableName === 'comercial'
+        const pdfRow = tableName === 'faturamento'
           ? [
               row.categoria,
               ...monthKeys.map(month => formatNumber(row[month])),
@@ -811,27 +920,29 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
         tableData.push(pdfRow)
       })
       
-      // Linha de totais (tratamento especial para comercial)
-      let totalsRow
-      if (tableName === 'comercial') {
-        const achievement = calculateGoalAchievement()
-        totalsRow = [
-          'ATINGIMENTO META',
-          ...monthKeys.map(month => `${(achievement[month] || 0).toFixed(1)}%`),
-          `${(achievement.Total_Anual || 0).toFixed(1)}%`
-        ]
-      } else {
-        totalsRow = [
-          'TOTAL GERAL',
-          ...monthKeys.map(month => formatNumber(columnTotals[month])),
-          formatNumber(columnTotals.Total_Anual),
-          formatNumber(columnTotals.Media_Anual)
-        ]
+      // Linha de totais (tratamento especial para faturamento, excluir para impostos)
+      if (tableName !== 'impostos') {
+        let totalsRow
+        if (tableName === 'faturamento') {
+          const achievement = calculateGoalAchievement()
+          totalsRow = [
+            'ATINGIMENTO META',
+            ...monthKeys.map(month => `${(achievement[month] || 0).toFixed(1)}%`),
+            `${(achievement.Total_Anual || 0).toFixed(1)}%`
+          ]
+        } else {
+          totalsRow = [
+            'TOTAL GERAL',
+            ...monthKeys.map(month => formatNumber(columnTotals[month])),
+            formatNumber(columnTotals.Total_Anual),
+            formatNumber(columnTotals.Media_Anual)
+          ]
+        }
+        tableData.push(totalsRow)
       }
-      tableData.push(totalsRow)
       
       // Adicionar tabela ocupando toda a página
-      const tableHeader = tableName === 'comercial' 
+      const tableHeader = tableName === 'faturamento' 
         ? [['Categoria', ...monthKeys, 'Total Anual']]
         : [['Categoria', ...monthKeys, 'Total Anual', 'Média Anual']]
       
@@ -855,7 +966,7 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
         },
         alternateRowStyles: { fillColor: [245, 245, 245] },
         bodyStyles: { textColor: [50, 50, 50] },
-        columnStyles: tableName === 'comercial' 
+        columnStyles: tableName === 'faturamento' 
           ? {
               0: { halign: 'left', cellWidth: 25 }, // Categoria - à esquerda
               1: { halign: 'center', cellWidth: 16.5 }, // Janeiro - centralizado
@@ -900,8 +1011,8 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
         tableBreak: 'avoid',
         rowPageBreak: 'avoid',
         didParseCell: function (data) {
-          // Aplicar estilo do cabeçalho na linha TOTAL GERAL
-          if (data.row.index === tableData.length - 1) { // Última linha (TOTAL GERAL)
+          // Aplicar estilo do cabeçalho na linha TOTAL GERAL (exceto para impostos)
+          if (tableName !== 'impostos' && data.row.index === tableData.length - 1) { // Última linha (TOTAL GERAL)
             data.cell.styles.fillColor = [0, 68, 136] // Mesma cor do cabeçalho
             data.cell.styles.textColor = [255, 255, 255] // Texto branco
             data.cell.styles.fontStyle = 'bold'
@@ -930,6 +1041,37 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
     }
   }
 
+  // Funções para navegação linha por linha
+  const scrollUp = () => {
+    if (currentRowIndex > 0) {
+      setCurrentRowIndex(currentRowIndex - 1)
+    }
+  }
+
+  const scrollDown = () => {
+    if (currentRowIndex < data.length) {
+      setCurrentRowIndex(currentRowIndex + 1)
+    }
+  }
+
+  // Calcular linhas visíveis baseado no índice atual
+  const getVisibleRows = () => {
+    if (!data || data.length === 0) return []
+    
+    // Se currentRowIndex = 0, mostra todas as linhas
+    // Se currentRowIndex > 0, esconde as primeiras currentRowIndex linhas
+    if (currentRowIndex === 0) {
+      return data
+    }
+    
+    return data.slice(currentRowIndex)
+  }
+
+  // Resetar índice quando mudar de tabela
+  useEffect(() => {
+    setCurrentRowIndex(0)
+  }, [tableName])
+
   if (loading) {
     return (
       <div className="table-loading">
@@ -952,10 +1094,34 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
     )
   }
 
+  const visibleRows = getVisibleRows()
+  const canScrollUp = currentRowIndex > 0
+  const canScrollDown = currentRowIndex < data.length
+
   return (
     <div className="table-view">
       <div className="table-wrapper">
         <div className="table-container">
+          {/* Setas posicionadas ao lado das colunas */}
+          <div className="scroll-controls-fixed">
+            <button 
+              className="scroll-arrow scroll-up"
+              onClick={scrollUp}
+              disabled={!canScrollUp}
+              title="Subir uma linha"
+            >
+              ▲
+            </button>
+            <button 
+              className="scroll-arrow scroll-down"
+              onClick={scrollDown}
+              disabled={!canScrollDown}
+              title="Descer uma linha"
+            >
+              ▼
+            </button>
+          </div>
+          
           <div className="table-scroll-container">
             <table ref={tableRef} className="data-table">
               <thead>
@@ -967,16 +1133,23 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
                     </th>
                   ))}
                   <th className="total-col">Total Anual</th>
-                  {/* Ocultar coluna Média Anual apenas na tabela comercial */}
-                  {tableName !== 'comercial' && (
+                  {/* Ocultar coluna Média Anual apenas na tabela faturamento */}
+                  {tableName !== 'faturamento' && (
                     <th className="average-col">Média Anual</th>
                   )}
                 </tr>
               </thead>
               <tbody>
-                {/* Só mostrar dados se há dados relevantes */}
-                {hasRelevantData && data.map((row) => (
-                  <tr key={row.id}>
+                {/* Mostrar apenas as linhas visíveis */}
+                {hasRelevantData && visibleRows.map((row) => {
+                  // Verificar se é uma linha calculada automaticamente
+                  const isAutoCalculated = (
+                    (tableName === 'impostos' && row.categoria && row.categoria.toLowerCase().trim() === 'impostos') ||
+                    (tableName === 'faturamento' && row.categoria && row.categoria.toLowerCase().includes('faturamento x meta'))
+                  )
+                  
+                  return (
+                  <tr key={row.id} className={isAutoCalculated ? 'auto-calculated-row' : ''}>
                     <td className="sticky-col category-cell">
                       {editingCell?.id === row.id && editingCell?.field === 'categoria' ? (
                         <input
@@ -993,8 +1166,20 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
                           <div 
                             className="cell-content"
                             onClick={() => handleCellClick(row.id, 'categoria')}
+                            title={isAutoCalculated ? 'Linha calculada automaticamente - não editável' : undefined}
                           >
                             {row.categoria}
+                            {/* Indicador para linhas calculadas automaticamente (exceto impostos) */}
+                            {isAutoCalculated && tableName !== 'impostos' && (
+                              <span style={{ 
+                                marginLeft: '0.5rem', 
+                                fontSize: '0.6rem', 
+                                opacity: 0.7,
+                                color: '#22c55e'
+                              }}>
+                                📊
+                              </span>
+                            )}
                           </div>
                           
                           {/* Ícone de anotações */}
@@ -1032,8 +1217,8 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
                     </td>
                     
                     {monthKeys.map((month) => {
-                      // Não destacar maiores valores na tabela comercial
-                      const isMaxValue = tableName !== 'comercial' && getMaxValueMonth(row) === month
+                      // Não destacar maiores valores na tabela faturamento
+                      const isMaxValue = tableName !== 'faturamento' && getMaxValueMonth(row) === month
                       const cellClass = `number-cell month-col ${isMaxValue ? 'max-value-cell' : ''}`
                       
                       return (
@@ -1053,8 +1238,8 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
                               className="cell-content"
                               onClick={() => handleCellClick(row.id, month)}
                             >
-                              {/* Formatação especial para linha Faturamento X Meta na tabela comercial */}
-                              {tableName === 'comercial' && row.categoria.toLowerCase().includes('faturamento x meta') 
+                              {/* Formatação especial para linha Faturamento X Meta na tabela faturamento */}
+                              {tableName === 'faturamento' && row.categoria.toLowerCase().includes('faturamento x meta') 
                                 ? formatFaturamentoMetaValue(row[month])
                                 : formatNumber(row[month])
                               }
@@ -1065,47 +1250,47 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
                     })}
                     
                     <td className="number-cell total-cell">
-                      {/* Formatação especial para linha Faturamento X Meta na tabela comercial */}
-                      {tableName === 'comercial' && row.categoria.toLowerCase().includes('faturamento x meta') 
+                      {/* Formatação especial para linha Faturamento X Meta na tabela faturamento */}
+                      {tableName === 'faturamento' && row.categoria.toLowerCase().includes('faturamento x meta') 
                         ? formatFaturamentoMetaValue(row.Total_Anual)
                         : formatNumber(row.Total_Anual)
                       }
                     </td>
                     
-                    {/* Ocultar coluna Média Anual apenas na tabela comercial */}
-                    {tableName !== 'comercial' && (
+                    {/* Ocultar coluna Média Anual apenas na tabela faturamento */}
+                    {tableName !== 'faturamento' && (
                       <td className="number-cell average-cell">
                         {formatNumber(row.Media_Anual)}
                       </td>
                     )}
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
+              {/* Ocultar rodapé TOTAL GERAL na tabela impostos */}
+              {tableName !== 'impostos' && (
               <tfoot>
                 <tr className="totals-row">
                   <td className="sticky-col total-label">
                     <div className="total-label-container" ref={dropdownRef}>
+                      {/* Só não mostrar seta para ATINGIMENTO META na tabela faturamento */}
                       <span 
                         className="total-arrow"
-                        onClick={toggleTotalDropdown}
+                        onClick={!(tableName === 'faturamento' && totalDisplayMode === 'total') ? toggleTotalDropdown : undefined}
+                        style={!(tableName === 'faturamento' && totalDisplayMode === 'total') ? { cursor: 'pointer' } : { cursor: 'default', opacity: 0.3 }}
                       >
                         {showTotalDropdown ? '▼' : '▶'}
                       </span>
-                      <span className="total-text">{getTotalLabel()}</span>
+                      <span 
+                        className="total-text"
+                        onClick={!(tableName === 'faturamento' && totalDisplayMode === 'total') ? toggleTotalDropdown : undefined}
+                        style={!(tableName === 'faturamento' && totalDisplayMode === 'total') ? { cursor: 'pointer' } : { cursor: 'default' }}
+                      >
+                        {getTotalLabel()}
+                      </span>
                       
-                      {showTotalDropdown && (
-                        <div className="total-dropdown" style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: '0',
-                          background: 'white',
-                          border: '2px solid #004488',
-                          borderRadius: '8px',
-                          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-                          zIndex: 1001,
-                          minWidth: '140px',
-                          overflow: 'hidden'
-                        }}>
+                      {showTotalDropdown && !(tableName === 'faturamento' && totalDisplayMode === 'total') && (
+                        <div className="total-dropdown">
                           <div 
                             className={`dropdown-option ${totalDisplayMode === 'total' ? 'active' : ''}`}
                             onClick={() => handleTotalModeSelect('total')}
@@ -1124,8 +1309,8 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
                           >
                             COMPARATIVO
                           </div>
-                                                  </div>
-                        )}
+                        </div>
+                      )}
                     </div>
                   </td>
                   {monthKeys.map((month) => (
@@ -1136,14 +1321,15 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
                   <td className="number-cell total-value grand-total">
                     {renderTotalValue('Total_Anual')}
                   </td>
-                  {/* Ocultar coluna Média Anual apenas na tabela comercial */}
-                  {tableName !== 'comercial' && (
+                  {/* Ocultar coluna Média Anual apenas na tabela faturamento */}
+                  {tableName !== 'faturamento' && (
                     <td className="number-cell total-value average-total">
                       {renderTotalValue('Media_Anual')}
                     </td>
                   )}
                 </tr>
               </tfoot>
+              )}
             </table>
           </div>
         </div>

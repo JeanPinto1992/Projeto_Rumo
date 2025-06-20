@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './lib/supabaseClient.js'
 import TableView from './TableView.jsx'
+import RHView from './RHView.jsx'
 import DashboardHome from './DashboardHome.jsx'
 import './styles/dashboard.css'
 
 const TABLES = [
   { id: 'administrativo', name: 'Administrativo', icon: '🏢' },
   { id: 'almoxarifado', name: 'Almoxarifado', icon: '📦' },
-  { id: 'comercial', name: 'Comercial', icon: '💼' },
+  { id: 'faturamento', name: 'Faturamento', icon: '💰' },
   { id: 'impostos', name: 'Impostos', icon: '📊' },
   { id: 'logistica', name: 'Logística', icon: '🚛' },
   { id: 'manutencao', name: 'Manutenção', icon: '🔧' },
@@ -177,6 +178,11 @@ export default function Dashboard({ user, onLogout }) {
 
     if (activeTab === 'dashboard') {
       return <DashboardHome />
+    }
+
+    // Renderizar RHView para a aba de Recursos Humanos
+    if (activeTab === 'rh') {
+      return <RHView onExportFunctionsReady={handleSetExportFunctions} />
     }
 
     // Renderizar TableView para outras abas
