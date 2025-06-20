@@ -50,4 +50,92 @@ INSERT INTO rh_passivo_trabalhista (categoria, "Janeiro", "Fevereiro", "Marco", 
 --   categoria,
 --   ("Janeiro" + "Fevereiro" + "Marco" + "Abril" + "Maio") as "Soma_5_Meses",
 --   "Total_Anual"
--- FROM rh_passivo_trabalhista; 
+-- FROM rh_passivo_trabalhista;
+
+-- SQL para inserir dados de RH Passivo Trabalhista - Ano 2024
+-- Execute este script para adicionar os dados de passivo trabalhista de 2024
+-- ESTRUTURA: categoria, ano, "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+
+-- PASSIVO TRABALHISTA CONTABILIDADE
+INSERT INTO rh_passivo_trabalhista (categoria, ano, "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+VALUES ('PASSIVO TRABALHISTA CONTABILIDADE', 2024, 343564.09, 375990.04, 420055.38, 433239.83, 470823.47, 508012.53, 527440.81, 527011.51, 575625.76, 614930.15, 803468.70, 743199.90);
+
+-- Verificar se os dados foram inseridos corretamente
+SELECT 
+    categoria,
+    "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", 
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+    ano
+FROM rh_passivo_trabalhista 
+WHERE ano = 2024 
+ORDER BY categoria;
+
+-- Calcular totais e médias
+SELECT 
+    categoria,
+    ("Janeiro" + "Fevereiro" + "Marco" + "Abril" + "Maio" + "Junho" + 
+     "Julho" + "Agosto" + "Setembro" + "Outubro" + "Novembro" + "Dezembro") as Total_Anual,
+    ROUND(("Janeiro" + "Fevereiro" + "Marco" + "Abril" + "Maio" + "Junho" + 
+           "Julho" + "Agosto" + "Setembro" + "Outubro" + "Novembro" + "Dezembro") / 12, 2) as Media_Mensal,
+    -- Encontrar maior e menor valor
+    GREATEST("Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", 
+             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro") as Maior_Valor,
+    LEAST("Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", 
+          "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro") as Menor_Valor
+FROM rh_passivo_trabalhista 
+WHERE ano = 2024;
+
+-- Análise de crescimento mensal
+SELECT 
+    'EVOLUÇÃO PASSIVO TRABALHISTA' as analise,
+    "Janeiro" as Jan,
+    "Fevereiro" as Fev,
+    "Marco" as Mar,
+    "Abril" as Abr,
+    "Maio" as Mai,
+    "Junho" as Jun,
+    "Julho" as Jul,
+    "Agosto" as Ago,
+    "Setembro" as Set,
+    "Outubro" as Out,
+    "Novembro" as Nov,
+    "Dezembro" as Dez
+FROM rh_passivo_trabalhista 
+WHERE ano = 2024;
+
+-- Calcular percentual de crescimento mês a mês
+SELECT 
+    'CRESCIMENTO MENSAL (%)' as analise,
+    ROUND((("Fevereiro" - "Janeiro") / "Janeiro") * 100, 2) as Jan_Fev,
+    ROUND((("Marco" - "Fevereiro") / "Fevereiro") * 100, 2) as Fev_Mar,
+    ROUND((("Abril" - "Marco") / "Marco") * 100, 2) as Mar_Abr,
+    ROUND((("Maio" - "Abril") / "Abril") * 100, 2) as Abr_Mai,
+    ROUND((("Junho" - "Maio") / "Maio") * 100, 2) as Mai_Jun,
+    ROUND((("Julho" - "Junho") / "Junho") * 100, 2) as Jun_Jul,
+    ROUND((("Agosto" - "Julho") / "Julho") * 100, 2) as Jul_Ago,
+    ROUND((("Setembro" - "Agosto") / "Agosto") * 100, 2) as Ago_Set,
+    ROUND((("Outubro" - "Setembro") / "Setembro") * 100, 2) as Set_Out,
+    ROUND((("Novembro" - "Outubro") / "Outubro") * 100, 2) as Out_Nov,
+    ROUND((("Dezembro" - "Novembro") / "Novembro") * 100, 2) as Nov_Dez
+FROM rh_passivo_trabalhista 
+WHERE ano = 2024;
+
+-- Crescimento total do ano
+SELECT 
+    'CRESCIMENTO ANUAL' as indicador,
+    "Janeiro" as Valor_Inicial,
+    "Dezembro" as Valor_Final,
+    ("Dezembro" - "Janeiro") as Diferenca_Absoluta,
+    ROUND((("Dezembro" - "Janeiro") / "Janeiro") * 100, 2) as Crescimento_Percentual
+FROM rh_passivo_trabalhista 
+WHERE ano = 2024;
+
+-- Análise de quartis
+SELECT 
+    'ANÁLISE POR TRIMESTRE' as periodo,
+    ("Janeiro" + "Fevereiro" + "Marco") / 3 as Q1_Media,
+    ("Abril" + "Maio" + "Junho") / 3 as Q2_Media,
+    ("Julho" + "Agosto" + "Setembro") / 3 as Q3_Media,
+    ("Outubro" + "Novembro" + "Dezembro") / 3 as Q4_Media
+FROM rh_passivo_trabalhista 
+WHERE ano = 2024; 

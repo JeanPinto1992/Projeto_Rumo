@@ -86,7 +86,6 @@ export default function DashboardHome() {
     return (
       <div className="dashboard-home-loading">
         <div className="loading-spinner-home"></div>
-        <p>Carregando estatísticas...</p>
       </div>
     )
   }

@@ -20,12 +20,14 @@
 }
 
 .loading-spinner-home {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  width: 80px;
+  height: 80px;
+  background-image: url('/USIFIX VETOR MINI.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  animation: fadeInOut 2s ease-in-out infinite;
+  filter: brightness(0) invert(1); /* Tornar o logo branco */
 }
 
 /* Summary Cards */
@@ -358,6 +360,11 @@
 }
 
 /* Animações */
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

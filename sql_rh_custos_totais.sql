@@ -52,3 +52,99 @@ INSERT INTO rh_custos_totais (categoria, "Janeiro", "Fevereiro", "Marco", "Abril
 --   SUM("Maio") as "Maio",
 --   SUM("Total_Anual") as "Total_Anual"
 -- FROM rh_custos_totais; 
+
+-- SQL para inserir dados de RH Custos Totais - Ano 2024
+-- Execute este script para adicionar os dados de custos totais de RH de 2024
+-- ESTRUTURA: categoria, ano, "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+
+-- GASTOS GERAIS
+INSERT INTO rh_custos_totais (categoria, ano, "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+VALUES ('GASTOS GERAIS', 2024, 125972.19, 136173.37, 132247.35, 147745.99, 143073.14, 119905.86, 162760.79, 154983.07, 140211.20, 154373.97, 146987.93, 147372.30);
+
+-- FÉRIAS/REFLEXOS
+INSERT INTO rh_custos_totais (categoria, ano, "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+VALUES ('FÉRIAS/REFLEXOS', 2024, 3067.48, 3176.09, 3170.54, 3488.87, 3206.79, 3846.62, 3568.01, 3623.84, 3834.95, 3629.82, 3681.49, 3881.17);
+
+-- 13º/REFLEXOS
+INSERT INTO rh_custos_totais (categoria, ano, "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+VALUES ('13º/REFLEXOS', 2024, 9202.44, 9528.27, 9511.61, 10451.61, 9620.36, 11539.85, 10704.02, 10871.52, 11504.85, 10889.46, 11044.46, 11643.50);
+
+-- FGTS/REFLEXOS
+INSERT INTO rh_custos_totais (categoria, ano, "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+VALUES ('FGTS/REFLEXOS', 2024, 907.37, 0, 0, 0, 0, 3072.03, 2826.08, 2843.94, 2911.50, 2404.69, 2421.22, 2578.13);
+
+-- SALÁRIOS
+INSERT INTO rh_custos_totais (categoria, ano, "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+VALUES ('SALÁRIOS', 2024, 136190.95, 140127.32, 141927.32, 151684.36, 157176.94, 180168.73, 170138.73, 172148.73, 179748.73, 172364.09, 174224.09, 180589.71);
+
+-- Verificar se os dados foram inseridos corretamente
+SELECT 
+    categoria,
+    "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", 
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+    ano
+FROM rh_custos_totais 
+WHERE ano = 2024 
+ORDER BY categoria;
+
+-- Calcular totais por categoria
+SELECT 
+    categoria,
+    ("Janeiro" + "Fevereiro" + "Marco" + "Abril" + "Maio" + "Junho" + 
+     "Julho" + "Agosto" + "Setembro" + "Outubro" + "Novembro" + "Dezembro") as Total_Anual,
+    ROUND(("Janeiro" + "Fevereiro" + "Marco" + "Abril" + "Maio" + "Junho" + 
+           "Julho" + "Agosto" + "Setembro" + "Outubro" + "Novembro" + "Dezembro") / 12, 2) as Media_Mensal
+FROM rh_custos_totais 
+WHERE ano = 2024
+ORDER BY Total_Anual DESC;
+
+-- Calcular totais mensais (soma de todas as categorias por mês)
+SELECT 
+    'TOTAL RH CUSTOS' as categoria,
+    SUM("Janeiro") as "Janeiro",
+    SUM("Fevereiro") as "Fevereiro", 
+    SUM("Marco") as "Marco",
+    SUM("Abril") as "Abril",
+    SUM("Maio") as "Maio",
+    SUM("Junho") as "Junho",
+    SUM("Julho") as "Julho",
+    SUM("Agosto") as "Agosto",
+    SUM("Setembro") as "Setembro",
+    SUM("Outubro") as "Outubro",
+    SUM("Novembro") as "Novembro",
+    SUM("Dezembro") as "Dezembro"
+FROM rh_custos_totais 
+WHERE ano = 2024;
+
+-- Análise de evolução mensal
+SELECT 
+    'EVOLUÇÃO CUSTOS TOTAIS' as analise,
+    "Janeiro" as Jan,
+    "Fevereiro" as Fev,
+    "Marco" as Mar,
+    "Abril" as Abr,
+    "Maio" as Mai,
+    "Junho" as Jun,
+    "Julho" as Jul,
+    "Agosto" as Ago,
+    "Setembro" as Set,
+    "Outubro" as Out,
+    "Novembro" as Nov,
+    "Dezembro" as Dez
+FROM (
+    SELECT 
+        SUM("Janeiro") as "Janeiro",
+        SUM("Fevereiro") as "Fevereiro", 
+        SUM("Marco") as "Marco",
+        SUM("Abril") as "Abril",
+        SUM("Maio") as "Maio",
+        SUM("Junho") as "Junho",
+        SUM("Julho") as "Julho",
+        SUM("Agosto") as "Agosto",
+        SUM("Setembro") as "Setembro",
+        SUM("Outubro") as "Outubro",
+        SUM("Novembro") as "Novembro",
+        SUM("Dezembro") as "Dezembro"
+    FROM rh_custos_totais 
+    WHERE ano = 2024
+) totais; 

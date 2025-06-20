@@ -45,10 +45,16 @@ html {
 .table-view {
   display: flex;
   flex-direction: column;
+  align-items: center; /* Centralizar horizontalmente */
   height: auto; /* Altura automática baseada no conteúdo */
   min-height: 0; /* Permitir encolhimento */
   overflow: visible; /* PERMITIR que dropdown apareça */
-  padding: 0; /* Remover padding para ocupar todo o espaço */
+  padding: 3.5rem 0 0 0; /* Muito mais espaço no topo para os botões */
+  animation: slideInFromRight 0.4s ease-out; /* Animação suave da direita para esquerda */
+  width: 100%;
+  max-width: calc(100vw - 90px); /* Largura reduzida para dar espaço às setas */
+  margin-top: 0; /* Remover margem top para não interferir com botões fixos */
+  margin-right: 0; /* Sem margem direita aqui, pois já está no container */
 }
 
 /* Estilos do cabeçalho removidos - exportação agora é feita pelo ícone de impressora no header principal */
@@ -59,8 +65,10 @@ html {
   height: auto; /* Altura automática baseada no conteúdo */
   position: relative;
   flex-shrink: 0; /* Não encolher */
-  padding-right: 50px; /* Espaço para as setas fora da tabela */
+  padding-right: 0; /* Remover padding - setas agora são totalmente independentes */
+  padding-top: 1rem; /* Mais espaço superior para separar dos botões */
   overflow: visible; /* PERMITIR que dropdown apareça */
+  width: 100%; /* Usar toda largura disponível */
 }
 
 /* Loading States */
@@ -71,17 +79,29 @@ html {
   justify-content: center;
   min-height: 400px;
   color: rgba(255, 255, 255, 0.9); /* Cor branca para contraste com gradiente */
-  gap: 1rem;
+  gap: 1.5rem;
   background: transparent; /* Fundo transparente para mostrar gradiente */
 }
 
+.table-loading p {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  margin: 0;
+  opacity: 0.9;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
 .table-loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  width: 80px;
+  height: 80px;
+  background-image: url('/USIFIX VETOR MINI.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  animation: fadeInOut 2s ease-in-out infinite;
+  filter: brightness(0) invert(1); /* Tornar o logo branco */
 }
 
 .table-error {
@@ -147,16 +167,20 @@ html {
   margin: 0;
 }
 
-/* Table Container com Scroll Horizontal - MAIOR */
+/* Table Container com Scroll Horizontal - COM ESPAÇO PARA SETAS */
 .table-container {
   background: transparent; /* Fundo transparente para mostrar o gradiente */
   position: relative;
   height: auto; /* Altura automática baseada no conteúdo */
   overflow: visible; /* PERMITIR que dropdown apareça */
   margin: 1rem; /* Margem para mostrar o gradiente */
+  margin-right: 150px; /* Mais espaço para as setas */
+  margin-top: 0.5rem; /* Margem superior reduzida */
   border-radius: var(--usifix-radius-xl); /* Bordas arredondadas */
   display: flex;
   flex-direction: column;
+  max-width: calc(100vw - 110px); /* Largura reduzida para dar espaço às setas */
+  width: calc(100% - 65px); /* Largura reduzida para dar espaço às setas */
 }
 
 /* Garantir que editores de anotação não sejam cortados */
@@ -173,36 +197,156 @@ html {
   overflow: visible !important;
 }
 
-/* Controles de navegação FIXOS à direita da tabela */
+/* Controles de navegação FIXOS à direita da TELA - FORA DA TABELA */
 .scroll-controls-fixed {
-  position: fixed;
-  right: 15px; /* Visível à direita da tela */
-  top: 0;
-  bottom: 0;
+  position: fixed !important;
+  right: 10px !important; /* Bem próximo da borda direita para maximizar espaço da tabela */
+  top: 0 !important;
+  bottom: 0 !important;
   display: flex !important;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 0;
-  z-index: 9999;
-  pointer-events: none; /* Permitir cliques passarem através do container */
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 0 !important;
+  z-index: 99999 !important; /* Maior z-index */
+  pointer-events: none !important;
+  width: auto !important;
+  height: 100vh !important; /* Altura total da viewport */
 }
 
 /* Seta para cima - posicionada para ficar ao lado da coluna "Média Anual" */
 .scroll-controls-fixed .scroll-up {
-  position: relative;
-  top: 200px; /* Alinhada com área do cabeçalho */
-  pointer-events: auto;
+  position: absolute !important;
+  top: 300px !important; /* Posição fixa da tela */
+  right: 0 !important;
+  pointer-events: auto !important;
 }
 
 /* Seta para baixo - posicionada para ficar ao lado da última linha */
 .scroll-controls-fixed .scroll-down {
-  position: relative;
-  bottom: 150px; /* Alinhada com área da última linha */
-  pointer-events: auto;
+  position: absolute !important;
+  bottom: 200px !important; /* Posição fixa da tela */
+  right: 0 !important;
+  pointer-events: auto !important;
 }
 
 .scroll-arrow {
   pointer-events: auto; /* Reativar cliques apenas nos botões */
+}
+
+/* GARANTIR QUE ELEMENTOS FIXOS FIQUEM FORA DA TABELA */
+.scroll-controls-fixed {
+  position: fixed !important;
+  z-index: 999999 !important;
+  pointer-events: none !important;
+}
+
+.year-selector-compact {
+  position: fixed !important;
+  z-index: 99997 !important; /* Z-index menor para não interferir com botões individuais */
+  pointer-events: none !important;
+}
+
+.scroll-controls-fixed *,
+.year-selector-compact * {
+  pointer-events: auto !important;
+}
+
+/* GARANTIR QUE BOTÕES DE ANO SEJAM TOTALMENTE CLICÁVEIS */
+.year-btn-compact {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Remover qualquer pseudo-elemento que possa interferir */
+.year-btn-compact::before,
+.year-btn-compact::after {
+  display: none !important; /* Remover completamente pseudo-elementos */
+}
+
+/* CORREÇÃO ESPECÍFICA: Garantir área clicável uniforme */
+.year-btn-compact:nth-child(1), /* Primeiro botão (2024) */
+.year-btn-compact:nth-child(2)  /* Segundo botão (2025) */ {
+  margin: 0 !important;
+  position: relative !important;
+  float: none !important;
+  clear: none !important;
+  width: 80px !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* CORREÇÃO ESPECÍFICA PARA BOTÃO 2025 */
+.year-btn-compact:nth-child(2) {
+  position: relative !important;
+  z-index: 999998 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  background: white !important;
+  border: 2px solid #0066aa !important;
+  color: #004488 !important;
+  padding: 0.5rem 1.2rem !important;
+  border-radius: var(--usifix-radius-md) !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+  text-align: center !important;
+  vertical-align: top !important;
+  user-select: none !important;
+  overflow: visible !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: background-color 0.2s ease, transform 0.2s ease !important;
+}
+
+/* FORÇAR ESTADO ATIVO DO BOTÃO 2025 */
+.year-btn-compact:nth-child(2).active {
+  background: #004488 !important;
+  color: white !important;
+  border-color: #004488 !important;
+  box-shadow: 0 4px 16px rgba(0, 68, 136, 0.4) !important;
+  transform: translateY(-1px) !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 999998 !important;
+}
+
+/* HOVER ESPECÍFICO PARA BOTÃO 2025 */
+.year-btn-compact:nth-child(2):hover:not(.active) {
+  background: #87CEEB !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(0, 68, 136, 0.2) !important;
+  border-color: #004488 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 999998 !important;
+}
+
+.year-btn-compact:nth-child(2).active:hover {
+  background: #003366 !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 68, 136, 0.4) !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 999998 !important;
+}
+
+/* FORÇA BRUTA: Garantir que NADA interfira com botões de anos */
+.year-selector-compact *:not(.year-btn-compact) {
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+/* FORÇA BRUTA: Botões de anos sempre no topo */
+.year-buttons-right .year-btn-compact {
+  position: relative !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  isolation: isolate !important; /* Criar novo contexto de stacking */
 }
 
 .scroll-arrow {
@@ -353,6 +497,7 @@ html {
   z-index: 65 !important; /* Intersection de sticky horizontal + vertical */
   background: #004488 !important; /* Cor sólida azul escuro */
   color: var(--usifix-white) !important;
+  text-align: center !important; /* Centralizar o cabeçalho "Categoria" */
 }
 
 /* Colunas dos Meses - Largura Otimizada e Centralizada */
@@ -751,7 +896,7 @@ html {
 /* Responsive Design */
 @media (max-width: 1024px) {
   .table-view {
-    padding: 0;
+    padding: 1.25rem 0 0 0;
   }
   
   .table-error,
@@ -850,7 +995,7 @@ html {
 
 @media (max-width: 768px) {
   .table-view {
-    padding: 0;
+    padding: 1rem 0 0 0;
   }
   
   .table-error,
@@ -970,7 +1115,7 @@ html {
 
 @media (max-width: 480px) {
   .table-view {
-    padding: 0;
+    padding: 0.75rem 0 0 0;
   }
   
   .table-error,
@@ -1083,22 +1228,247 @@ html {
   }
 }
 
-/* Animações */
-@keyframes slideInFromTop {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
+/* Seletor de Anos */
+.year-selector {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: var(--usifix-radius-lg);
+  padding: 1.2rem 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  animation: slideInFromRight 0.4s ease-out;
+}
+
+/* Seletor de Anos Compacto - Fixo no topo à direita, ACIMA da tabela */
+.year-selector-compact {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  position: fixed !important;
+  top: 70px !important; /* Subido mais para criar melhor separação */
+  right: 50px !important; /* Alinhado com a largura expandida da tabela */
+  width: auto !important;
+  height: auto !important;
+  z-index: 99996 !important; /* Z-index menor para não interferir */
+  background: transparent !important;
+  pointer-events: none !important; /* Permitir cliques passarem pelo container */
+  overflow: visible !important;
+}
+
+.year-selector h3 {
+  color: var(--usifix-blue-dark);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.year-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Botões de anos compactos - sempre visíveis e clicáveis */
+.year-buttons-right {
+  display: flex !important;
+  gap: 1rem !important; /* Gap ainda maior para garantir separação */
+  align-items: center !important;
+  height: auto !important;
+  overflow: visible !important;
+  pointer-events: none !important; /* Container não clicável */
+  position: relative !important;
+  z-index: 99995 !important; /* Z-index ainda menor */
+  justify-content: flex-end !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.year-btn {
+  padding: 0.875rem 2.5rem;
+  border: 2px solid var(--usifix-blue-medium);
+  background: transparent;
+  color: var(--usifix-blue-dark);
+  border-radius: var(--usifix-radius-md);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.year-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.year-btn:hover::before {
+  left: 100%;
+}
+
+.year-btn:hover {
+  background: var(--usifix-blue-light);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 68, 136, 0.25);
+  border-color: var(--usifix-blue-dark);
+}
+
+.year-btn.active {
+  background: var(--usifix-blue-dark);
+  color: white;
+  box-shadow: 0 6px 24px rgba(0, 68, 136, 0.4);
+  transform: translateY(-2px);
+  border-color: var(--usifix-blue-dark);
+}
+
+.year-btn.active:hover {
+  background: var(--usifix-blue-darker, #003366);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0, 68, 136, 0.5);
+}
+
+/* Botões compactos de ano */
+.year-btn-compact {
+  padding: 0.5rem 1.2rem !important;
+  border: 2px solid #0066aa !important;
+  background: white !important; /* Fundo branco para botões não selecionados */
+  color: #004488 !important; /* Texto azul escuro para botões não selecionados */
+  border-radius: var(--usifix-radius-md) !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease, transform 0.2s ease !important; /* Transição mais simples */
+  min-width: 80px !important;
+  max-width: 80px !important; /* Garantir largura consistente */
+  height: auto !important;
+  position: relative !important;
+  overflow: visible !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  pointer-events: auto !important;
+  z-index: 999999 !important;
+  display: inline-block !important; /* Inline-block para melhor controle */
+  text-decoration: none !important;
+  outline: none !important;
+  text-align: center !important;
+  vertical-align: top !important;
+  user-select: none !important; /* Prevenir seleção de texto */
+}
+
+/* REMOVIDO: Efeito "fantasma" dos botões */
+
+.year-btn-compact:hover:not(.active) {
+  background: #87CEEB !important; /* Azul claro apenas para botões não ativos no hover */
+  color: white !important;
+  transform: translateY(-1px) !important; /* Movimento menor */
+  box-shadow: 0 3px 8px rgba(0, 68, 136, 0.2) !important; /* Sombra menor */
+  border-color: #004488 !important;
+}
+
+.year-btn-compact.active {
+  background: #004488 !important; /* Azul escuro sólido para botão selecionado */
+  color: white !important; /* Texto branco para botão selecionado */
+  box-shadow: 0 4px 16px rgba(0, 68, 136, 0.4) !important;
+  transform: translateY(-1px) !important;
+  border-color: #004488 !important;
+  pointer-events: auto !important; /* Garantir que o botão ativo seja clicável */
+  cursor: pointer !important;
+}
+
+.year-btn-compact.active:hover {
+  background: #003366 !important; /* Azul ainda mais escuro no hover */
+  color: white !important;
+  transform: translateY(-1px) !important; /* Movimento menor */
+  box-shadow: 0 4px 12px rgba(0, 68, 136, 0.4) !important; /* Sombra menor */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .year-selector {
+    padding: 1rem;
+    margin-bottom: 1rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .year-selector h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .year-buttons {
+    gap: 1rem;
+  }
+  
+  .year-btn {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    min-width: 100px;
+  }
+
+  /* Responsividade para botões compactos */
+  .year-selector-compact {
+    top: 100px; /* Posição ajustada para tablet */
+    right: 25px;
+  }
+  
+  .year-buttons-right {
+    gap: 0.4rem;
+  }
+  
+  .year-btn-compact {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    min-width: 70px;
   }
 }
 
-@keyframes slideInFromLeft {
+@media (max-width: 480px) {
+  .year-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .year-btn {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  /* Responsividade mobile para botões compactos */
+  .year-selector-compact {
+    top: 80px; /* Posição ajustada para mobile */
+    right: 15px;
+    justify-content: center;
+  }
+  
+  .year-buttons-right {
+    gap: 0.3rem;
+  }
+  
+  .year-btn-compact {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+    min-width: 60px;
+  }
+}
+
+/* Animações */
+@keyframes slideInFromRight {
   from {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateX(100px);
   }
   to {
     opacity: 1;
@@ -1111,17 +1481,12 @@ html {
   100% { transform: rotate(360deg); }
 }
 
-.table-navigation-bottom {
-  animation: slideInFromTop 0.3s ease-out;
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
 
-.data-table tbody tr {
-  animation: slideInFromLeft 0.3s ease-out;
-}
-
-.data-table tbody tr:nth-child(even) {
-  animation-delay: 0.05s;
-}
+/* Animação suave para toda a tabela - APLICADA NA DEFINIÇÃO PRINCIPAL ACIMA */
 
 /* Estados de edição */
 .cell-input:focus {
@@ -1322,4 +1687,5 @@ html {
 
 .auto-calculated-row .cell-content:hover {
   background: none !important; /* Remover efeito hover em linhas não editáveis */
-} 
+}
+
