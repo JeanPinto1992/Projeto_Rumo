@@ -21,6 +21,7 @@ export default function Dashboard({ user, onLogout }) {
   const [error, setError] = useState(null)
   const [showExportDropdown, setShowExportDropdown] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [sidebarVisible, setSidebarVisible] = useState(true)
   const [exportFunctions, setExportFunctions] = useState({
     exportToCSV: () => console.warn('CSV export not ready'),
     exportToExcel: () => console.warn('Excel export not ready'),
@@ -42,6 +43,8 @@ export default function Dashboard({ user, onLogout }) {
       alert('Selecione uma tabela para exportar dados')
       return
     }
+
+
 
     switch (type) {
       case 'csv':
@@ -76,16 +79,24 @@ export default function Dashboard({ user, onLogout }) {
     setExportFunctions(functions)
   }
 
+  // Função para toggle da sidebar
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible)
+  }
+
   // Função para entrar/sair do modo fullscreen
   const toggleFullscreen = () => {
     if (!isFullscreen) {
+      // Entrar em fullscreen real do navegador
       document.documentElement.requestFullscreen().then(() => {
         setIsFullscreen(true)
       }).catch(err => {
         console.warn('Erro ao entrar em tela cheia:', err)
+        // Se falhar o fullscreen, apenas oculta a sidebar
         setIsFullscreen(true)
       })
     } else {
+      // Sair do fullscreen
       if (document.fullscreenElement) {
         document.exitFullscreen().then(() => {
           setIsFullscreen(false)
@@ -112,6 +123,7 @@ export default function Dashboard({ user, onLogout }) {
     }
 
     const handleFullscreenChange = () => {
+      // Sincronizar estado quando o navegador sai do fullscreen (F11, ESC, etc)
       if (!document.fullscreenElement && isFullscreen) {
         setIsFullscreen(false)
       }
@@ -182,11 +194,30 @@ export default function Dashboard({ user, onLogout }) {
     return null
   }
 
+
+
   return (
     <div className={`dashboard ${isFullscreen ? 'fullscreen-mode' : ''}`}>
+<<<<<<< HEAD
+=======
+      {/* Logo no canto superior direito */}
+      <div className="top-right-logo">
+        <img 
+          src="/Logo-SynNova.svg" 
+          alt="Logo SynNova" 
+          className="header-logo"
+          onError={(e) => {
+            // Fallback para Usifix se SynNova não carregar
+            e.target.src = "/USIFIX VETOR MINI.svg";
+          }}
+        />
+      </div>
+
+>>>>>>> parent of 13528bb (feat: remove a sidebar do dashboard, simplifica a lógica de fullscreen e aprimora os estilos dos botões de controle)
       {/* Container Principal com Sidebar e Conteúdo */}
-      <div className={`dashboard-body ${isFullscreen ? 'fullscreen-mode' : ''}`}>
+      <div className={`dashboard-body ${!sidebarVisible ? 'sidebar-collapsed' : ''} ${isFullscreen ? 'fullscreen-mode' : ''}`}>
         {/* Sidebar com Logo, Navegação e Controles */}
+<<<<<<< HEAD
         <aside className="dashboard-sidebar">
           {/* Logo SynNova no cantinho da sidebar */}
           <div className="sidebar-logo">
@@ -200,17 +231,20 @@ export default function Dashboard({ user, onLogout }) {
             />
           </div>
           
+=======
+        <aside className={`dashboard-sidebar ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
+>>>>>>> parent of 13528bb (feat: remove a sidebar do dashboard, simplifica a lógica de fullscreen e aprimora os estilos dos botões de controle)
           {/* Header da Sidebar com Logo e Título */}
           <div className="sidebar-header">
-            <div className="logo">
-              <img 
-                src="/USIFIX VETOR MINI.svg" 
-                alt="Logo USIFIX" 
-                onError={(e) => {
-                  e.target.src = "/logo-usifix.jpg";
-                }}
-              />
-            </div>
+            <img 
+              src="/USIFIX VETOR MINI.svg" 
+              alt="Logo Usifix" 
+              className="sidebar-logo"
+              onError={(e) => {
+                // Fallback para JPG se SVG não carregar
+                e.target.src = "/logo-usifix.jpg";
+              }}
+            />
             <h1 className="sidebar-title">Relatório Rumo</h1>
           </div>
 
@@ -238,84 +272,94 @@ export default function Dashboard({ user, onLogout }) {
           
           {/* Controles da Sidebar */}
           <div className="sidebar-controls">
-            {/* Container dos 3 ícones em linha horizontal */}
-            <div className="control-buttons-row">
-              {/* Botão Fullscreen - Circular */}
-              <button 
-                className="control-btn-circle fullscreen-btn"
-                onClick={toggleFullscreen}
-                title={isFullscreen ? "Sair da tela cheia (ESC)" : "Entrar em tela cheia"}
-              >
-                {isFullscreen ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                  </svg>
-                )}
-              </button>
+            {/* Botão Fullscreen */}
+            <button 
+              className="control-btn fullscreen-btn"
+              onClick={toggleFullscreen}
+              title={isFullscreen ? "Sair da tela cheia (ESC)" : "Entrar em tela cheia"}
+            >
+              {isFullscreen ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+              )}
+            </button>
 
-              {/* Botão de Exportar - Circular */}
-              <div className="export-dropdown-container">
-                <button 
-                  className="control-btn-circle export-btn"
-                  onClick={() => setShowExportDropdown(!showExportDropdown)}
-                  title="Exportar relatório"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="6,9 6,2 18,2 18,9"></polyline>
-                    <path d="M6,9 L18,9 L18,16 L6,16 Z"></path>
-                    <rect x="6" y="11" width="12" height="3"></rect>
-                    <polyline points="6,14 6,18 18,18 18,14"></polyline>
-                    <circle cx="17" cy="11.5" r="0.5" fill="currentColor"></circle>
-                  </svg>
-                </button>
-                
-                {showExportDropdown && (
-                  <div className="export-dropdown">
-                    <button 
-                      className="export-option csv-option"
-                      onClick={() => handleExport('csv')}
-                      disabled={activeTab === 'dashboard'}
-                    >
-                      <span className="export-icon">📊</span>
-                      <span>CSV</span>
-                    </button>
-                    <button 
-                      className="export-option excel-option"
-                      onClick={() => handleExport('excel')}
-                      disabled={activeTab === 'dashboard'}
-                    >
-                      <span className="export-icon">📋</span>
-                      <span>Excel</span>
-                    </button>
-                    <button 
-                      className="export-option pdf-option"
-                      onClick={() => handleExport('pdf')}
-                      disabled={activeTab === 'dashboard'}
-                    >
-                      <span className="export-icon">📄</span>
-                      <span>PDF</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Botão de Sair - Circular */}
+            {/* Botão de Exportar */}
+            <div className="export-dropdown-container">
               <button 
-                className="control-btn-circle logout-btn" 
-                onClick={onLogout} 
-                title="Sair"
+                className="control-btn export-btn"
+                onClick={() => setShowExportDropdown(!showExportDropdown)}
+                title="Exportar relatório"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                  <polyline points="16,17 21,12 16,7"></polyline>
-                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                  <polyline points="6,9 6,2 18,2 18,9"></polyline>
+                  <path d="M6,9 L18,9 L18,16 L6,16 Z"></path>
+                  <rect x="6" y="11" width="12" height="3"></rect>
+                  <polyline points="6,14 6,18 18,18 18,14"></polyline>
+                  <circle cx="17" cy="11.5" r="0.5" fill="currentColor"></circle>
                 </svg>
               </button>
+              
+              {showExportDropdown && (
+                <div className="export-dropdown">
+                  <button 
+                    className="export-option csv-option"
+                    onClick={() => handleExport('csv')}
+                    disabled={activeTab === 'dashboard'}
+                  >
+                    <span className="export-icon">📊</span>
+                    <span>CSV</span>
+                  </button>
+                  <button 
+                    className="export-option excel-option"
+                    onClick={() => handleExport('excel')}
+                    disabled={activeTab === 'dashboard'}
+                  >
+                    <span className="export-icon">📋</span>
+                    <span>Excel</span>
+                  </button>
+                  <button 
+                    className="export-option pdf-option"
+                    onClick={() => handleExport('pdf')}
+                    disabled={activeTab === 'dashboard'}
+                  >
+                    <span className="export-icon">📄</span>
+                    <span>PDF</span>
+                  </button>
+                </div>
+              )}
             </div>
+
+            {/* Botão de Sair */}
+            <button className="control-btn logout-btn" onClick={onLogout} title="Sair">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16,17 21,12 16,7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+
+          {/* Abinha Toggle Sidebar - DENTRO da sidebar */}
+          <div className="sidebar-toggle-tab">
+            <button 
+              className="sidebar-toggle-btn"
+              onClick={toggleSidebar}
+              title={sidebarVisible ? "Ocultar menu" : "Mostrar menu"}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                {sidebarVisible ? (
+                  <polyline points="15,18 9,12 15,6"></polyline>
+                ) : (
+                  <polyline points="9,18 15,12 9,6"></polyline>
+                )}
+              </svg>
+            </button>
           </div>
         </aside>
 
@@ -333,7 +377,9 @@ export default function Dashboard({ user, onLogout }) {
             onClick={toggleFullscreen}
             title="Sair da tela cheia (ESC)"
           >
-            ⤓
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+            </svg>
           </button>
         )}
       </div>
