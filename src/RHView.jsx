@@ -38,7 +38,7 @@ export default function RHView({ onExportFunctionsReady }) {
   }
 
   return (
-    <div className="rh-view">
+    <div className="rh-view" data-view="rh">
       {/* Sub-navegação */}
       <div className="rh-subnav">
         <div className="subnav-tabs">

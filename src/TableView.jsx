@@ -68,34 +68,26 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
   // Dados para exibição (filtrado por ano)
   const filteredData = data.filter(row => parseNumber(row.ano) === selectedYear)
 
-  // Totais das colunas baseado nos dados filtrados por ano (exceto para tabela impostos - não mostrar TOTAL GERAL)
-  const columnTotals = useMemo(() => {
-    const totals = { Total_Anual: 0, Media_Anual: 0 }
-    
-    // Inicializar todos os meses com zero
+  // Totais das colunas baseado nos dados filtrados (exceto para tabela impostos - não mostrar TOTAL GERAL)
+  const columnTotals = { Total_Anual: 0, Media_Anual: 0 }
+  
+  if (filteredData && filteredData.length > 0 && tableName !== 'impostos') {
     monthKeys.forEach(month => {
-      totals[month] = 0
+      columnTotals[month] = filteredData.reduce((sum, row) => sum + parseNumber(row[month]), 0)
     })
     
-    // Só calcular totais se não for tabela impostos e houver dados filtrados
-    if (filteredData && filteredData.length > 0 && tableName !== 'impostos') {
-      // Somar valores de cada mês dos dados filtrados por ano
-      monthKeys.forEach(month => {
-        totals[month] = filteredData.reduce((sum, row) => sum + parseNumber(row[month]), 0)
-      })
-      
-      // Somar total anual dos dados filtrados por ano
-      totals.Total_Anual = filteredData.reduce((sum, row) => sum + parseNumber(row.Total_Anual || 0), 0)
-      
-      // Calcular média das médias anuais dos dados filtrados por ano
-      const validAverages = filteredData.map(row => calculateAverage(row)).filter(avg => avg > 0)
-      totals.Media_Anual = validAverages.length > 0 
-        ? validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length 
-        : 0
-    }
+    columnTotals.Total_Anual = filteredData.reduce((sum, row) => sum + parseNumber(row.Total_Anual || 0), 0)
     
-    return totals
-  }, [filteredData, tableName, selectedYear]) // Recalcular quando filteredData, tableName ou selectedYear mudarem
+    const validAverages = filteredData.map(row => calculateAverage(row)).filter(avg => avg > 0)
+    columnTotals.Media_Anual = validAverages.length > 0 
+      ? validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length 
+      : 0
+  } else {
+    // Inicializar totais como zero quando não há dados ou para tabela impostos
+    monthKeys.forEach(month => {
+      columnTotals[month] = 0
+    })
+  }
 
   // Carregar dados
   useEffect(() => {
@@ -1144,29 +1136,29 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
         </div>
       </div>
     
-      {/* Setas posicionadas FORA da estrutura da tabela */}
-      <div className="scroll-controls-fixed">
-        <button 
-          className="scroll-arrow scroll-up"
-          onClick={scrollUp}
-          disabled={!canScrollUp}
-          title="Subir uma linha"
-        >
-          ▲
-        </button>
-        <button 
-          className="scroll-arrow scroll-down"
-          onClick={scrollDown}
-          disabled={!canScrollDown}
-          title="Descer uma linha"
-        >
-          ▼
-        </button>
-      </div>
-
       <div className="table-view">
         <div className="table-wrapper">
           <div className="table-container">
+            {/* Setas posicionadas ao lado das colunas */}
+            <div className="scroll-controls-fixed">
+              <button 
+                className="scroll-arrow scroll-up"
+                onClick={scrollUp}
+                disabled={!canScrollUp}
+                title="Subir uma linha"
+              >
+                ▲
+              </button>
+              <button 
+                className="scroll-arrow scroll-down"
+                onClick={scrollDown}
+                disabled={!canScrollDown}
+                title="Descer uma linha"
+              >
+                ▼
+              </button>
+            </div>
+            
             <div className="table-scroll-container">
               <table ref={tableRef} className="data-table">
                 <thead>
