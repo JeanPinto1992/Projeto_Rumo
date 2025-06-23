@@ -10,23 +10,15 @@ const monthKeys = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ]
 
-export default function TableView({ tableName, onBack, onExportFunctionsReady }) {
+export default function TableView({ tableName, onExportFunctionsReady }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [editingCell, setEditingCell] = useState(null)
   const [tempValue, setTempValue] = useState('')
-  const [editingNote, setEditingNote] = useState(null) // ID da linha sendo editada
-  const [tempNote, setTempNote] = useState('') // Valor temporário da anotação
-  const [notes, setNotes] = useState({}) // Armazenar anotações por ID
-  const [showTotalDropdown, setShowTotalDropdown] = useState(false)
-  const [totalDisplayMode, setTotalDisplayMode] = useState('total') // 'total', 'media', 'comparativo'
-  const [previousMonthData, setPreviousMonthData] = useState({})
-  const [currentRowIndex, setCurrentRowIndex] = useState(0) // Índice da primeira linha visível
-  const [selectedYear, setSelectedYear] = useState(2025) // Ano selecionado
+  const [selectedYear, setSelectedYear] = useState(2025)
+  const [currentRowIndex, setCurrentRowIndex] = useState(0)
   const tableRef = useRef(null)
-  const notesTextareaRef = useRef(null) // Ref para o textarea das anotações
-  const dropdownRef = useRef(null)
 
   // Utilitários para números
   const parseNumber = (value) => {
@@ -66,82 +58,49 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
   }
 
   // Dados para exibição (filtrado por ano)
-  const filteredData = data.filter(row => parseNumber(row.ano) === selectedYear)
+  const filteredData = useMemo(() => {
+    return data.filter(row => parseNumber(row.ano) === selectedYear)
+  }, [data, selectedYear])
 
   // Totais das colunas baseado nos dados filtrados (exceto para tabela impostos - não mostrar TOTAL GERAL)
-  const columnTotals = { Total_Anual: 0, Media_Anual: 0 }
-  
-  if (filteredData && filteredData.length > 0 && tableName !== 'impostos') {
-    monthKeys.forEach(month => {
-      columnTotals[month] = filteredData.reduce((sum, row) => sum + parseNumber(row[month]), 0)
-    })
+  const columnTotals = useMemo(() => {
+    const totals = { Total_Anual: 0, Media_Anual: 0 }
     
-    columnTotals.Total_Anual = filteredData.reduce((sum, row) => sum + parseNumber(row.Total_Anual || 0), 0)
+    if (filteredData.length > 0 && tableName !== 'impostos') {
+      monthKeys.forEach(month => {
+        totals[month] = filteredData.reduce((sum, row) => sum + parseNumber(row[month]), 0)
+      })
+      
+      totals.Total_Anual = filteredData.reduce((sum, row) => sum + parseNumber(row.Total_Anual || 0), 0)
+      
+      const validAverages = filteredData.map(row => calculateAverage(row)).filter(avg => avg > 0)
+      totals.Media_Anual = validAverages.length > 0 
+        ? validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length 
+        : 0
+    } else {
+      monthKeys.forEach(month => {
+        totals[month] = 0
+      })
+    }
     
-    const validAverages = filteredData.map(row => calculateAverage(row)).filter(avg => avg > 0)
-    columnTotals.Media_Anual = validAverages.length > 0 
-      ? validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length 
-      : 0
-  } else {
-    // Inicializar totais como zero quando não há dados ou para tabela impostos
-    monthKeys.forEach(month => {
-      columnTotals[month] = 0
-    })
-  }
+    return totals
+  }, [filteredData, tableName])
 
   // Carregar dados
   useEffect(() => {
     loadData()
   }, [tableName])
 
-  // Recarregar dados quando o ano mudar
-  useEffect(() => {
-    if (data.length > 0) {
-      // Se já temos dados carregados, não precisamos recarregar tudo
-      // apenas filtrar por ano
-    }
-  }, [selectedYear])
-
-  // Expor funções de exportação para o Dashboard
+  // Expor funções de exportação
   useEffect(() => {
     if (onExportFunctionsReady) {
       onExportFunctionsReady({
-        exportToCSV,
-        exportToExcel,
-        exportToPDF
+        exportToCSV: () => console.log('Exportar CSV'),
+        exportToExcel: () => console.log('Exportar Excel'),
+        exportToPDF: () => console.log('Exportar PDF')
       })
     }
-  }, [data, onExportFunctionsReady, tableName]) // Incluir tableName como dependência
-
-  // Fechar editor de anotações ao clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (editingNote && !event.target.closest('.notes-editor') && !event.target.closest('.notes-icon')) {
-        handleNotesSave(editingNote)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [editingNote])
-
-  // Focar no textarea quando o editor de anotações for aberto
-  useEffect(() => {
-    if (editingNote && notesTextareaRef.current) {
-      // Usar setTimeout para garantir que o elemento esteja renderizado
-      setTimeout(() => {
-        const textarea = notesTextareaRef.current
-        textarea.focus()
-        textarea.select() // Selecionar todo o texto
-        
-        // Ajustar altura inicial baseada no conteúdo
-        textarea.style.height = 'auto'
-        textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px'
-      }, 50)
-    }
-  }, [editingNote])
+  }, [onExportFunctionsReady])
 
   const loadData = async () => {
     setLoading(true)
@@ -160,8 +119,7 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
         const row = {
           id: item.id,
           categoria: item.categoria || '',
-          ano: parseNumber(item.ano || new Date().getFullYear()),
-          anotacoes: item.anotacoes || '' // Carregar anotações (se existir)
+          ano: parseNumber(item.ano || new Date().getFullYear())
         }
 
         // Processar meses
@@ -176,112 +134,7 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
         return row
       })
 
-      // Carregar anotações no estado local (se existir a coluna)
-      const notesData = {}
-      processedData.forEach(row => {
-        if (row.anotacoes) {
-          notesData[row.id] = row.anotacoes
-        }
-      })
-      setNotes(notesData)
-
-      // Tratamentos especiais para diferentes tabelas
-      let finalData = processedData
-      
-      // Tratamento especial para tabela faturamento - criar linha "Faturamento X Meta"
-      if (tableName === 'faturamento') {
-        const faturamentoRow = processedData.find(row => row.categoria.toLowerCase().trim() === 'faturamento')
-        const metaRow = processedData.find(row => row.categoria.toLowerCase().trim() === 'meta')
-        
-        if (faturamentoRow && metaRow) {
-
-          
-          // Verificar se já existe linha "Faturamento X Meta"
-          const existingRow = processedData.find(row => row.categoria.toLowerCase().includes('faturamento x meta'))
-          
-          if (!existingRow) {
-            // Criar linha "Faturamento X Meta" automaticamente
-            const faturamentoMetaRow = {
-              id: Date.now(), // ID temporário único
-              categoria: 'Faturamento X Meta',
-              ano: new Date().getFullYear(),
-              anotacoes: ''
-            }
-            
-            // Calcular diferença para cada mês (Meta - Faturamento para inverter a lógica)
-            monthKeys.forEach(month => {
-              const faturamento = parseNumber(faturamentoRow[month])
-              const meta = parseNumber(metaRow[month])
-              faturamentoMetaRow[month] = meta - faturamento
-            })
-            
-            // Calcular totais da diferença
-            faturamentoMetaRow.Total_Anual = calculateTotal(faturamentoMetaRow)
-            faturamentoMetaRow.Media_Anual = calculateAverage(faturamentoMetaRow)
-            
-            // Adicionar linha após a linha Meta
-            const metaIndex = finalData.findIndex(row => row.categoria.toLowerCase() === 'meta')
-            if (metaIndex !== -1) {
-              finalData.splice(metaIndex + 1, 0, faturamentoMetaRow)
-            } else {
-              finalData.push(faturamentoMetaRow)
-            }
-          }
-        }
-
-        // Tratamento especial para tabela impostos - criar linha "Impostos" baseada no faturamento
-        if (tableName === 'impostos') {
-          try {
-            // Buscar dados de faturamento da tabela faturamento
-            const { data: faturamentoData, error: faturamentoError } = await supabase
-              .from('faturamento')
-              .select('*')
-              .order('id', { ascending: true })
-
-            if (!faturamentoError && faturamentoData && faturamentoData.length > 0) {
-              // Encontrar linha de faturamento (não "Meta" ou "Faturamento X Meta")
-              const faturamentoRow = faturamentoData.find(row => 
-                row.categoria && 
-                row.categoria.toLowerCase().trim() === 'faturamento'
-              )
-
-              if (faturamentoRow) {
-                // Verificar se já existe linha "Impostos"
-                const existingImpostosRow = finalData.find(row => 
-                  row.categoria && row.categoria.toLowerCase().trim() === 'impostos'
-                )
-
-                if (!existingImpostosRow) {
-                  // Criar linha "Impostos" automaticamente (16,33% do faturamento)
-                  const impostosRow = {
-                    id: Date.now(), // ID temporário único
-                    categoria: 'Impostos',
-                    ano: new Date().getFullYear()
-                  }
-
-                  // Calcular 16,33% do faturamento para cada mês
-                  const percentualImpostos = 0.1633 // 16,33%
-                  monthKeys.forEach(month => {
-                    const faturamentoMes = parseNumber(faturamentoRow[month])
-                    impostosRow[month] = faturamentoMes * percentualImpostos
-                  })
-
-                  // Calcular para Total Anual
-                  const faturamentoTotal = parseNumber(faturamentoRow.Total_Anual)
-                  impostosRow.Total_Anual = faturamentoTotal * percentualImpostos
-
-                  // Adicionar linha no início da tabela
-                  finalData.unshift(impostosRow)
-                }
-              }
-            }
-          } catch (faturamentoFetchError) {
-            console.warn('Erro ao buscar dados de faturamento para cálculo de impostos:', faturamentoFetchError)
-          }
-        }
-      }
-
-      setData(finalData)
+      setData(processedData)
     } catch (err) {
       console.error('Erro ao carregar dados:', err)
       setError('Erro ao carregar os dados da tabela')
@@ -290,20 +143,12 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
     }
   }
 
-  // Edição de células CORRIGIDA
+  // Edição de células
   const handleCellClick = (id, field) => {
     if (field === 'Total_Anual' || field === 'Media_Anual') return
     
-    const row = data.find(r => r.id === id)
+    const row = filteredData.find(r => r.id === id)
     if (!row) return
-    
-    // Impedir edição de linhas calculadas automaticamente
-    if (tableName === 'impostos' && row.categoria && row.categoria.toLowerCase().trim() === 'impostos') {
-      return // Linha "Impostos" não pode ser editada
-    }
-    if (tableName === 'faturamento' && row.categoria && row.categoria.toLowerCase().includes('faturamento x meta')) {
-      return // Linha "Faturamento X Meta" não pode ser editada
-    }
     
     const currentValue = field === 'categoria' ? row[field] : formatForInput(row[field])
     setEditingCell({ id, field })
@@ -374,129 +219,6 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
 
   const handleInputBlur = (id, field) => {
     handleCellSave(id, field, tempValue)
-  }
-
-  // Verificar se há dados relevantes (valores diferentes de zero) nos dados filtrados
-  const hasRelevantData = filteredData && filteredData.length > 0 && filteredData.some(row => {
-    // Verifica se algum mês tem valor > 0
-    return monthKeys.some(month => parseNumber(row[month]) > 0)
-  })
-
-  // Função para encontrar o maior valor de cada linha (apenas meses)
-  const getMaxValueMonth = (row) => {
-    let maxValue = 0
-    let maxMonth = null
-    
-    monthKeys.forEach(month => {
-      const value = parseNumber(row[month])
-      if (value > maxValue) {
-        maxValue = value
-        maxMonth = month
-      }
-    })
-    
-    return maxValue > 0 ? maxMonth : null
-  }
-
-  // Funções para gerenciar anotações
-  const handleNotesClick = (id, e) => {
-    e.stopPropagation() // Evitar que o clique na categoria seja ativado
-    const currentNote = notes[id] || ''
-    setEditingNote(id)
-    setTempNote(currentNote)
-  }
-
-  const handleNotesSave = async (id) => {
-    try {
-      // Tentar atualizar no Supabase
-      const { error } = await supabase
-        .from(tableName)
-        .update({ anotacoes: tempNote })
-        .eq('id', id)
-
-      if (error) {
-        // Se der erro de coluna não existe, apenas salvar localmente
-        if (error.message.includes('column "anotacoes" of relation') || error.message.includes('anotacoes')) {
-          console.warn('Coluna anotacoes não existe no banco. Salvando apenas localmente.')
-          // Atualizar apenas estado local
-          setNotes(prev => ({
-            ...prev,
-            [id]: tempNote
-          }))
-        } else {
-          throw error
-        }
-      } else {
-        // Atualizar estado local se salvou no banco
-        setNotes(prev => ({
-          ...prev,
-          [id]: tempNote
-        }))
-      }
-
-      setEditingNote(null)
-      setTempNote('')
-      
-    } catch (err) {
-      console.error('Erro ao salvar anotação:', err)
-      alert('Erro ao salvar anotação. A funcionalidade está temporariamente disponível apenas nesta sessão.')
-      // Salvar localmente mesmo com erro
-      setNotes(prev => ({
-        ...prev,
-        [id]: tempNote
-      }))
-      setEditingNote(null)
-      setTempNote('')
-    }
-  }
-
-  const handleNotesKeyPress = (e, id) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleNotesSave(id)
-    } else if (e.key === 'Escape') {
-      setEditingNote(null)
-      setTempNote('')
-    }
-  }
-
-  const handleNotesChange = (e) => {
-    setTempNote(e.target.value)
-    
-    // Auto-expandir altura do textarea conforme o conteúdo
-    const textarea = e.target
-    textarea.style.height = 'auto'
-    textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px'
-  }
-
-  const handleNotesBlur = (id) => {
-    handleNotesSave(id)
-  }
-
-  // FUNCIONALIDADES DO DROPDOWN DE TOTAL GERAL
-  // Fechar dropdown ao clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowTotalDropdown(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
-
-  // Função para alternar o dropdown
-  const toggleTotalDropdown = () => {
-    setShowTotalDropdown(!showTotalDropdown)
-  }
-
-  // Função para selecionar o modo de exibição
-  const handleTotalModeSelect = (mode) => {
-    setTotalDisplayMode(mode)
-    setShowTotalDropdown(false)
   }
 
   // Função para calcular médias das colunas
@@ -1107,13 +829,10 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
   }
 
   const visibleRows = getVisibleRows()
-  const canScrollUp = currentRowIndex > 0
-  const canScrollDown = currentRowIndex < filteredData.length
 
-  // Função para alternar entre anos
   const handleYearChange = (year) => {
     setSelectedYear(year)
-    setCurrentRowIndex(0) // Resetar índice ao mudar de ano
+    setCurrentRowIndex(0)
   }
 
   return (
@@ -1144,7 +863,7 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
               <button 
                 className="scroll-arrow scroll-up"
                 onClick={scrollUp}
-                disabled={!canScrollUp}
+                disabled={currentRowIndex === 0}
                 title="Subir uma linha"
               >
                 ▲
@@ -1152,7 +871,7 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
               <button 
                 className="scroll-arrow scroll-down"
                 onClick={scrollDown}
-                disabled={!canScrollDown}
+                disabled={currentRowIndex >= filteredData.length - 1}
                 title="Descer uma linha"
               >
                 ▼
@@ -1160,7 +879,8 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
             </div>
             
             <div className="table-scroll-container">
-              <table ref={tableRef} className="data-table">
+              {visibleRows && visibleRows.length > 0 ? (
+                <table ref={tableRef} className="data-table">
                 <thead>
                   <tr>
                     <th className="sticky-col">Categoria</th>
@@ -1177,16 +897,10 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Mostrar apenas as linhas visíveis */}
-                  {hasRelevantData && visibleRows.map((row) => {
-                    // Verificar se é uma linha calculada automaticamente
-                    const isAutoCalculated = (
-                      (tableName === 'impostos' && row.categoria && row.categoria.toLowerCase().trim() === 'impostos') ||
-                      (tableName === 'faturamento' && row.categoria && row.categoria.toLowerCase().includes('faturamento x meta'))
-                    )
-                    
-                    return (
-                    <tr key={row.id} className={isAutoCalculated ? 'auto-calculated-row' : ''}>
+                  {/* Exibir linhas da tabela */}
+                  {visibleRows.map((row) => (
+                    <tr key={row.id}>
+                      {/* Coluna Categoria */}
                       <td className="sticky-col category-cell">
                         {editingCell?.id === row.id && editingCell?.field === 'categoria' ? (
                           <input
@@ -1199,175 +913,90 @@ export default function TableView({ tableName, onBack, onExportFunctionsReady })
                             autoFocus
                           />
                         ) : (
-                          <>
-                            <div 
-                              className="cell-content"
-                              onClick={() => handleCellClick(row.id, 'categoria')}
-                              title={isAutoCalculated ? 'Linha calculada automaticamente - não editável' : undefined}
-                            >
-                              {row.categoria}
-                              {/* Indicador para linhas calculadas automaticamente (exceto impostos) */}
-                              {isAutoCalculated && tableName !== 'impostos' && (
-                                <span style={{ 
-                                  marginLeft: '0.5rem', 
-                                  fontSize: '0.6rem', 
-                                  opacity: 0.7,
-                                  color: '#22c55e'
-                                }}>
-                                  📊
-                                </span>
-                              )}
-                            </div>
-                            
-                            {/* Ícone de anotações */}
-                            <div 
-                              className="notes-icon"
-                              onClick={(e) => handleNotesClick(row.id, e)}
-                              title={notes[row.id] ? 'Ver/editar anotação' : 'Adicionar anotação'}
-                            >
-                              +
-                            </div>
-                            
-                            {/* Editor de anotações */}
-                            {editingNote === row.id && (
-                              <div className="notes-editor">
-                                <textarea
-                                  ref={notesTextareaRef}
-                                  className="notes-textarea"
-                                  value={tempNote}
-                                  onChange={handleNotesChange}
-                                  onBlur={() => handleNotesBlur(row.id)}
-                                  onKeyDown={(e) => handleNotesKeyPress(e, row.id)}
-                                  placeholder="Digite sua anotação aqui..."
-                                  autoFocus
-                                  disabled={false}
-                                  readOnly={false}
-                                  tabIndex={0}
-                                />
-                                <div className="notes-editor-hint">
-                                  Pressione Enter para salvar ou Esc para cancelar
-                                </div>
-                              </div>
-                            )}
-                          </>
+                          <div 
+                            className="cell-content"
+                            onClick={() => handleCellClick(row.id, 'categoria')}
+                          >
+                            {row.categoria}
+                          </div>
                         )}
                       </td>
                       
-                      {monthKeys.map((month) => {
-                        // Não destacar maiores valores na tabela faturamento
-                        const isMaxValue = tableName !== 'faturamento' && getMaxValueMonth(row) === month
-                        const cellClass = `number-cell month-col ${isMaxValue ? 'max-value-cell' : ''}`
-                        
-                        return (
-                          <td key={month} className={cellClass}>
-                            {editingCell?.id === row.id && editingCell?.field === month ? (
-                              <input
-                                type="text"
-                                value={tempValue}
-                                onChange={handleInputChange}
-                                onBlur={() => handleInputBlur(row.id, month)}
-                                onKeyDown={(e) => handleKeyPress(e, row.id, month)}
-                                className="cell-input number-input"
-                                autoFocus
-                              />
-                            ) : (
-                              <div 
-                                className="cell-content"
-                                onClick={() => handleCellClick(row.id, month)}
-                              >
-                                {/* Formatação especial para linha Faturamento X Meta na tabela faturamento */}
-                                {tableName === 'faturamento' && row.categoria.toLowerCase().includes('faturamento x meta') 
-                                  ? formatFaturamentoMetaValue(row[month])
-                                  : formatNumber(row[month])
-                                }
-                              </div>
-                            )}
-                          </td>
-                        )
-                      })}
+                      {/* Meses */}
+                      {monthKeys.map((month) => (
+                        <td key={month} className="month-col">
+                          {editingCell?.id === row.id && editingCell?.field === month ? (
+                            <input
+                              type="text"
+                              value={tempValue}
+                              onChange={handleInputChange}
+                              onBlur={() => handleInputBlur(row.id, month)}
+                              onKeyDown={(e) => handleKeyPress(e, row.id, month)}
+                              className="cell-input number-input"
+                              autoFocus
+                            />
+                          ) : (
+                            <div 
+                              className="cell-content"
+                              onClick={() => handleCellClick(row.id, month)}
+                            >
+                              {formatNumber(row[month])}
+                            </div>
+                          )}
+                        </td>
+                      ))}
                       
-                      <td className="number-cell total-cell">
-                        {/* Formatação especial para linha Faturamento X Meta na tabela faturamento */}
-                        {tableName === 'faturamento' && row.categoria.toLowerCase().includes('faturamento x meta') 
-                          ? formatFaturamentoMetaValue(row.Total_Anual)
-                          : formatNumber(row.Total_Anual)
-                        }
+                      {/* Total Anual */}
+                      <td className="total-col total-cell">
+                        <div className="cell-content">
+                          {formatNumber(row.Total_Anual)}
+                        </div>
                       </td>
                       
-                      {/* Ocultar coluna Média Anual apenas na tabela faturamento */}
+                      {/* Média Anual (oculta para faturamento) */}
                       {tableName !== 'faturamento' && (
-                        <td className="number-cell average-cell">
-                          {formatNumber(row.Media_Anual)}
+                        <td className="average-col average-cell">
+                          <div className="cell-content">
+                            {formatNumber(row.Media_Anual)}
+                          </div>
                         </td>
                       )}
                     </tr>
-                    )
-                  })}
+                  ))}
                 </tbody>
-                {/* Ocultar rodapé TOTAL GERAL na tabela impostos */}
+                {/* Rodapé com totais (oculto para impostos) */}
                 {tableName !== 'impostos' && (
-                <tfoot>
-                  <tr className="totals-row">
-                    <td className="sticky-col total-label">
-                      <div className="total-label-container" ref={dropdownRef}>
-                        {/* Só não mostrar seta para ATINGIMENTO META na tabela faturamento */}
-                        <span 
-                          className="total-arrow"
-                          onClick={!(tableName === 'faturamento' && totalDisplayMode === 'total') ? toggleTotalDropdown : undefined}
-                          style={!(tableName === 'faturamento' && totalDisplayMode === 'total') ? { cursor: 'pointer' } : { cursor: 'default', opacity: 0.3 }}
-                        >
-                          {showTotalDropdown ? '▼' : '▶'}
-                        </span>
-                        <span 
-                          className="total-text"
-                          onClick={!(tableName === 'faturamento' && totalDisplayMode === 'total') ? toggleTotalDropdown : undefined}
-                          style={!(tableName === 'faturamento' && totalDisplayMode === 'total') ? { cursor: 'pointer' } : { cursor: 'default' }}
-                        >
-                          {getTotalLabel()}
-                        </span>
-                        
-                        {showTotalDropdown && !(tableName === 'faturamento' && totalDisplayMode === 'total') && (
-                          <div className="total-dropdown">
-                            <div 
-                              className={`dropdown-option ${totalDisplayMode === 'total' ? 'active' : ''}`}
-                              onClick={() => handleTotalModeSelect('total')}
-                            >
-                              TOTAL
-                            </div>
-                            <div 
-                              className={`dropdown-option ${totalDisplayMode === 'media' ? 'active' : ''}`}
-                              onClick={() => handleTotalModeSelect('media')}
-                            >
-                              MÉDIA
-                            </div>
-                            <div 
-                              className={`dropdown-option ${totalDisplayMode === 'comparativo' ? 'active' : ''}`}
-                              onClick={() => handleTotalModeSelect('comparativo')}
-                            >
-                              COMPARATIVO
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    {monthKeys.map((month) => (
-                      <td key={month} className="number-cell total-value month-col">
-                        {renderTotalValue(month)}
+                  <tfoot>
+                    <tr className="totals-row">
+                      <td className="sticky-col total-label">
+                        <div className="total-label-container">
+                          <span className="total-text">TOTAL GERAL</span>
+                        </div>
                       </td>
-                    ))}
-                    <td className="number-cell total-value grand-total">
-                      {renderTotalValue('Total_Anual')}
-                    </td>
-                    {/* Ocultar coluna Média Anual apenas na tabela faturamento */}
-                    {tableName !== 'faturamento' && (
-                      <td className="number-cell total-value average-total">
-                        {renderTotalValue('Media_Anual')}
+                      {monthKeys.map((month) => (
+                        <td key={month} className="month-col total-value">
+                          {formatNumber(columnTotals[month] || 0)}
+                        </td>
+                      ))}
+                      <td className="total-col total-value grand-total">
+                        {formatNumber(columnTotals.Total_Anual || 0)}
                       </td>
-                    )}
-                  </tr>
-                </tfoot>
+                      {tableName !== 'faturamento' && (
+                        <td className="average-col total-value average-total">
+                          {formatNumber(columnTotals.Media_Anual || 0)}
+                        </td>
+                      )}
+                    </tr>
+                  </tfoot>
                 )}
-              </table>
+                </table>
+              ) : (
+                <div className="table-empty">
+                  <div className="empty-icon">📊</div>
+                  <h3>Nenhum dado encontrado</h3>
+                  <p>Não há dados para exibir nesta tabela para o ano {selectedYear}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

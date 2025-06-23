@@ -184,22 +184,22 @@ export default function Dashboard({ user, onLogout }) {
 
   return (
     <div className={`dashboard ${isFullscreen ? 'fullscreen-mode' : ''}`}>
-      {/* Logo no canto superior direito */}
-      <div className="top-right-logo">
-        <img 
-          src="/Logo-SynNova.svg" 
-          alt="Logo SynNova" 
-          className="header-logo"
-          onError={(e) => {
-            e.target.src = "/USIFIX VETOR MINI.svg";
-          }}
-        />
-      </div>
-
       {/* Container Principal com Sidebar e Conteúdo */}
       <div className={`dashboard-body ${isFullscreen ? 'fullscreen-mode' : ''}`}>
         {/* Sidebar com Logo, Navegação e Controles */}
         <aside className="dashboard-sidebar">
+          {/* Logo SynNova no cantinho da sidebar */}
+          <div className="sidebar-logo">
+            <img 
+              src="/synnova-logo.svg" 
+              alt="Logo SynNova" 
+              className="sidebar-logo-img"
+              onError={(e) => {
+                e.target.src = "/Logo-SynNova.svg";
+              }}
+            />
+          </div>
+          
           {/* Header da Sidebar com Logo e Título */}
           <div className="sidebar-header">
             <div className="logo">
