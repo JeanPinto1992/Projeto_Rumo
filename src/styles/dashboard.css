@@ -213,6 +213,80 @@ html, body {
   flex: 1;
 }
 
+/* Seletor de Mês */
+.month-selector {
+  padding: 0.25rem 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: -0.25rem;
+}
+
+.month-selector-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--usifix-blue-dark);
+  margin: 0 0 0.75rem 0;
+  text-align: center;
+}
+
+.year-selector {
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.year-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid var(--usifix-blue-dark);
+  color: var(--usifix-blue-dark);
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.year-btn.active {
+  background: var(--usifix-blue-dark);
+  color: white;
+}
+
+/* Hover effect simplificado */
+
+.months-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+}
+
+.month-btn {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 43, 85, 0.3);
+  color: var(--usifix-blue-dark);
+  padding: 0.5rem 0.25rem;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-height: 32px;
+}
+
+.month-btn:hover {
+  background: rgba(0, 43, 85, 0.1);
+  border-color: var(--usifix-blue-dark);
+}
+
+.month-btn.active {
+  background: var(--usifix-blue-dark);
+  color: white;
+  border-color: var(--usifix-blue-dark);
+  font-weight: 600;
+}
+
 /* Controles da Sidebar - Botões Circulares em Fila */
 .sidebar-controls-circular {
   margin-top: auto;
@@ -287,11 +361,20 @@ html, body {
   background: linear-gradient(135deg, var(--usifix-blue-light) 0%, var(--usifix-blue-medium) 25%, var(--usifix-blue-dark) 75%, var(--usifix-blue-hover) 100%);
   overflow-y: auto;
   overflow-x: hidden;
-  min-height: 100%;
+  min-height: 200%;
   display: flex;
   flex-direction: column;
-  padding-top: 50px;
   position: relative;
+}
+
+.content-body:not(.dashboard-active) {
+  padding: 50px 120px 50px 120px !important; /* PADDING MUITO MAIOR - 120px nas laterais */
+}
+
+/* Padding específico para a aba Dashboard - sem padding extra */
+.content-body.dashboard-active {
+  padding: 0 !important;
+  overflow: hidden;
 }
 
 .content-body::before {
@@ -415,8 +498,23 @@ html, body {
     font-size: 1rem;
   }
   
-  .content-body {
-    padding-top: 45px;
+  .month-selector-title {
+    font-size: 0.8rem;
+  }
+  
+  .months-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.2rem;
+  }
+  
+  .month-btn {
+    font-size: 0.55rem;
+    padding: 0.4rem 0.2rem;
+    min-height: 28px;
+  }
+  
+  .content-body:not(.dashboard-active) {
+    padding: 40px 300px 40px 100px !important; /* PADDING MUITO MAIOR para tablets */
   }
 }
 
@@ -476,8 +574,36 @@ html, body {
     height: 14px;
   }
   
-  .content-body {
-    padding-top: 12px;
+  .month-selector {
+    padding: 0.15rem 0.25rem;
+    margin-top: -0.15rem;
+  }
+  
+  .month-selector-title {
+    font-size: 0.7rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .year-btn {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.4rem;
+    flex: 1;
+    max-width: 50px;
+  }
+  
+  .months-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.15rem;
+  }
+  
+  .month-btn {
+    font-size: 0.5rem;
+    padding: 0.35rem 0.1rem;
+    min-height: 24px;
+  }
+  
+  .content-body:not(.dashboard-active) {
+    padding: 20px 80px 20px 80px !important; /* PADDING MUITO MAIOR para mobile */
   }
 }
 
@@ -506,8 +632,10 @@ html, body {
 .export-dropdown {
   position: absolute;
   bottom: calc(100% + 0.5rem);
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 120px;
+  width: max-content;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -523,16 +651,18 @@ html, body {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 1rem 2rem;
   background: none;
   border: none;
   color: var(--usifix-gray-700);
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--usifix-transition-fast);
   border-bottom: 1px solid var(--usifix-gray-100);
   text-align: center;
+  white-space: nowrap;
+  min-height: 48px;
 }
 
 .export-option:last-child {
@@ -566,3 +696,4 @@ html, body {
 }
 
 /* .export-icon removido - não usado mais */
+

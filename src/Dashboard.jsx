@@ -21,6 +21,9 @@ export default function Dashboard({ user, onLogout }) {
   const [error, setError] = useState(null)
   const [showExportDropdown, setShowExportDropdown] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1) // 1-12
+  const [selectedYear, setSelectedYear] = useState(2025)
+  const [viewMode, setViewMode] = useState('monthly') // 'monthly' ou 'yearly'
 
   const [exportFunctions, setExportFunctions] = useState({
     exportToCSV: () => console.warn('CSV export not ready'),
@@ -75,15 +78,7 @@ export default function Dashboard({ user, onLogout }) {
           alert('Função de exportação PDF não está disponível. Aguarde o carregamento completo da tabela.')
         }
         break
-      case 'test':
-        console.log('🎯 Executando função de teste...')
-        if (exportFunctions.testExport && typeof exportFunctions.testExport === 'function') {
-          exportFunctions.testExport()
-        } else {
-          console.warn('testExport function not available', exportFunctions)
-          alert('❌ Função de teste não disponível')
-        }
-        break
+
     }
     setShowExportDropdown(false)
   }
@@ -188,18 +183,18 @@ export default function Dashboard({ user, onLogout }) {
     }
 
     if (activeTab === 'dashboard') {
-      return <DashboardHome />
+      return <DashboardHome selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} />
     }
 
     // Renderizar RHView para a aba de Recursos Humanos
     if (activeTab === 'rh') {
-      return <RHView onExportFunctionsReady={handleSetExportFunctions} />
+      return <RHView selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} onExportFunctionsReady={handleSetExportFunctions} />
     }
 
     // Renderizar TableView para outras abas
     const currentTable = TABLES.find(table => table.id === activeTab)
     if (currentTable) {
-      return <TableView tableName={activeTab} onExportFunctionsReady={handleSetExportFunctions} />
+      return <TableView tableName={activeTab} selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} onExportFunctionsReady={handleSetExportFunctions} />
     }
 
     return null
@@ -259,6 +254,60 @@ export default function Dashboard({ user, onLogout }) {
             ))}
           </nav>
           
+          {/* Seletor de Mês - Apenas na aba Dashboard */}
+          {activeTab === 'dashboard' && (
+            <div className="month-selector">
+            <h3 className="month-selector-title">📅 Período</h3>
+            <div className="year-selector">
+              <button 
+                className={`year-btn ${selectedYear === 2024 ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedYear(2024)
+                  setViewMode('yearly')
+                }}
+              >
+                2024
+              </button>
+              <button 
+                className={`year-btn ${selectedYear === 2025 ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedYear(2025)
+                  setViewMode('yearly')
+                }}
+              >
+                2025
+              </button>
+            </div>
+            <div className="months-grid">
+              {[
+                { num: 1, name: 'Jan' },
+                { num: 2, name: 'Fev' },
+                { num: 3, name: 'Mar' },
+                { num: 4, name: 'Abr' },
+                { num: 5, name: 'Mai' },
+                { num: 6, name: 'Jun' },
+                { num: 7, name: 'Jul' },
+                { num: 8, name: 'Ago' },
+                { num: 9, name: 'Set' },
+                { num: 10, name: 'Out' },
+                { num: 11, name: 'Nov' },
+                { num: 12, name: 'Dez' }
+              ].map(month => (
+                <button
+                  key={month.num}
+                  className={`month-btn ${selectedMonth === month.num && viewMode === 'monthly' ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedMonth(month.num)
+                    setViewMode('monthly')
+                  }}
+                >
+                  {month.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          )}
+          
           {/* Controles da Sidebar - Botões Circulares */}
           <div className="sidebar-controls-circular">
             {/* Botão Fullscreen */}
@@ -314,13 +363,7 @@ export default function Dashboard({ user, onLogout }) {
                   >
                     <span>PDF</span>
                   </button>
-                  <button 
-                    className="export-option"
-                    onClick={() => handleExport('test')}
-                    style={{ background: '#f59e0b', color: 'white' }}
-                  >
-                    <span>🎯 TESTE</span>
-                  </button>
+
                 </div>
               )}
             </div>
@@ -340,7 +383,7 @@ export default function Dashboard({ user, onLogout }) {
 
         {/* Main Content */}
         <main className="dashboard-main">
-          <div className="content-body">
+          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''}`}>
             {renderContent()}
           </div>
         </main>

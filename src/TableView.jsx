@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabaseClient.js'
 import './styles/table-view.css'
-// Imports para exportação
-import * as XLSX from 'xlsx'
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+// As bibliotecas PDF e Excel são carregadas via CDN no index.html
 
 const monthKeys = [
   'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -918,10 +915,13 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
         return
       }
 
-      if (!XLSX) {
-        alert('Biblioteca Excel não disponível')
+      // Verificar se a biblioteca está disponível
+      if (typeof window.XLSX === 'undefined') {
+        alert('❌ Biblioteca XLSX não carregada. Recarregue a página.')
         return
       }
+      
+      const XLSX = window.XLSX
 
       const worksheetData = [
         ['CATEGORIA', 'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ', 'TOTAL', 'MÉDIA']
@@ -971,47 +971,151 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
         return
       }
 
-      if (!jsPDF) {
-        alert('Biblioteca PDF não disponível')
+      // Verificar se as bibliotecas estão disponíveis globalmente
+      if (typeof window.jspdf === 'undefined') {
+        alert('❌ Biblioteca jsPDF não carregada. Recarregue a página e tente novamente.')
         return
       }
 
-      const pdf = new jsPDF('landscape', 'mm', 'a4')
+      const { jsPDF } = window.jspdf
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      })
       
+      // Título compacto
       pdf.setFontSize(16)
-      pdf.text(`Relatório ${tableName} - ${selectedYear}`, 20, 20)
+      pdf.setFont(undefined, 'bold')
+      pdf.text(`Relatório ${tableName} - ${selectedYear}`, 10, 20)
       
-      const tableData = filteredData.map(row => [
-        row.categoria,
-        (parseFloat(row.Janeiro) || 0).toFixed(2),
-        (parseFloat(row.Fevereiro) || 0).toFixed(2),
-        (parseFloat(row.Marco) || 0).toFixed(2),
-        (parseFloat(row.Abril) || 0).toFixed(2),
-        (parseFloat(row.Maio) || 0).toFixed(2),
-        (parseFloat(row.Junho) || 0).toFixed(2),
-        (parseFloat(row.Julho) || 0).toFixed(2),
-        (parseFloat(row.Agosto) || 0).toFixed(2),
-        (parseFloat(row.Setembro) || 0).toFixed(2),
-        (parseFloat(row.Outubro) || 0).toFixed(2),
-        (parseFloat(row.Novembro) || 0).toFixed(2),
-        (parseFloat(row.Dezembro) || 0).toFixed(2),
-        calculateRowTotal(row).toFixed(2),
-        calculateRowAverage(row).toFixed(2)
-      ])
+      // Linha horizontal abaixo do título
+      pdf.setLineWidth(0.3)
+      pdf.line(10, 25, 287, 25)
+      
+      // Preparar dados da tabela com formatação similar à visualizada
+      const tableData = filteredData.map(row => {
+        const values = [
+          parseFloat(row.Janeiro) || 0,
+          parseFloat(row.Fevereiro) || 0,
+          parseFloat(row.Marco) || 0,
+          parseFloat(row.Abril) || 0,
+          parseFloat(row.Maio) || 0,
+          parseFloat(row.Junho) || 0,
+          parseFloat(row.Julho) || 0,
+          parseFloat(row.Agosto) || 0,
+          parseFloat(row.Setembro) || 0,
+          parseFloat(row.Outubro) || 0,
+          parseFloat(row.Novembro) || 0,
+          parseFloat(row.Dezembro) || 0
+        ]
+        
+        const total = calculateRowTotal(row)
+        const average = calculateRowAverage(row)
+        
+        return [
+          row.categoria,
+          ...values.map(v => v.toFixed(2)),
+          total.toFixed(2),
+          average.toFixed(2)
+        ]
+      })
+
+      // Calcular e adicionar linha TOTAL GERAL
+      const totals = calculateTotals()
+      console.log('Totais calculados para PDF:', totals)
+      
+      if (totals && filteredData.length > 0) {
+        // Extrair valores mensais do objeto totals
+        const monthValues = monthKeys.map(month => parseFloat(totals[month]) || 0)
+        
+        const totalGeral = calculateRowTotal(totals)
+        const mediaGeral = calculateRowAverage(totals)
+        
+        const totalRowData = [
+          'TOTAL GERAL',
+          ...monthValues.map(value => value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })),
+          totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          mediaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        ]
+        
+        console.log('Linha TOTAL GERAL para PDF:', totalRowData)
+        tableData.push(totalRowData)
+      }
 
       if (pdf.autoTable) {
         pdf.autoTable({
           head: [['CATEGORIA', 'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ', 'TOTAL', 'MÉDIA']],
           body: tableData,
-          startY: 30,
-          styles: { fontSize: 8 }
+          startY: 35,
+          theme: 'grid',
+          styles: { 
+            fontSize: 7, // Fonte menor
+            cellPadding: 2, // Padding menor
+            overflow: 'linebreak',
+            halign: 'center',
+            valign: 'middle'
+          },
+          headStyles: {
+            fillColor: [0, 43, 85], // Azul Usifix
+            textColor: [255, 255, 255],
+            fontSize: 8, // Fonte menor no cabeçalho
+            fontStyle: 'bold',
+            halign: 'center',
+            valign: 'middle'
+          },
+          bodyStyles: {
+            fillColor: [255, 255, 255],
+            textColor: [0, 0, 0],
+            fontSize: 7 // Fonte menor no corpo
+          },
+          alternateRowStyles: {
+            fillColor: [248, 250, 252] // Linhas alternadas
+          },
+          columnStyles: {
+            0: { halign: 'left', cellWidth: 32, fontStyle: 'bold' }, // CATEGORIA
+            1: { halign: 'right', cellWidth: 17 }, // JAN
+            2: { halign: 'right', cellWidth: 17 }, // FEV
+            3: { halign: 'right', cellWidth: 17 }, // MAR
+            4: { halign: 'right', cellWidth: 17 }, // ABR
+            5: { halign: 'right', cellWidth: 17 }, // MAI
+            6: { halign: 'right', cellWidth: 17 }, // JUN
+            7: { halign: 'right', cellWidth: 17 }, // JUL
+            8: { halign: 'right', cellWidth: 17 }, // AGO
+            9: { halign: 'right', cellWidth: 17 }, // SET
+            10: { halign: 'right', cellWidth: 17 }, // OUT
+            11: { halign: 'right', cellWidth: 17 }, // NOV
+            12: { halign: 'right', cellWidth: 17 }, // DEZ
+            13: { halign: 'right', cellWidth: 22, fontStyle: 'bold', fillColor: [55, 65, 81], textColor: [255, 255, 255] }, // TOTAL
+            14: { halign: 'right', cellWidth: 22, fontStyle: 'bold', fillColor: [156, 163, 175], textColor: [255, 255, 255] } // MÉDIA
+          },
+          // Estilo especial para a linha TOTAL GERAL (última linha)
+          didParseCell: function (data) {
+            const lastRowIndex = tableData.length - 1
+            if (data.row.index === lastRowIndex && tableData[lastRowIndex][0] === 'TOTAL GERAL') {
+              data.cell.styles.fillColor = [0, 43, 85] // Azul Usifix
+              data.cell.styles.textColor = [255, 255, 255]
+              data.cell.styles.fontStyle = 'bold'
+              data.cell.styles.fontSize = 7
+            }
+          },
+          margin: { left: 5, right: 5 } // Margens mínimas para garantir que tudo caiba
         })
       } else {
         // Fallback se autoTable não estiver disponível
-        let y = 40
+        let y = 50
+        pdf.setFontSize(8)
+        
+        // Cabeçalho da tabela
+        const headers = ['CATEGORIA', 'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ', 'TOTAL', 'MÉDIA']
+        pdf.setFont(undefined, 'bold')
+        pdf.text(headers.join(' | '), 20, y)
+        y += 8
+        
+        // Dados da tabela
+        pdf.setFont(undefined, 'normal')
         tableData.forEach(row => {
-          pdf.setFontSize(8)
-          pdf.text(row.join(' | '), 10, y)
+          pdf.text(row.join(' | '), 20, y)
           y += 6
         })
       }
@@ -1024,11 +1128,7 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
     }
   }
 
-  // Função de teste para verificar se a passagem funciona
-  const testExport = () => {
-    alert('🎯 Função de teste funcionando! Dados disponíveis: ' + filteredData.length)
-    console.log('🎯 Teste de exportação:', { tableName, selectedYear, filteredData })
-  }
+
 
   // Configurar funções de exportação para o Dashboard pai
   useEffect(() => {
@@ -1042,8 +1142,7 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
       onExportFunctionsReady({
         exportToCSV,
         exportToExcel,
-        exportToPDF,
-        testExport
+        exportToPDF
       })
     }
   }, [filteredData, selectedYear, tableName, onExportFunctionsReady])
