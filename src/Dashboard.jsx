@@ -28,6 +28,7 @@ export default function Dashboard({ user, onLogout }) {
   const [tabCache, setTabCache] = useState(new Set()) // Cache para abas já visitadas
   const [chartType, setChartType] = useState('bar') // 'bar', 'line', 'circle'
   const [showChartTypeDropdown, setShowChartTypeDropdown] = useState(false)
+  const [showSectorsDropdown, setShowSectorsDropdown] = useState(false)
 
   const [exportFunctions, setExportFunctions] = useState({
     exportToCSV: () => console.warn('CSV export not ready'),
@@ -162,13 +163,16 @@ export default function Dashboard({ user, onLogout }) {
       if (showChartTypeDropdown && !event.target.closest('.chart-type-dropdown-container')) {
         setShowChartTypeDropdown(false)
       }
+      if (showSectorsDropdown && !event.target.closest('.chart-type-dropdown-container')) {
+        setShowSectorsDropdown(false)
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [showExportDropdown, showChartTypeDropdown])
+  }, [showExportDropdown, showChartTypeDropdown, showSectorsDropdown])
 
   // Função para renderizar conteúdo baseado na aba ativa
   const renderContent = () => {
@@ -324,17 +328,46 @@ export default function Dashboard({ user, onLogout }) {
                 </div>
               )}
             </div>
-            
-            {TABLES.map(table => (
+
+            <div className="nav-item-with-dropdown">
               <button
-                key={table.id}
-                className={`nav-item ${activeTab === table.id ? 'active' : ''}`}
-                onClick={() => handleTabChange(table.id)}
+                className={`nav-item ${['administrativo', 'almoxarifado', 'faturamento', 'impostos', 'logistica', 'manutencao', 'rh'].includes(activeTab) ? 'active' : ''}`}
+                onClick={() => handleTabChange('administrativo')}
               >
-                <span className="nav-icon">{table.icon}</span>
-                <span className="nav-text">{table.name}</span>
+                <span className="nav-icon">🏢</span>
+                <span className="nav-text">Setores</span>
               </button>
-            ))}
+              
+              <div className="chart-type-dropdown-container">
+                <button 
+                  className="chart-type-toggle"
+                  onClick={() => setShowSectorsDropdown(!showSectorsDropdown)}
+                  title="Selecionar setor"
+                >
+                  ▼
+                </button>
+                
+                {showSectorsDropdown && (
+                  <div className="chart-type-dropdown">
+                    {TABLES.map(table => (
+                      <button 
+                        key={table.id}
+                        className={`chart-type-option ${activeTab === table.id ? 'active' : ''}`}
+                        onClick={() => {
+                          handleTabChange(table.id)
+                          setShowSectorsDropdown(false)
+                        }}
+                      >
+                        <span style={{ marginRight: '0.5rem' }}>{table.icon}</span>
+                        {table.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Abas individuais agora acessíveis via dropdown "Setores" */}
           </nav>
           
           {/* Seletor de Mês - Apenas nas abas Dashboard e Gráficos */}

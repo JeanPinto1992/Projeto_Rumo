@@ -8,6 +8,7 @@ export default function DashboardHome({ selectedMonth, selectedYear, viewMode })
   const [comparativeData, setComparativeData] = useState({})
   const [loading, setLoading] = useState(false)
   const [initialLoad, setInitialLoad] = useState(true)
+  const [scrollContainer, setScrollContainer] = useState(null)
 
   // Carregamento imediato sem debounce para experiência instantânea
   useEffect(() => {
@@ -392,6 +393,23 @@ export default function DashboardHome({ selectedMonth, selectedYear, viewMode })
   const displayTotalGeralPrevious = hasData ? totalGeralPrevious : 0
   const displayComparativeData = hasData ? comparativeData : {}
 
+  // Funções de scroll horizontal
+  const scrollLeft = () => {
+    if (scrollContainer) {
+      // Scroll baseado na largura de um card + gap
+      const cardWidth = 280 + 24 // 280px card + 1.5rem gap (24px)
+      scrollContainer.scrollBy({ left: -cardWidth, behavior: 'smooth' })
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollContainer) {
+      // Scroll baseado na largura de um card + gap
+      const cardWidth = 280 + 24 // 280px card + 1.5rem gap (24px)
+      scrollContainer.scrollBy({ left: cardWidth, behavior: 'smooth' })
+    }
+  }
+
   return (
     <div className={`dashboard-home ${!hasData ? 'loading-data' : ''}`}>{/* Estrutura sempre visível, apenas indicador sutil de loading */}
 
@@ -433,63 +451,73 @@ export default function DashboardHome({ selectedMonth, selectedYear, viewMode })
         </div>
       </div>
 
-      {/* Grid de Departamentos */}
+      {/* Grid de Departamentos com Scroll Horizontal */}
       <div className="departments-grid">
         <h2 className="section-title">
           <span className="title-icon">📊</span>
           Visão por Departamentos - {viewMode === 'yearly' ? getYearlyTitle() : `${monthNames[selectedMonth]} ${selectedYear}`}
         </h2>
         
-        <div className="departments-cards">
-          {Object.entries(displayStats).map(([key, stat]) => {
-            const config = departmentConfig[key]
-            // Para faturamento (receita) e passivo trabalhista, não calcular porcentagem do total de gastos
-            const percentage = (key === 'faturamento' || key === 'rh_passivo_trabalhista') ? 0 : (displayTotalGeral > 0 ? (stat.total / displayTotalGeral) * 100 : 0)
-            
-            return (
-              <div key={key} className="department-card" style={{ '--department-color': config.color }}>
-                <div className="department-header">
-                  <span className="department-icon">{config.icon}</span>
-                  <h4 className="department-name">{config.name}</h4>
-                </div>
-                
-                <div className="department-stats">
-                  <div className="stat-item">
-                    <span className="stat-label">{viewMode === 'yearly' ? 'Total Anual' : 'Total Mensal'}</span>
-                    <span className="stat-value">
-                      {formatCurrency(stat.total || 0)}
-                      {hasData && displayComparativeData[key] && key !== 'rh_passivo_trabalhista' && formatPercentage(displayComparativeData[key], true)}
-                    </span>
+        <div className="departments-scroll-container">
+          <button className="scroll-arrow left" onClick={scrollLeft}>
+            ←
+          </button>
+          
+          <div className="departments-cards" ref={setScrollContainer}>
+            {Object.entries(displayStats).map(([key, stat]) => {
+              const config = departmentConfig[key]
+              // Para faturamento (receita) e passivo trabalhista, não calcular porcentagem do total de gastos
+              const percentage = (key === 'faturamento' || key === 'rh_passivo_trabalhista') ? 0 : (displayTotalGeral > 0 ? (stat.total / displayTotalGeral) * 100 : 0)
+              
+              return (
+                <div key={key} className="department-card" style={{ '--department-color': config.color }}>
+                  <div className="department-header">
+                    <span className="department-icon">{config.icon}</span>
+                    <h4 className="department-name">{config.name}</h4>
                   </div>
                   
-                  {key !== 'faturamento' && key !== 'rh_passivo_trabalhista' && (
+                  <div className="department-stats">
                     <div className="stat-item">
-                      <span className="stat-label">% do Total</span>
-                      <span className="stat-value">{`${percentage.toFixed(1)}%`}</span>
+                      <span className="stat-label">{viewMode === 'yearly' ? 'Total Anual' : 'Total Mensal'}</span>
+                      <span className="stat-value">
+                        {formatCurrency(stat.total || 0)}
+                        {hasData && displayComparativeData[key] && key !== 'rh_passivo_trabalhista' && formatPercentage(displayComparativeData[key], true)}
+                      </span>
                     </div>
-                  )}
+                    
+                    {key !== 'faturamento' && key !== 'rh_passivo_trabalhista' && (
+                      <div className="stat-item">
+                        <span className="stat-label">% do Total</span>
+                        <span className="stat-value">{`${percentage.toFixed(1)}%`}</span>
+                      </div>
+                    )}
+                    
+                    {key !== 'faturamento' && key !== 'rh_passivo_trabalhista' && (
+                      <div className="stat-item">
+                        <span className="stat-label">% do Faturamento</span>
+                        <span className="stat-value">{displayTotalFaturamento > 0 ? `${(((stat.total || 0) / displayTotalFaturamento) * 100).toFixed(1)}%` : '0%'}</span>
+                      </div>
+                    )}
+                  </div>
                   
-                  {key !== 'faturamento' && key !== 'rh_passivo_trabalhista' && (
-                    <div className="stat-item">
-                      <span className="stat-label">% do Faturamento</span>
-                      <span className="stat-value">{displayTotalFaturamento > 0 ? `${(((stat.total || 0) / displayTotalFaturamento) * 100).toFixed(1)}%` : '0%'}</span>
-                    </div>
-                  )}
+                  <div className="department-progress">
+                    <div 
+                      className="progress-bar" 
+                      style={{ 
+                        width: `${key === 'faturamento' ? '100' : 
+                                  key === 'rh_passivo_trabalhista' ? '100' : 
+                                  percentage}%` 
+                      }}
+                    ></div>
+                  </div>
                 </div>
-                
-                <div className="department-progress">
-                  <div 
-                    className="progress-bar" 
-                    style={{ 
-                      width: `${key === 'faturamento' ? '100' : 
-                                key === 'rh_passivo_trabalhista' ? '100' : 
-                                percentage}%` 
-                    }}
-                  ></div>
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
+          
+          <button className="scroll-arrow right" onClick={scrollRight}>
+            →
+          </button>
         </div>
       </div>
 

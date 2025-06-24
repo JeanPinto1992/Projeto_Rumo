@@ -736,8 +736,10 @@ html, body {
   border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0, 43, 85, 0.2);
   border: 1px solid rgba(0, 43, 85, 0.1);
-  min-width: 120px;
-  overflow: hidden;
+  min-width: 220px;
+  width: 220px;
+  max-height: none;
+  overflow: visible;
 }
 
 .chart-type-option {

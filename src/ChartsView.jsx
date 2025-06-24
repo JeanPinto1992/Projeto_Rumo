@@ -58,10 +58,25 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [initialLoad, setInitialLoad] = useState(true)
+  const [expandedChart, setExpandedChart] = useState(null)
 
   useEffect(() => {
     loadChartsData()
   }, [selectedMonth, selectedYear, viewMode])
+
+  // Detectar tecla ESC para sair do modo expandido
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && expandedChart) {
+        setExpandedChart(null)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [expandedChart])
 
   const loadChartsData = async () => {
     // Mostrar loading apenas no carregamento inicial
@@ -245,6 +260,226 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     )
   }
 
+  // Função para expandir/contrair gráfico
+  const handleChartClick = (tableId) => {
+    if (expandedChart === tableId) {
+      setExpandedChart(null)
+    } else {
+      setExpandedChart(tableId)
+    }
+  }
+
+  // Se há um gráfico expandido, mostrar apenas ele
+  if (expandedChart) {
+    const table = TABLES.find(t => t.id === expandedChart)
+    const tableData = chartsData[expandedChart] || {}
+    
+    let dataToShow, labelsToShow, totalValue
+    
+    if (viewMode === 'yearly') {
+      dataToShow = tableData.monthlyData || new Array(12).fill(0)
+      labelsToShow = monthLabels
+      totalValue = tableData.total || 0
+    } else {
+      dataToShow = tableData.cumulativeData || new Array(selectedMonth).fill(0)
+      labelsToShow = monthLabels.slice(0, selectedMonth)
+      totalValue = tableData.total || 0
+    }
+
+    const individualChartData = {
+      labels: labelsToShow,
+      datasets: [
+        {
+          label: table.name,
+          data: dataToShow,
+          backgroundColor: table.color,
+          borderColor: table.color,
+          borderWidth: 1,
+        },
+      ],
+    }
+
+    return (
+      <div className="charts-view">
+        <div className="expanded-chart-container">
+          <div className="expanded-chart-header">
+            <h2>
+              <span style={{ marginRight: '0.5rem' }}>{table.icon}</span>
+              {table.name}
+            </h2>
+            <button 
+              className="close-expanded-btn"
+              onClick={() => setExpandedChart(null)}
+              title="Pressione ESC para fechar"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="expanded-chart-total">
+            <span className="total-label">Total Acumulado:</span>
+            <span className="total-value" style={{ color: table.color }}>
+              {formatCurrency(totalValue)}
+            </span>
+          </div>
+          <div className="expanded-chart">
+            {chartType === 'circle' ? (
+              <Doughnut 
+                data={{
+                  labels: labelsToShow,
+                  datasets: [
+                    {
+                      data: dataToShow,
+                      backgroundColor: [
+                        table.color,
+                        table.color + '80',
+                        table.color + '60',
+                        table.color + '40',
+                        table.color + '20'
+                      ].slice(0, dataToShow.length),
+                      borderWidth: 0,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: {
+                        padding: 20,
+                        font: {
+                          size: 14
+                        }
+                      }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) {
+                          return `${context.label}: ${formatCurrency(context.parsed)}`
+                        }
+                      }
+                    },
+                    datalabels: {
+                      display: true,
+                      color: 'white',
+                      font: {
+                        weight: 'bold',
+                        size: 14
+                      },
+                      formatter: function(value) {
+                        return formatCurrency(value)
+                      }
+                    }
+                  }
+                }} 
+              />
+            ) : chartType === 'line' ? (
+              <Line 
+                data={individualChartData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) {
+                          return formatCurrency(context.parsed.y)
+                        }
+                      }
+                    },
+                    datalabels: {
+                      display: true,
+                      color: table.color,
+                      font: {
+                        weight: 'bold',
+                        size: 14
+                      },
+                      formatter: function(value) {
+                        return formatCurrency(value)
+                      },
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      borderColor: table.color,
+                      borderWidth: 1,
+                      borderRadius: 4,
+                      padding: 6
+                    }
+                  },
+                  scales: {
+                    x: {
+                      grid: {
+                        display: false
+                      },
+                      ticks: {
+                        font: {
+                          size: 12,
+                          weight: 'bold'
+                        }
+                      }
+                    },
+                    y: {
+                      display: false
+                    }
+                  }
+                }}
+              />
+            ) : (
+              <Bar 
+                data={individualChartData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) {
+                          return formatCurrency(context.parsed.y)
+                        }
+                      }
+                    },
+                    datalabels: {
+                      display: true,
+                      color: 'white',
+                      font: {
+                        weight: 'bold',
+                        size: 14
+                      },
+                      formatter: function(value) {
+                        return formatCurrency(value)
+                      }
+                    }
+                  },
+                  scales: {
+                    x: {
+                      grid: {
+                        display: false
+                      },
+                      ticks: {
+                        font: {
+                          size: 12,
+                          weight: 'bold'
+                        }
+                      }
+                    },
+                    y: {
+                      display: false
+                    }
+                  }
+                }}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="charts-view">
       <div className="charts-grid">
@@ -281,7 +516,11 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
           }
 
           return (
-            <div key={table.id} className="chart-card">
+            <div 
+              key={table.id} 
+              className="chart-card"
+              onClick={() => handleChartClick(table.id)}
+            >
               <div className="chart-header">
                 <h3>
                   <span style={{ marginRight: '0.3rem' }}>{table.icon}</span>
