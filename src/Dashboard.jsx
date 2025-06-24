@@ -17,7 +17,6 @@ const TABLES = [
 
 export default function Dashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard')
-  const [isTransitioning, setIsTransitioning] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showExportDropdown, setShowExportDropdown] = useState(false)
@@ -25,6 +24,7 @@ export default function Dashboard({ user, onLogout }) {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1) // 1-12
   const [selectedYear, setSelectedYear] = useState(2025)
   const [viewMode, setViewMode] = useState('monthly') // 'monthly' ou 'yearly'
+  const [tabCache, setTabCache] = useState(new Set()) // Cache para abas já visitadas
 
   const [exportFunctions, setExportFunctions] = useState({
     exportToCSV: () => console.warn('CSV export not ready'),
@@ -32,16 +32,11 @@ export default function Dashboard({ user, onLogout }) {
     exportToPDF: () => console.warn('PDF export not ready')
   })
 
-  // Função customizada para mudança de aba com transição suave para todas as abas
+  // Função para mudança de aba com transição suave
   const handleTabChange = (newTab) => {
-    // Sempre aplicar transição suave ao mudar de aba
-    setIsTransitioning(true)
     setActiveTab(newTab)
-    
-    // Remover classe de transição após a animação
-    setTimeout(() => {
-      setIsTransitioning(false)
-    }, 500) // 500ms = duração da animação CSS
+    // Adicionar aba ao cache para futuras transições mais rápidas
+    setTabCache(prev => new Set([...prev, newTab]))
   }
 
   // Resetar funções de exportação quando mudar de aba
@@ -199,13 +194,26 @@ export default function Dashboard({ user, onLogout }) {
 
     // Renderizar RHView para a aba de Recursos Humanos
     if (activeTab === 'rh') {
-      return <RHView selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} onExportFunctionsReady={handleSetExportFunctions} />
+      return <RHView 
+        selectedMonth={selectedMonth} 
+        selectedYear={selectedYear} 
+        viewMode={viewMode} 
+        onExportFunctionsReady={handleSetExportFunctions}
+        isFirstLoad={!tabCache.has(activeTab)}
+      />
     }
 
     // Renderizar TableView para outras abas
     const currentTable = TABLES.find(table => table.id === activeTab)
     if (currentTable) {
-      return <TableView tableName={activeTab} selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} onExportFunctionsReady={handleSetExportFunctions} />
+      return <TableView 
+        tableName={activeTab} 
+        selectedMonth={selectedMonth} 
+        selectedYear={selectedYear} 
+        viewMode={viewMode} 
+        onExportFunctionsReady={handleSetExportFunctions}
+        isFirstLoad={!tabCache.has(activeTab)}
+      />
     }
 
     return null
@@ -394,7 +402,7 @@ export default function Dashboard({ user, onLogout }) {
 
         {/* Main Content */}
         <main className="dashboard-main">
-          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''} ${isTransitioning ? 'slide-in-right' : ''}`}>
+          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''}`}>
             {renderContent()}
           </div>
         </main>

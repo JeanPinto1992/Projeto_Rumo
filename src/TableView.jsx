@@ -59,7 +59,7 @@ const yearButtonActiveStyle = {
 }
 
 const wrapperStyle = {
-  background: 'transparent', // Fundo transparente
+  background: 'rgba(255, 255, 255, 0.85)', // Fundo mais opaco para melhor legibilidade
   margin: '0 1rem 0.5rem 1rem',
   width: 'calc(100% - 2rem)', // Usa toda largura do container
   minHeight: 'auto', // Altura mínima automática
@@ -67,7 +67,9 @@ const wrapperStyle = {
   overflow: 'hidden', // Remove scrollbar
   display: 'flex',
   flexDirection: 'column',
-  position: 'relative'
+  position: 'relative',
+  borderRadius: '16px', // Bordas arredondadas
+  boxShadow: '0 8px 32px rgba(0, 43, 85, 0.15)' // Sombra suave - removido backdrop-filter
 }
 
 const tableStyle = {
@@ -454,9 +456,9 @@ const arrowButtonHoverStyle = {
   boxShadow: '0 6px 20px rgba(0, 43, 85, 0.5)' // Sombra ainda mais forte no hover
 }
 
-export default function TableView({ tableName, onExportFunctionsReady }) {
+export default function TableView({ tableName, onExportFunctionsReady, isFirstLoad = true }) {
   const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(isFirstLoad)
   const [error, setError] = useState(null)
   const [selectedYear, setSelectedYear] = useState(2025)
   const [scrollPosition, setScrollPosition] = useState(0)
@@ -464,6 +466,7 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
   const [hoverDown, setHoverDown] = useState(false)
   const [flashUp, setFlashUp] = useState(false)
   const [flashDown, setFlashDown] = useState(false)
+  const [fadeIn, setFadeIn] = useState(!isFirstLoad)
   
   // Estados para o sistema de anotações
   const [showNotesModal, setShowNotesModal] = useState(false)
@@ -476,8 +479,20 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
   const [hoveredComparativeIcon, setHoveredComparativeIcon] = useState(false)
 
   useEffect(() => {
+    // Para transições entre abas, manter dados antigos visíveis momentaneamente
+    if (!isFirstLoad) {
+      setFadeIn(true)
+    }
     loadData()
   }, [tableName])
+
+  // Efeito de fade in suave quando dados estão prontos
+  useEffect(() => {
+    if (data.length > 0) {
+      setFadeIn(true)
+      setLoading(false)
+    }
+  }, [data])
 
   // Fechar modal com tecla Escape
   useEffect(() => {
@@ -494,7 +509,10 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
   }, [showNotesModal])
 
   const loadData = async () => {
-    setLoading(true)
+    // Só mostrar loading se for primeira carga e não temos dados
+    if (isFirstLoad && data.length === 0) {
+      setLoading(true)
+    }
     setError(null)
 
     try {
@@ -504,7 +522,11 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
         .order('id', { ascending: true })
 
       if (error) throw error
+      
+      // Transição instantânea para evitar piscar "sem dados"
       setData(tableData || [])
+      setFadeIn(true)
+      
     } catch (err) {
       console.error('Erro ao carregar dados:', err)
       setError(`Erro ao carregar dados da tabela "${tableName}": ${err.message}`)
@@ -1172,9 +1194,15 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
     }
   }, [filteredData, selectedYear, tableName, onExportFunctionsReady])
 
-  if (loading) {
+  // Só mostrar loading na primeira carga da aplicação
+  if (loading && isFirstLoad && data.length === 0 && !fadeIn) {
     return (
-      <div style={loadingStyle}>
+      <div style={{
+        ...loadingStyle,
+        opacity: 0.9,
+        transition: 'opacity 0.3s ease',
+        minHeight: '200px'
+      }}>
         <div style={spinnerStyle}></div>
         <p style={{ fontWeight: '600', margin: 0, fontSize: '1.1rem' }}>Carregando dados...</p>
       </div>
@@ -1208,7 +1236,8 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
     )
   }
 
-  if (filteredData.length === 0) {
+  // Só mostrar "sem dados" se não está carregando e realmente não há dados após a carga completa
+  if (!loading && filteredData.length === 0 && data.length > 0) {
   return (
       <div style={{
         display: 'flex',
@@ -1307,6 +1336,75 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
     )
   }
 
+  // Mostrar container com marca d'água durante transições ou quando não há dados filtrados mas está carregando
+  if (filteredData.length === 0) {
+    return (
+      <div style={{
+        ...containerStyle,
+        position: 'relative',
+        minHeight: '400px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: fadeIn ? 1 : 0.3,
+        transition: 'opacity 0.4s ease-in-out'
+      }}>
+
+        
+        {/* Botões de filtro por ano sempre visíveis */}
+        <div style={{
+          ...yearFilterStyle,
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          right: '0',
+          zIndex: 3
+        }}>
+          <button
+            style={selectedYear === 2025 ? yearButtonActiveStyle : yearButtonStyle}
+            onClick={() => handleYearChange(2025)}
+            onMouseEnter={(e) => {
+              if (selectedYear !== 2025) {
+                e.target.style.background = 'linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%)'
+                e.target.style.transform = 'translateY(-2px)'
+                e.target.style.boxShadow = '0 4px 16px rgba(0, 43, 85, 0.2)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedYear !== 2025) {
+                e.target.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+                e.target.style.transform = 'translateY(0px)'
+                e.target.style.boxShadow = '0 2px 8px rgba(0, 43, 85, 0.1)'
+              }
+            }}
+          >
+            2025
+          </button>
+          <button
+            style={selectedYear === 2024 ? yearButtonActiveStyle : yearButtonStyle}
+            onClick={() => handleYearChange(2024)}
+            onMouseEnter={(e) => {
+              if (selectedYear !== 2024) {
+                e.target.style.background = 'linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%)'
+                e.target.style.transform = 'translateY(-2px)'
+                e.target.style.boxShadow = '0 4px 16px rgba(0, 43, 85, 0.2)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedYear !== 2024) {
+                e.target.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+                e.target.style.transform = 'translateY(0px)'
+                e.target.style.boxShadow = '0 2px 8px rgba(0, 43, 85, 0.1)'
+              }
+            }}
+          >
+            2024
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <style>
@@ -1317,15 +1415,15 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
           }
           
           .simple-table tbody tr:nth-child(even):not(.total-geral-row) {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+            background: rgba(248, 250, 252, 0.75) !important;
           }
           
           .simple-table tbody tr:nth-child(odd):not(.total-geral-row) {
-            background: #ffffff !important;
+            background: rgba(255, 255, 255, 0.75) !important;
           }
           
           .simple-table tbody tr:hover:not(.total-geral-row) {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+            background: rgba(219, 234, 254, 0.85) !important;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 43, 85, 0.15) !important;
           }
@@ -1472,9 +1570,19 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
         ↓
       </button>
 
-      <div className="simple-table-container" style={containerStyle}>
+      <div className="simple-table-container" style={{
+        ...containerStyle,
+        opacity: fadeIn ? 1 : 0.3,
+        transition: 'opacity 0.4s ease-in-out',
+        transform: fadeIn ? 'translateY(0)' : 'translateY(10px)',
+        position: 'relative'
+      }}>
         {/* Botões de filtro por ano */}
-        <div style={yearFilterStyle}>
+        <div style={{
+          ...yearFilterStyle,
+          position: 'relative',
+          zIndex: 3
+        }}>
           <button
             style={selectedYear === 2025 ? yearButtonActiveStyle : yearButtonStyle}
             onClick={() => handleYearChange(2025)}
@@ -1517,8 +1625,15 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
           </button>
         </div>
 
-        <div className="table-wrapper" style={wrapperStyle}>
-          <table className="simple-table" style={tableStyle}>
+        <div className="table-wrapper" style={{
+          ...wrapperStyle,
+          position: 'relative',
+          zIndex: 2
+        }}>
+          <table className="simple-table" style={{
+            ...tableStyle,
+            backgroundColor: 'transparent' // Fundo transparente para deixar a marca d'água visível
+          }}>
             <thead style={theadStyle}>
               <tr>
                 <th style={thFirstStyle}>CATEGORIA</th>
@@ -1532,7 +1647,7 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
                   <tbody>
               {filteredData.map((row, index) => (
                 <tr key={row.id} style={{
-                  background: index % 2 === 0 ? 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' : '#ffffff',
+                  background: index % 2 === 0 ? 'rgba(248, 250, 252, 0.75)' : 'rgba(255, 255, 255, 0.75)',
                   transition: 'all 0.3s ease',
                   cursor: 'pointer'
                 }}>
@@ -1588,7 +1703,7 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
               {/* Linha FATURAMENTO X META (apenas para faturamento) */}
               {isFaturamento && faturamentoXMeta && filteredData.length > 0 && (
                 <tr style={{
-                  background: filteredData.length % 2 === 0 ? 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' : '#ffffff',
+                  background: filteredData.length % 2 === 0 ? 'rgba(248, 250, 252, 0.75)' : 'rgba(255, 255, 255, 0.75)',
                   transition: 'all 0.3s ease',
                   cursor: 'pointer'
                 }}>

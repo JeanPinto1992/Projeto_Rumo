@@ -366,6 +366,7 @@ html, body {
   display: flex;
   flex-direction: column;
   position: relative;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .content-body:not(.dashboard-active) {
@@ -380,19 +381,20 @@ html, body {
 
 .content-body::before {
   content: '';
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 400px;
-  height: 400px;
+  width: 550px;
+  height: 550px;
   background-image: url('/USIFIX VETOR MINI.svg');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.03;
+  opacity: 0.20;
   z-index: 0;
   pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
 .content-loading {
@@ -698,36 +700,5 @@ html, body {
 
 /* .export-icon removido - não usado mais */
 
-/* Animação suave da direita para esquerda para todas as abas */
-@keyframes slideRight {
-  from {
-    transform: translateX(100vw);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-/* Aplicar animação suave e rápida para qualquer aba */
-.content-body.slide-in-right {
-  animation: slideRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  overflow-x: hidden !important;
-  will-change: transform;
-  transform: translateZ(0); /* Força aceleração de hardware */
-}
-
-/* Garantir que o conteúdo não "chacoalhe" durante a animação */
-.content-body.slide-in-right > * {
-  backface-visibility: hidden;
-  perspective: 1000px;
-  transform: translateZ(0); /* Força aceleração de hardware */
-  -webkit-font-smoothing: antialiased; /* Suaviza fontes durante animação */
-}
-
-/* Garantir que tables não chacoalhem */
-.content-body.slide-in-right table,
-.content-body.slide-in-right .table-container {
-  backface-visibility: hidden;
-  will-change: auto;
-}
+/* Transições removidas para evitar loading deslizante */
 

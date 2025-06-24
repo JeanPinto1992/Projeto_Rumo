@@ -9,8 +9,9 @@ const RH_TABLES = [
   { id: 'rh_passivo_trabalhista', name: 'Passivo Trabalhista', icon: '⚖️', description: 'Passivos trabalhistas da contabilidade' }
 ]
 
-export default function RHView({ onExportFunctionsReady }) {
+export default function RHView({ onExportFunctionsReady, isFirstLoad = true }) {
   const [activeSubTab, setActiveSubTab] = useState('rh_gastos_gerais')
+  const [subTabCache, setSubTabCache] = useState(new Set(['rh_gastos_gerais'])) // Primeira sub-aba já no cache
   const [exportFunctions, setExportFunctions] = useState({
     exportToCSV: () => console.warn('CSV export not ready'),
     exportToExcel: () => console.warn('Excel export not ready'),
@@ -46,7 +47,10 @@ export default function RHView({ onExportFunctionsReady }) {
             <button
               key={table.id}
               className={`subnav-tab ${activeSubTab === table.id ? 'active' : ''}`}
-              onClick={() => setActiveSubTab(table.id)}
+              onClick={() => {
+                setActiveSubTab(table.id)
+                setSubTabCache(prev => new Set([...prev, table.id]))
+              }}
               title={table.description}
             >
               <span className="subnav-icon">{table.icon}</span>
@@ -61,6 +65,7 @@ export default function RHView({ onExportFunctionsReady }) {
         <TableView 
           tableName={activeSubTab} 
           onExportFunctionsReady={handleSetExportFunctions}
+          isFirstLoad={isFirstLoad && !subTabCache.has(activeSubTab)}
         />
       </div>
     </div>
