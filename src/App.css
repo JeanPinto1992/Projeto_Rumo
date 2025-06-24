@@ -39,3 +39,188 @@
 .read-the-docs {
   color: #888;
 }
+
+/* ==========================================================================
+   Estilos das Tabelas - Garantindo Layout Visual
+   ========================================================================== */
+
+/* Container principal da tabela */
+.simple-table-container {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  width: 100% !important;
+  padding: 1.5rem !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+}
+
+/* Wrapper da tabela com bordas e sombra */
+.table-wrapper {
+  flex: 1 !important;
+  overflow: auto !important;
+  border-radius: 16px !important;
+  border: 3px solid #002b55 !important;
+  box-shadow: 0 10px 30px rgba(0, 43, 85, 0.25) !important;
+  background: #ffffff !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Tabela principal */
+.simple-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 0.8rem !important;
+  background: #ffffff !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  table-layout: fixed !important;
+}
+
+/* Cabeçalho da tabela */
+.simple-table thead {
+  background: linear-gradient(135deg, #002b55 0%, #004080 50%, #0056b3 100%) !important;
+  color: #ffffff !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 15 !important;
+  box-shadow: 0 2px 8px rgba(0, 43, 85, 0.3) !important;
+}
+
+.simple-table th {
+  padding: 0.8rem 0.3rem !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  border-bottom: 3px solid #0066cc !important;
+  white-space: nowrap !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+  width: 6% !important;
+}
+
+.simple-table th:first-child {
+  text-align: left !important;
+  width: 15% !important;
+  background: linear-gradient(135deg, #001a33 0%, #002b55 100%) !important;
+  border-right: 2px solid #0066cc !important;
+  font-size: 0.8rem !important;
+}
+
+/* Células do corpo */
+.simple-table td {
+  padding: 0.6rem 0.2rem !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+  font-size: 0.75rem !important;
+  line-height: 1.4 !important;
+  border-right: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Célula categoria */
+.categoria-cell {
+  text-align: left !important;
+  font-weight: 700 !important;
+  color: #002b55 !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  border-right: 2px solid #002b55 !important;
+  font-size: 0.8rem !important;
+  padding: 0.6rem 0.4rem !important;
+}
+
+/* Células dos números */
+.number-cell {
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace !important;
+  font-weight: 600 !important;
+  background: rgba(248, 250, 252, 0.5) !important;
+  font-size: 0.7rem !important;
+  color: #374151 !important;
+}
+
+/* Célula total */
+.total-cell {
+  font-weight: 800 !important;
+  color: #065f46 !important;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%) !important;
+  font-size: 0.75rem !important;
+  border-left: 3px solid #10b981 !important;
+  width: 8% !important;
+}
+
+/* Célula média */
+.media-cell {
+  font-weight: 800 !important;
+  color: #1e3a8a !important;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  font-size: 0.75rem !important;
+  border-left: 3px solid #3b82f6 !important;
+  width: 8% !important;
+}
+
+/* Linhas alternadas */
+.simple-table tbody tr:nth-child(even) {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+/* Hover effect nas linhas */
+.simple-table tbody tr:hover {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 43, 85, 0.15) !important;
+}
+
+/* Estados de loading, erro e vazio */
+.table-loading,
+.table-error,
+.table-empty {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 500px !important;
+  text-align: center !important;
+  gap: 1.5rem !important;
+  padding: 3rem !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+.loading-spinner {
+  width: 60px !important;
+  height: 60px !important;
+  border: 5px solid rgba(0, 43, 85, 0.2) !important;
+  border-top-color: #002b55 !important;
+  border-radius: 50% !important;
+  animation: spin 1.2s linear infinite !important;
+}
+
+/* Animação do spinner */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollbar personalizada */
+.table-wrapper::-webkit-scrollbar {
+  height: 12px !important;
+  width: 12px !important;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+  border-radius: 6px !important;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #002b55 0%, #0066cc 100%) !important;
+  border-radius: 6px !important;
+  border: 2px solid #f1f5f9 !important;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #001a33 0%, #004080 100%) !important;
+}

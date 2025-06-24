@@ -1,140 +1,488 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabaseClient.js'
-import * as XLSX from 'xlsx'
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
 import './styles/table-view.css'
+// Imports para exportação
+import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
 
 const monthKeys = [
   'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ]
 
+const monthLabels = [
+  'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
+  'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
+]
+
+// Estilos inline para garantir layout - TODAS AS COLUNAS VISÍVEIS  
+const containerStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  width: 'calc(100% - 120px)', // Largura reduzida para dar espaço às setas
+  padding: '0',
+  boxSizing: 'border-box',
+  margin: '0',
+  minHeight: '200px', // Altura mínima
+  maxHeight: 'calc(100vh - 60px)', // Altura máxima
+  position: 'relative',
+  overflow: 'visible' // Permite que as setas sejam visíveis
+}
+
+// Estilos para os botões de filtro por ano
+const yearFilterStyle = {
+  display: 'flex',
+  justifyContent: 'flex-start',
+  gap: '0.8rem',
+  marginBottom: '0.5rem',
+  padding: '0.5rem 1rem',
+  background: 'transparent'
+}
+
+const yearButtonStyle = {
+  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+  border: '2px solid #002b55',
+  color: '#002b55',
+  padding: '0.5rem 1rem',
+  borderRadius: '6px',
+  fontWeight: '700',
+  fontSize: '0.9rem',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  boxShadow: '0 2px 8px rgba(0, 43, 85, 0.1)'
+}
+
+const yearButtonActiveStyle = {
+  ...yearButtonStyle,
+  background: 'linear-gradient(135deg, #002b55 0%, #004080 100%)',
+  color: '#ffffff',
+  transform: 'translateY(-2px)',
+  boxShadow: '0 6px 20px rgba(0, 43, 85, 0.3)'
+}
+
+const wrapperStyle = {
+  background: 'transparent', // Fundo transparente
+  margin: '0 1rem 0.5rem 1rem',
+  width: 'calc(100% - 2rem)', // Usa toda largura do container
+  minHeight: 'auto', // Altura mínima automática
+  maxHeight: 'calc(100vh - 120px)', // Altura máxima limitada
+  overflow: 'hidden', // Remove scrollbar
+  display: 'flex',
+  flexDirection: 'column',
+  position: 'relative'
+}
+
+const tableStyle = {
+  width: '100%',
+  fontSize: '0.85rem',
+  background: 'transparent', // Fundo transparente
+  fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+  tableLayout: 'fixed',
+  height: 'auto', // Altura automática baseada no conteúdo
+  display: 'table'
+}
+
+const theadStyle = {
+  background: 'linear-gradient(135deg, #002b55 0%, #004080 50%, #0056b3 100%)',
+  color: '#ffffff',
+  position: 'sticky',
+  top: 0,
+  zIndex: 15
+}
+
+const thStyle = {
+  padding: '1.4rem 0.5rem', // Aumentado o padding do header
+  fontWeight: '700',
+  textAlign: 'center',
+  border: 'none',
+  whiteSpace: 'nowrap',
+  fontSize: '12px',
+  letterSpacing: '0.5px',
+  textTransform: 'uppercase',
+  width: '5.8%',
+  color: 'white',
+  background: '#002b55'
+}
+
+const thFirstStyle = {
+  ...thStyle,
+  textAlign: 'left',
+  width: '10%',
+  background: '#002b55',
+  border: 'none',
+  fontSize: '12px',
+  color: 'white'
+}
+
+const thTotalStyle = {
+  ...thStyle,
+  width: '8%',
+  background: '#374151', // Cinza escuro
+  fontSize: '12px',
+  border: 'none',
+  color: 'white'
+}
+
+const thMediaStyle = {
+  ...thStyle,
+  width: '8%',
+  background: '#9ca3af', // Cinza claro
+  fontSize: '12px',
+  border: 'none',
+  color: 'white'
+}
+
+const tdStyle = {
+  padding: '1.2rem 0.4rem', // Aumentado o padding para harmonizar com a categoria
+  verticalAlign: 'middle',
+  textAlign: 'center',
+  fontSize: '0.8rem',
+  border: 'none',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap'
+}
+
+const categoriaStyle = {
+  ...tdStyle,
+  textAlign: 'left',
+  fontWeight: '700',
+  color: '#002b55',
+  background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+  border: 'none',
+  fontSize: '0.85rem',
+  padding: '1.2rem 0.8rem', // Aumentado o padding horizontal e vertical
+  position: 'relative'
+}
+
+// Estilos para o ícone de anotações (canto superior direito)
+const noteIconStyle = {
+  position: 'absolute',
+  top: '2px',
+  right: '2px',
+  width: '12px',
+  height: '12px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '#002b55',
+  fontSize: '10px',
+  fontWeight: 'bold',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  opacity: 0.6
+}
+
+const noteIconHoverStyle = {
+  ...noteIconStyle,
+  opacity: 1,
+  transform: 'scale(1.2)'
+}
+
+const noteIconActiveStyle = {
+  ...noteIconStyle,
+  opacity: 1,
+  color: '#0056b3'
+}
+
+// Estilos para o modal de anotações
+const modalOverlayStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 9999
+}
+
+const modalContentStyle = {
+  background: '#ffffff',
+  borderRadius: '12px',
+  padding: '2rem',
+  width: '500px',
+  maxWidth: '90vw',
+  maxHeight: '80vh',
+  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+  border: '2px solid #002b55'
+}
+
+const modalHeaderStyle = {
+  fontSize: '1.2rem',
+  fontWeight: '700',
+  color: '#002b55',
+  marginBottom: '1rem',
+  textAlign: 'center'
+}
+
+const textareaStyle = {
+  width: '100%',
+  height: '200px',
+  padding: '1rem',
+  border: '2px solid #e5e7eb',
+  borderRadius: '8px',
+  fontSize: '0.9rem',
+  fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+  resize: 'vertical',
+  outline: 'none',
+  transition: 'border-color 0.3s ease',
+  boxSizing: 'border-box'
+}
+
+const buttonContainerStyle = {
+  display: 'flex',
+  gap: '1rem',
+  justifyContent: 'flex-end',
+  marginTop: '1rem'
+}
+
+const saveButtonStyle = {
+  background: 'linear-gradient(135deg, #002b55 0%, #004080 100%)',
+  color: '#ffffff',
+  border: 'none',
+  padding: '0.8rem 1.5rem',
+  borderRadius: '6px',
+  fontSize: '0.9rem',
+  fontWeight: '600',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease'
+}
+
+const cancelButtonStyle = {
+  background: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)',
+  color: '#ffffff',
+  border: 'none',
+  padding: '0.8rem 1.5rem',
+  borderRadius: '6px',
+  fontSize: '0.9rem',
+  fontWeight: '600',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease'
+}
+
+// Estilos para o ícone de comparativo (seta para baixo)
+const comparativeIconStyle = {
+  position: 'absolute',
+  top: '2px',
+  right: '4px',
+  width: '16px',
+  height: '16px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '#ffffff',
+  fontSize: '14px',
+  fontWeight: 'bold',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  opacity: 0.8
+}
+
+const comparativeIconHoverStyle = {
+  ...comparativeIconStyle,
+  opacity: 1,
+  transform: 'scale(1.2)'
+}
+
+const comparativeIconActiveStyle = {
+  ...comparativeIconStyle,
+  opacity: 1,
+  color: '#ffffff'
+}
+
+// Estilos para valores comparativos
+const comparativeValueIncreaseStyle = {
+  color: '#16a34a', // Verde
+  fontWeight: 'bold'
+}
+
+const comparativeValueDecreaseStyle = {
+  color: '#dc2626', // Vermelho
+  fontWeight: 'bold'
+}
+
+const numberStyle = {
+  ...tdStyle,
+  fontFamily: 'Courier New, Monaco, Menlo, monospace',
+  fontWeight: '600',
+  background: 'rgba(248, 250, 252, 0.5)',
+  fontSize: '0.75rem',
+  color: '#374151',
+  border: 'none'
+}
+
+const totalStyle = {
+  ...tdStyle,
+  fontWeight: '800',
+  color: '#ffffff',
+  background: '#374151', // Cinza escuro para toda a coluna TOTAL
+  fontSize: '0.8rem',
+  border: 'none'
+}
+
+const mediaStyle = {
+  ...tdStyle,
+  fontWeight: '800',
+  color: '#ffffff',
+  background: '#9ca3af', // Cinza claro para toda a coluna MÉDIA
+  fontSize: '0.8rem',
+  border: 'none'
+}
+
+// Estilos para a linha de TOTAL GERAL
+const totalGeralRowStyle = {
+  background: '#002b55',
+  borderTop: '4px solid #000000'
+}
+
+const totalGeralCategoriaStyle = {
+  ...categoriaStyle,
+  background: '#002b55',
+  color: '#ffffff',
+  fontWeight: '900',
+  fontSize: '12px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.8px',
+  border: 'none',
+  padding: '1.2rem 0.8rem', // Aumentado o padding para manter consistência
+  position: 'relative'
+}
+
+const totalGeralNumberStyle = {
+  ...numberStyle,
+  background: '#002b55',
+  color: '#ffffff',
+  fontWeight: '800',
+  fontSize: '12px',
+  border: 'none',
+  padding: '1.2rem 0.4rem', // Padding consistente
+  lineHeight: '1.2'
+}
+
+const totalGeralTotalStyle = {
+  ...totalStyle,
+  background: '#374151', // Cinza escuro conforme solicitado
+  color: '#ffffff',
+  fontWeight: '900',
+  fontSize: '12px',
+  border: 'none'
+}
+
+const totalGeralMediaStyle = {
+  ...mediaStyle,
+  background: '#9ca3af', // Cinza claro conforme solicitado
+  color: '#ffffff',
+  fontWeight: '900',
+  fontSize: '12px',
+  border: 'none'
+}
+
+const loadingStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: '400px',
+  textAlign: 'center',
+  gap: '1rem',
+  padding: '2rem',
+  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+  borderRadius: '16px',
+  border: '2px solid #e5e7eb',
+  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
+  color: '#002b55'
+}
+
+const spinnerStyle = {
+  width: '50px',
+  height: '50px',
+  border: '4px solid rgba(0, 43, 85, 0.2)',
+  borderTopColor: '#002b55',
+  borderRadius: '50%',
+  animation: 'spin 1.2s linear infinite'
+}
+
+// Estilos para os botões de navegação (à direita da tabela)
+const navigationStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  position: 'fixed',
+  right: '30px', // Posição fixa à direita da tela
+  top: '50%',
+  transform: 'translateY(-50%)',
+  gap: '1rem',
+  zIndex: 1000 // Z-index alto para ficar sobre tudo
+}
+
+const arrowButtonStyle = {
+  width: '50px', // Tamanho menor para não ocupar muito espaço
+  height: '50px',
+  borderRadius: '50%',
+  border: '3px solid #002b55',
+  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+  color: '#002b55',
+  fontSize: '1.6rem', // Tamanho da seta
+  fontWeight: 'bold',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.3s ease',
+  boxShadow: '0 4px 12px rgba(0, 43, 85, 0.3)' // Sombra mais forte para destaque
+}
+
+const arrowButtonHoverStyle = {
+  ...arrowButtonStyle,
+  background: 'linear-gradient(135deg, #002b55 0%, #004080 100%)',
+  color: '#ffffff',
+  scale: '1.1',
+  boxShadow: '0 6px 20px rgba(0, 43, 85, 0.5)' // Sombra ainda mais forte no hover
+}
+
 export default function TableView({ tableName, onExportFunctionsReady }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [editingCell, setEditingCell] = useState(null)
-  const [tempValue, setTempValue] = useState('')
   const [selectedYear, setSelectedYear] = useState(2025)
-  const [currentRowIndex, setCurrentRowIndex] = useState(0)
-  const tableRef = useRef(null)
+  const [scrollPosition, setScrollPosition] = useState(0)
+  const [hoverUp, setHoverUp] = useState(false)
+  const [hoverDown, setHoverDown] = useState(false)
+  
+  // Estados para o sistema de anotações
+  const [showNotesModal, setShowNotesModal] = useState(false)
+  const [currentNoteItem, setCurrentNoteItem] = useState(null)
+  const [noteContent, setNoteContent] = useState('')
+  const [hoveredNoteIcon, setHoveredNoteIcon] = useState(null)
+  
+  // Estados para o sistema de comparativo
+  const [showComparative, setShowComparative] = useState(false)
+  const [hoveredComparativeIcon, setHoveredComparativeIcon] = useState(false)
 
-  // Utilitários para números
-  const parseNumber = (value) => {
-    if (value === null || value === undefined || value === '') return 0
-    if (typeof value === 'number') return isNaN(value) ? 0 : value
-    if (typeof value === 'string') {
-      const cleanedValue = value.replace(/\./g, '').replace(',', '.')
-      const parsed = parseFloat(cleanedValue)
-      return isNaN(parsed) ? 0 : parsed
-    }
-    return 0
-  }
-
-  const formatNumber = (num) => {
-    const validNum = parseNumber(num)
-    return validNum.toLocaleString('pt-BR', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })
-  }
-
-  const formatForInput = (num) => {
-    const validNum = parseNumber(num)
-    return validNum === 0 ? '' : validNum.toFixed(2).replace('.', ',')
-  }
-
-  // Cálculos
-  const calculateTotal = (row) => {
-    return monthKeys.reduce((sum, month) => sum + parseNumber(row[month]), 0)
-  }
-
-  const calculateAverage = (row) => {
-    const filledMonths = monthKeys.filter(month => parseNumber(row[month]) > 0)
-    if (filledMonths.length === 0) return 0
-    const total = filledMonths.reduce((sum, month) => sum + parseNumber(row[month]), 0)
-    return total / filledMonths.length
-  }
-
-  // Dados para exibição (filtrado por ano)
-  const filteredData = useMemo(() => {
-    return data.filter(row => parseNumber(row.ano) === selectedYear)
-  }, [data, selectedYear])
-
-<<<<<<< HEAD
-  // Totais das colunas baseado nos dados filtrados (exceto para tabela impostos - não mostrar TOTAL GERAL)
-  const columnTotals = useMemo(() => {
-    const totals = { Total_Anual: 0, Media_Anual: 0 }
-    
-    if (filteredData.length > 0 && tableName !== 'impostos') {
-=======
-  // Totais das colunas baseado nos dados filtrados por ano (exceto para tabela impostos - não mostrar TOTAL GERAL)
-  const columnTotals = useMemo(() => {
-    const totals = { Total_Anual: 0, Media_Anual: 0 }
-    
-    // Inicializar todos os meses com zero
-    monthKeys.forEach(month => {
-      totals[month] = 0
-    })
-    
-    // Só calcular totais se não for tabela impostos e houver dados filtrados
-    if (filteredData && filteredData.length > 0 && tableName !== 'impostos') {
-      // Somar valores de cada mês dos dados filtrados por ano
->>>>>>> parent of 13528bb (feat: remove a sidebar do dashboard, simplifica a lógica de fullscreen e aprimora os estilos dos botões de controle)
-      monthKeys.forEach(month => {
-        totals[month] = filteredData.reduce((sum, row) => sum + parseNumber(row[month]), 0)
-      })
-      
-<<<<<<< HEAD
-      totals.Total_Anual = filteredData.reduce((sum, row) => sum + parseNumber(row.Total_Anual || 0), 0)
-      
-=======
-      // Somar total anual dos dados filtrados por ano
-      totals.Total_Anual = filteredData.reduce((sum, row) => sum + parseNumber(row.Total_Anual || 0), 0)
-      
-      // Calcular média das médias anuais dos dados filtrados por ano
->>>>>>> parent of 13528bb (feat: remove a sidebar do dashboard, simplifica a lógica de fullscreen e aprimora os estilos dos botões de controle)
-      const validAverages = filteredData.map(row => calculateAverage(row)).filter(avg => avg > 0)
-      totals.Media_Anual = validAverages.length > 0 
-        ? validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length 
-        : 0
-<<<<<<< HEAD
-    } else {
-      monthKeys.forEach(month => {
-        totals[month] = 0
-      })
-    }
-    
-    return totals
-  }, [filteredData, tableName])
-=======
-    }
-    
-    return totals
-  }, [filteredData, tableName, selectedYear]) // Recalcular quando filteredData, tableName ou selectedYear mudarem
->>>>>>> parent of 13528bb (feat: remove a sidebar do dashboard, simplifica a lógica de fullscreen e aprimora os estilos dos botões de controle)
-
-  // Carregar dados
   useEffect(() => {
     loadData()
   }, [tableName])
 
-  // Expor funções de exportação
+  // Fechar modal com tecla Escape
   useEffect(() => {
-    if (onExportFunctionsReady) {
-      onExportFunctionsReady({
-        exportToCSV: () => console.log('Exportar CSV'),
-        exportToExcel: () => console.log('Exportar Excel'),
-        exportToPDF: () => console.log('Exportar PDF')
-      })
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showNotesModal) {
+        closeNotesModal()
+      }
     }
-  }, [onExportFunctionsReady])
+    
+    if (showNotesModal) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
+  }, [showNotesModal])
 
   const loadData = async () => {
     setLoading(true)
     setError(null)
-    setEditingCell(null)
 
     try {
       const { data: tableData, error } = await supabase
@@ -143,916 +491,1178 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
         .order('id', { ascending: true })
 
       if (error) throw error
-
-      const processedData = tableData.map(item => {
-        const row = {
-          id: item.id,
-          categoria: item.categoria || '',
-          ano: parseNumber(item.ano || new Date().getFullYear())
-        }
-
-        // Processar meses
-        monthKeys.forEach(month => {
-          row[month] = parseNumber(item[month])
-        })
-
-        // Calcular totais
-        row.Total_Anual = calculateTotal(row)
-        row.Media_Anual = calculateAverage(row)
-
-        return row
-      })
-
-      setData(processedData)
+      setData(tableData || [])
     } catch (err) {
       console.error('Erro ao carregar dados:', err)
-      setError('Erro ao carregar os dados da tabela')
+      setError(`Erro ao carregar dados da tabela "${tableName}": ${err.message}`)
     } finally {
       setLoading(false)
     }
   }
 
-  // Edição de células
-  const handleCellClick = (id, field) => {
-    if (field === 'Total_Anual' || field === 'Media_Anual') return
-    
-    const row = filteredData.find(r => r.id === id)
-    if (!row) return
-    
-    const currentValue = field === 'categoria' ? row[field] : formatForInput(row[field])
-    setEditingCell({ id, field })
-    setTempValue(currentValue)
+  // Filtrar dados por ano selecionado
+  const filteredData = data.filter(row => {
+    const rowYear = row.ano || new Date().getFullYear()
+    return parseInt(rowYear) === selectedYear
+  })
+
+  const formatNumber = (value) => {
+    if (value === null || value === undefined || value === '') return '0,00'
+    const num = parseFloat(value)
+    if (isNaN(num)) return '0,00'
+    return num.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
   }
 
-  const handleCellSave = async (id, field, value) => {
-    if (!value && value !== 0 && value !== '') return
-    
-    const parsedValue = field === 'categoria' ? value : parseNumber(value)
-    
-    try {
-      // Encontrar linha original
-      const originalRow = data.find(r => r.id === id)
-      if (!originalRow) return
+  const handleYearChange = (year) => {
+    setSelectedYear(year)
+  }
 
-      // Criar nova linha com valores atualizados
-      const updatedRow = { ...originalRow, [field]: parsedValue }
-      if (field !== 'categoria') {
-        updatedRow.Total_Anual = calculateTotal(updatedRow)
-        updatedRow.Media_Anual = calculateAverage(updatedRow)
-      }
+  // Funções para o sistema de anotações
+  const openNotesModal = (item) => {
+    setCurrentNoteItem(item)
+    const noteKey = `note_${tableName}_${item.id}_${selectedYear}`
+    const savedNote = localStorage.getItem(noteKey) || ''
+    setNoteContent(savedNote)
+    setShowNotesModal(true)
+  }
 
-      // Atualizar no Supabase
-      const updateData = { 
-        [field]: parsedValue,
-        ...(field !== 'categoria' && {
-          Total_Anual: updatedRow.Total_Anual,
-          Media_Anual: updatedRow.Media_Anual
-        })
-      }
+  const closeNotesModal = () => {
+    setShowNotesModal(false)
+    setCurrentNoteItem(null)
+    setNoteContent('')
+  }
 
-      const { error } = await supabase
-        .from(tableName)
-        .update(updateData)
-        .eq('id', id)
-
-      if (error) throw error
-
-      // Atualizar estado local
-      setData(prev => prev.map(row => 
-        row.id === id ? updatedRow : row
-      ))
-
-      setEditingCell(null)
-      setTempValue('')
-      
-    } catch (err) {
-      console.error('Erro ao salvar:', err)
-      alert('Erro ao salvar alteração')
-      setEditingCell(null)
-      setTempValue('')
+  const saveNote = () => {
+    if (currentNoteItem) {
+      const noteKey = `note_${tableName}_${currentNoteItem.id}_${selectedYear}`
+      localStorage.setItem(noteKey, noteContent)
+      closeNotesModal()
     }
   }
 
-  const handleKeyPress = (e, id, field) => {
-    if (e.key === 'Enter') {
-      handleCellSave(id, field, tempValue)
-    } else if (e.key === 'Escape') {
-      setEditingCell(null)
-      setTempValue('')
+  const hasNote = (item) => {
+    const noteKey = `note_${tableName}_${item.id}_${selectedYear}`
+    const savedNote = localStorage.getItem(noteKey)
+    return savedNote && savedNote.trim().length > 0
+  }
+
+  // Funções para o sistema de comparativo
+  const toggleComparative = () => {
+    setShowComparative(!showComparative)
+  }
+
+  const calculateComparative = (currentValue, previousValue) => {
+    if (previousValue === 0) return { percent: 0, isIncrease: false }
+    
+    const percent = ((currentValue - previousValue) / previousValue) * 100
+    return {
+      percent: Math.abs(percent),
+      isIncrease: currentValue > previousValue
     }
   }
 
-  const handleInputChange = (e) => {
-    setTempValue(e.target.value)
-  }
+  const getComparativeData = (totalsData) => {
+    if (!showComparative) return null
 
-  const handleInputBlur = (id, field) => {
-    handleCellSave(id, field, tempValue)
-  }
-
-  // Função para calcular médias das colunas
-  const calculateColumnAverages = () => {
-    const averages = {}
-    if (data && data.length > 0) {
-      monthKeys.forEach(month => {
-        const validValues = data.filter(row => parseNumber(row[month]) > 0)
-        if (validValues.length > 0) {
-          const sum = validValues.reduce((acc, row) => acc + parseNumber(row[month]), 0)
-          averages[month] = sum / validValues.length
-        } else {
-          averages[month] = 0
-        }
-      })
-      
-      // Calcular média do total anual
-      const validTotals = data.filter(row => parseNumber(row.Total_Anual) > 0)
-      if (validTotals.length > 0) {
-        const totalSum = validTotals.reduce((acc, row) => acc + parseNumber(row.Total_Anual), 0)
-        averages.Total_Anual = totalSum / validTotals.length
+    const comparativeData = {}
+    
+    monthKeys.forEach((month, index) => {
+      if (index === 0) {
+        // Janeiro não tem mês anterior, mostrar 0
+        comparativeData[month] = { percent: 0, isIncrease: false }
       } else {
-        averages.Total_Anual = 0
-      }
-      
-      // Calcular média das médias anuais
-      const validAverages = data.filter(row => parseNumber(row.Media_Anual) > 0)
-      if (validAverages.length > 0) {
-        const avgSum = validAverages.reduce((acc, row) => acc + parseNumber(row.Media_Anual), 0)
-        averages.Media_Anual = avgSum / validAverages.length
-      } else {
-        averages.Media_Anual = 0
-      }
-    }
-    return averages
-  }
-
-  // Função para calcular comparativo (tabela faturamento: diferença com meta, outras: mês anterior)
-  const getPreviousMonthComparison = useMemo(() => {
-    const comparisons = {}
-    if (data && data.length > 0) {
-      if (tableName === 'faturamento') {
-        // Para tabela faturamento: mostrar diferença com a meta (excluindo "Faturamento X Meta")
-        const faturamentoRow = data.find(row => row.categoria.toLowerCase().trim() === 'faturamento')
-        const metaRow = data.find(row => row.categoria.toLowerCase().trim() === 'meta')
+        const currentMonth = monthKeys[index]
+        const previousMonth = monthKeys[index - 1]
         
-        if (faturamentoRow && metaRow) {
-          monthKeys.forEach(month => {
-            const faturamento = parseNumber(faturamentoRow[month])
-            const meta = parseNumber(metaRow[month])
-            
-            if (meta > 0) {
-              const diferenca = meta - faturamento // Meta - Faturamento (invertido para consistência)
-              comparisons[month] = diferenca
-            } else {
-              comparisons[month] = null
-            }
-          })
-          
-          // Para total anual
-          const faturamentoTotal = parseNumber(faturamentoRow.Total_Anual)
-          const metaTotal = parseNumber(metaRow.Total_Anual)
-          if (metaTotal > 0) {
-            comparisons.Total_Anual = metaTotal - faturamentoTotal
-          } else {
-            comparisons.Total_Anual = null
-          }
-        }
-      } else {
-        // Para outras tabelas: lógica original de comparativo mês anterior
-        monthKeys.forEach((month, index) => {
-          if (index === 0) {
-            // Janeiro não tem mês anterior para comparar
-            comparisons[month] = null
-          } else {
-            // Comparar com o mês anterior
-            const currentValue = parseNumber(columnTotals[month])
-            const previousMonth = monthKeys[index - 1]
-            const previousValue = parseNumber(columnTotals[previousMonth])
-            
-            if (currentValue > 0 && previousValue > 0) {
-              const variation = ((currentValue - previousValue) / previousValue) * 100
-              comparisons[month] = variation
-            } else if (currentValue > 0 && previousValue === 0) {
-              // Se mês anterior era 0 e atual tem valor, é crescimento infinito
-              comparisons[month] = null // Não mostrar valor
-            } else if (currentValue === 0 && previousValue > 0) {
-              // Se atual é 0 e anterior tinha valor, é queda de 100%
-              comparisons[month] = -100
-            } else {
-              // Ambos são 0
-              comparisons[month] = null
-            }
-          }
-        })
+        const currentValue = totalsData[currentMonth] || 0
+        const previousValue = totalsData[previousMonth] || 0
         
-        // Total Anual e Média Anual não devem ter comparativo
-        comparisons.Total_Anual = null
-        comparisons.Media_Anual = null
+        comparativeData[month] = calculateComparative(currentValue, previousValue)
       }
-    }
-    return comparisons
-  }, [data, columnTotals, tableName]) // Dependências controladas para evitar re-cálculo infinito
-
-  // Função para formatar variação percentual
-  const formatVariation = (variation) => {
-    if (variation === null || variation === undefined) return '--'
-    if (variation === 0) return '0%'
+    })
     
-    // Para valores muito grandes, limitar a 999.9%
-    const limitedVariation = Math.max(-999.9, Math.min(999.9, variation))
-    const sign = limitedVariation > 0 ? '+' : ''
-    return `${sign}${limitedVariation.toFixed(1)}%`
+    return comparativeData
   }
 
-  // Função para obter a cor da variação
-  const getVariationColor = (variation) => {
-    if (variation === null || variation === undefined) return '#6b7280' // Cinza para N/A
-    if (variation > 0) return '#22c55e' // Verde
-    if (variation < 0) return '#ef4444' // Vermelho
-    return '#6b7280' // Cinza para zero
+  // Função para calcular o total de uma linha
+  const calculateRowTotal = (item) => {
+    const monthlyValues = [
+      item.Janeiro || 0,
+      item.Fevereiro || 0,
+      item.Marco || 0,
+      item.Abril || 0,
+      item.Maio || 0,
+      item.Junho || 0,
+      item.Julho || 0,
+      item.Agosto || 0,
+      item.Setembro || 0,
+      item.Outubro || 0,
+      item.Novembro || 0,
+      item.Dezembro || 0
+    ]
+    
+    return monthlyValues.reduce((acc, val) => acc + val, 0)
   }
 
-  // Função para renderizar o valor baseado no modo selecionado
-  const renderTotalValue = (field) => {
-    switch (totalDisplayMode) {
-      case 'media':
-        const averages = calculateColumnAverages()
-        return formatNumber(averages[field] || 0)
+  // Função para calcular a média de uma linha
+  const calculateRowAverage = (item) => {
+    const total = calculateRowTotal(item)
+    return total / 12
+  }
+
+  // Função para calcular totais
+  const calculateTotals = () => {
+    const totals = {
+      categoria: 'TOTAL GERAL',
+      Janeiro: 0,
+      Fevereiro: 0,
+      Marco: 0,
+      Abril: 0,
+      Maio: 0,
+      Junho: 0,
+      Julho: 0,
+      Agosto: 0,
+      Setembro: 0,
+      Outubro: 0,
+      Novembro: 0,
+      Dezembro: 0
+    }
+
+    filteredData.forEach(item => {
+      totals.Janeiro += item.Janeiro || 0
+      totals.Fevereiro += item.Fevereiro || 0
+      totals.Marco += item.Marco || 0
+      totals.Abril += item.Abril || 0
+      totals.Maio += item.Maio || 0
+      totals.Junho += item.Junho || 0
+      totals.Julho += item.Julho || 0
+      totals.Agosto += item.Agosto || 0
+      totals.Setembro += item.Setembro || 0
+      totals.Outubro += item.Outubro || 0
+      totals.Novembro += item.Novembro || 0
+      totals.Dezembro += item.Dezembro || 0
+    })
+
+    return totals
+  }
+
+  // Função para encontrar o maior valor de uma linha (excluindo categoria, total e média)
+  const findMaxValueInRow = (row) => {
+    const monthValues = monthKeys.map(month => parseFloat(row[month]) || 0)
+    return Math.max(...monthValues)
+  }
+
+  // Função para encontrar o menor valor de uma linha (excluindo categoria, total e média)
+  const findMinValueInRow = (row) => {
+    const monthValues = monthKeys.map(month => parseFloat(row[month]) || 0)
+    return Math.min(...monthValues)
+  }
+
+  // Função para verificar se um valor é o maior da linha FATURAMENTO E é a primeira ocorrência
+  const isMaxValueFaturamento = (row, month) => {
+    if (row.categoria !== 'FATURAMENTO') return false
+    
+    const currentValue = parseFloat(row[month]) || 0
+    const maxValue = findMaxValueInRow(row)
+    
+    if (currentValue !== maxValue || maxValue <= 0) {
+      return false
+    }
+    
+    // Verificar se é a primeira ocorrência do valor máximo
+    const monthIndex = monthKeys.indexOf(month)
+    if (monthIndex === -1) return false // Mês não encontrado
+    
+    for (let i = 0; i < monthIndex; i++) {
+      const previousValue = parseFloat(row[monthKeys[i]]) || 0
+      if (previousValue === maxValue) {
+        return false // Não é a primeira ocorrência
+      }
+    }
+    
+    return true // É a primeira ocorrência do valor máximo
+  }
+
+  // Função para verificar se um valor é o menor da linha FATURAMENTO E é a primeira ocorrência
+  const isMinValueFaturamento = (row, month) => {
+    if (row.categoria !== 'FATURAMENTO') return false
+    
+    const currentValue = parseFloat(row[month]) || 0
+    const minValue = findMinValueInRow(row)
+    
+    if (currentValue !== minValue) {
+      return false
+    }
+    
+    // Verificar se é a primeira ocorrência do valor mínimo
+    const monthIndex = monthKeys.indexOf(month)
+    if (monthIndex === -1) return false // Mês não encontrado
+    
+    for (let i = 0; i < monthIndex; i++) {
+      const previousValue = parseFloat(row[monthKeys[i]]) || 0
+      if (previousValue === minValue) {
+        return false // Não é a primeira ocorrência
+      }
+    }
+    
+    return true // É a primeira ocorrência do valor mínimo
+  }
+
+  // Função para verificar se um valor é o maior da linha E é a primeira ocorrência (desabilitada para META e FATURAMENTO)
+  const isMaxValue = (row, month) => {
+    // Não destacar valores nas linhas META e FATURAMENTO
+    if (row.categoria === 'META' || row.categoria === 'FATURAMENTO') {
+      return false
+    }
+    
+    const currentValue = parseFloat(row[month]) || 0
+    const maxValue = findMaxValueInRow(row)
+    
+    if (currentValue !== maxValue || maxValue <= 0) {
+      return false
+    }
+    
+    // Verificar se é a primeira ocorrência do valor máximo
+    const monthIndex = monthKeys.indexOf(month)
+    if (monthIndex === -1) return false // Mês não encontrado
+    
+    for (let i = 0; i < monthIndex; i++) {
+      const previousValue = parseFloat(row[monthKeys[i]]) || 0
+      if (previousValue === maxValue) {
+        return false // Não é a primeira ocorrência
+      }
+    }
+    
+    return true // É a primeira ocorrência do valor máximo
+  }
+
+  // Estilo para o maior valor (apenas números vermelhos, fundo branco)
+  const maxValueStyle = {
+    ...numberStyle,
+    color: '#dc2626', // Vermelho
+    fontWeight: '900', // Extra negrito
+    background: '#ffffff', // Fundo branco
+    fontSize: '0.8rem' // Aumentado para destacar
+  }
+
+  // Estilo para o maior valor da linha FATURAMENTO (verde)
+  const maxValueFaturamentoStyle = {
+    ...numberStyle,
+    color: '#16a34a', // Verde
+    fontWeight: '900', // Extra negrito
+    background: '#ffffff', // Fundo branco
+    fontSize: '0.8rem' // Aumentado para destacar
+  }
+
+  // Estilo para o menor valor da linha FATURAMENTO (vermelho)
+  const minValueFaturamentoStyle = {
+    ...numberStyle,
+    color: '#dc2626', // Vermelho
+    fontWeight: '900', // Extra negrito
+    background: '#ffffff', // Fundo branco
+    fontSize: '0.8rem' // Aumentado para destacar
+  }
+
+  // Função para navegar linha por linha (sem scrollbar)
+  const scrollToRow = (direction) => {
+    const table = document.querySelector('.simple-table tbody')
+    const allRows = table?.querySelectorAll('tr') // Todas as linhas incluindo TOTAL GERAL
+    const dataRows = table?.querySelectorAll('tr:not(.total-geral-row)') // Apenas linhas de dados
+    
+    if (!allRows || allRows.length === 0 || !dataRows || dataRows.length === 0) return
+    
+    const rowHeight = dataRows[0].offsetHeight
+    
+    if (direction === 'up') {
+      const newPosition = Math.max(0, scrollPosition - 1)
+      setScrollPosition(newPosition)
       
-      case 'comparativo':
-        const variation = getPreviousMonthComparison[field]
-        if (variation === null || variation === undefined) {
-          return (
-            <span style={{ color: '#6b7280', fontStyle: 'italic' }}>
-              --
-            </span>
-          )
-        }
-        
-        // Para tabela faturamento, mostrar valor absoluto da diferença com a meta
-        if (tableName === 'faturamento') {
-          return formatFaturamentoMetaValue(variation)
-        } else {
-          // Para outras tabelas, mostrar percentual
-          return (
-            <span style={{ color: getVariationColor(variation) }}>
-              {formatVariation(variation)}
-            </span>
-          )
-        }
+      // Move as linhas para cima
+      table.style.transform = `translateY(-${newPosition * rowHeight}px)`
+    } else if (direction === 'down') {
+      // Permitir scroll até que todas as linhas de dados passem para trás do header
+      // Deixando apenas a linha TOTAL GERAL visível junto com o header
+      const maxPosition = dataRows.length // Permite scroll completo
+      const newPosition = Math.min(maxPosition, scrollPosition + 1)
+      setScrollPosition(newPosition)
       
-      default: // 'total'
-        // Tratamento especial para tabela faturamento - mostrar % de atingimento da meta
-        if (tableName === 'faturamento') {
-          const achievement = calculateGoalAchievement()
-          const percentage = achievement[field] || 0
-          return formatAchievement(percentage)
-        } else {
-          // Para outras tabelas, mostrar soma normal
-          return formatNumber(columnTotals[field])
-        }
+      // Move as linhas para baixo
+      table.style.transform = `translateY(-${newPosition * rowHeight}px)`
     }
   }
 
-  // Função para calcular percentual de atingimento da meta (específico para tabela faturamento)
-  const calculateGoalAchievement = () => {
-    const achievement = {}
-    if (tableName === 'faturamento' && data && data.length > 0) {
-      // Encontrar as linhas de Faturamento e Meta (excluindo "Faturamento X Meta")
-      const faturamentoRow = data.find(row => row.categoria.toLowerCase().trim() === 'faturamento')
-      const metaRow = data.find(row => row.categoria.toLowerCase().trim() === 'meta')
+  const totals = calculateTotals()
+  const totalSum = Object.keys(totals)
+    .filter(key => key !== 'categoria')
+    .reduce((sum, key) => sum + totals[key], 0)
+  const totalAverage = totalSum / 12
+
+  // Verificar se é tabela de faturamento
+  const isFaturamento = tableName === 'faturamento'
+  
+  // Função para calcular META ATINGIDA (percentual)
+  const calculateMetaAtingida = () => {
+    if (!isFaturamento || !filteredData || filteredData.length === 0) return totals
+
+    const faturamentoRow = filteredData.find(row => row.categoria === 'FATURAMENTO')
+    const metaRow = filteredData.find(row => row.categoria === 'META')
+    
+    // Se não encontrar as linhas necessárias, retorna totals padrão
+    if (!faturamentoRow || !metaRow) return totals
+
+    const metaAtingida = { categoria: 'META ATINGIDA' }
+    
+    monthKeys.forEach(month => {
+      const faturamento = parseFloat(faturamentoRow[month]) || 0
+      const meta = parseFloat(metaRow[month]) || 0
       
-      if (faturamentoRow && metaRow) {
+      if (meta > 0) {
+        metaAtingida[month] = (faturamento / meta) * 100
+        } else {
+        metaAtingida[month] = 0
+      }
+    })
+    
+    return metaAtingida
+  }
+
+  // Função para calcular FATURAMENTO X META
+  const calculateFaturamentoXMeta = () => {
+    if (!isFaturamento || !filteredData || filteredData.length === 0) return null
+
+    const faturamentoRow = filteredData.find(row => row.categoria === 'FATURAMENTO')
+    const metaRow = filteredData.find(row => row.categoria === 'META')
+    
+    // Se não encontrar as linhas necessárias, retorna null
+    if (!faturamentoRow || !metaRow) return null
+
+    const faturamentoXMeta = { categoria: 'FATURAMENTO X META' }
+    
         monthKeys.forEach(month => {
-          const faturamento = parseNumber(faturamentoRow[month])
-          const meta = parseNumber(metaRow[month])
-          
-          if (meta > 0) {
-            achievement[month] = (faturamento / meta) * 100
-          } else {
-            achievement[month] = 0
-          }
-        })
-        
-        // Calcular para total anual
-        const faturamentoTotal = parseNumber(faturamentoRow.Total_Anual)
-        const metaTotal = parseNumber(metaRow.Total_Anual)
-        if (metaTotal > 0) {
-          achievement.Total_Anual = (faturamentoTotal / metaTotal) * 100
-        } else {
-          achievement.Total_Anual = 0
-        }
-        
-        // Calcular para média anual  
-        const faturamentoMedia = parseNumber(faturamentoRow.Media_Anual)
-        const metaMedia = parseNumber(metaRow.Media_Anual)
-        if (metaMedia > 0) {
-          achievement.Media_Anual = (faturamentoMedia / metaMedia) * 100
-        } else {
-          achievement.Media_Anual = 0
-        }
-      }
-    }
-    return achievement
-  }
-
-  // Função para formatar percentual de atingimento
-  const formatAchievement = (percentage) => {
-    if (percentage === 0 || percentage === null || percentage === undefined) return '0%'
+      const faturamento = parseFloat(faturamentoRow[month]) || 0
+      const meta = parseFloat(metaRow[month]) || 0
+      faturamentoXMeta[month] = faturamento - meta
+    })
     
-    const color = percentage >= 100 ? '#22c55e' : percentage >= 80 ? '#f59e0b' : '#ef4444'
-    return (
-      <span style={{ color, fontWeight: 'bold' }}>
-        {percentage.toFixed(1)}%
-      </span>
-    )
+    return faturamentoXMeta
   }
 
-  // Função para formatar valores da linha "Faturamento X Meta"
-  const formatFaturamentoMetaValue = (value) => {
-    const numValue = parseNumber(value)
-    if (numValue === 0) return formatNumber(0)
-    
-    // Inverter valor e sinal para lógica intuitiva: + = ultrapassou (verde), - = não atingiu (vermelho)
-    const invertedValue = -numValue
-    const color = invertedValue > 0 ? '#22c55e' : '#ef4444'
-    
-    return (
-      <span style={{ color, fontWeight: 'bold' }}>
-        {invertedValue > 0 ? '+' : ''}{formatNumber(invertedValue)}
-      </span>
-    )
-  }
+  const metaAtingida = isFaturamento ? calculateMetaAtingida() : totals
+  const faturamentoXMeta = calculateFaturamentoXMeta()
 
-  // Função para obter o texto do label baseado no modo selecionado
-  const getTotalLabel = () => {
-    if (tableName === 'faturamento') {
-      switch (totalDisplayMode) {
-        case 'media':
-          return 'MÉDIA GERAL'
-        case 'comparativo':
-          return 'COMPARATIVO'
-        default:
-          return 'ATINGIMENTO META'
-      }
-    } else {
-      switch (totalDisplayMode) {
-        case 'media':
-          return 'MÉDIA GERAL'
-        case 'comparativo':
-          return 'COMPARATIVO'
-        default:
-          return 'TOTAL GERAL'
-      }
-    }
-  }
-
-  // FUNÇÕES DE EXPORTAÇÃO
+  // Funções de exportação
   const exportToCSV = () => {
-    // Verificar se há estrutura de dados para exportar
-    if (!data || data.length === 0) {
-      alert('Não há dados para exportar')
-      return
-    }
-
+    console.log('🟢 Função exportToCSV chamada!', { tableName, selectedYear, dados: filteredData.length })
+    
     try {
-      // Preparar dados para CSV
-      const csvData = []
-      
-      // Cabeçalho (sem Média Anual para tabela faturamento)
-      const header = tableName === 'faturamento' 
-        ? ['Categoria', ...monthKeys, 'Total Anual']
-        : ['Categoria', ...monthKeys, 'Total Anual', 'Média Anual']
-      csvData.push(header)
-      
-      // Dados das linhas (sem Média Anual para tabela faturamento)
-      data.forEach(row => {
-        const csvRow = tableName === 'faturamento'
-          ? [
-              row.categoria,
-              ...monthKeys.map(month => parseNumber(row[month])),
-              parseNumber(row.Total_Anual)
-            ]
-          : [
-              row.categoria,
-              ...monthKeys.map(month => parseNumber(row[month])),
-              parseNumber(row.Total_Anual),
-              parseNumber(row.Media_Anual)
-            ]
-        csvData.push(csvRow)
-      })
-      
-              // Linha de totais (tratamento especial para faturamento, excluir para impostos)
-      if (tableName !== 'impostos') {
-        let totalsRow
-        if (tableName === 'faturamento') {
-          const achievement = calculateGoalAchievement()
-          totalsRow = [
-            'ATINGIMENTO META',
-            ...monthKeys.map(month => `${(achievement[month] || 0).toFixed(1)}%`),
-            `${(achievement.Total_Anual || 0).toFixed(1)}%`
-          ]
-        } else {
-          totalsRow = [
-            'TOTAL GERAL',
-            ...monthKeys.map(month => parseNumber(columnTotals[month])),
-            parseNumber(columnTotals.Total_Anual),
-            parseNumber(columnTotals.Media_Anual)
-          ]
-        }
-        csvData.push(totalsRow)
+      if (!filteredData || filteredData.length === 0) {
+        alert('❌ Nenhum dado disponível para exportar')
+        return
       }
+
+      const headers = ['CATEGORIA', 'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ', 'TOTAL', 'MÉDIA']
       
-      // Converter para CSV
-      const csvContent = csvData.map(row => row.join(';')).join('\n')
+      const csvRows = [headers.join(',')]
       
-      // Download
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      filteredData.forEach(row => {
+        const total = calculateRowTotal(row)
+        const average = calculateRowAverage(row)
+        
+        const rowData = [
+          `"${row.categoria}"`,
+          row.Janeiro || 0,
+          row.Fevereiro || 0,
+          row.Marco || 0,
+          row.Abril || 0,
+          row.Maio || 0,
+          row.Junho || 0,
+          row.Julho || 0,
+          row.Agosto || 0,
+          row.Setembro || 0,
+          row.Outubro || 0,
+          row.Novembro || 0,
+          row.Dezembro || 0,
+          total.toFixed(2),
+          average.toFixed(2)
+        ]
+        csvRows.push(rowData.join(','))
+      })
+
+      const csvContent = csvRows.join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
-      link.href = URL.createObjectURL(blob)
-      link.download = `${tableName}_${new Date().toISOString().slice(0, 10)}.csv`
+      link.href = url
+      link.download = `${tableName}_${selectedYear}.csv`
+      document.body.appendChild(link)
       link.click()
-      
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      alert('✅ CSV exportado com sucesso!')
     } catch (error) {
-      console.error('Erro ao exportar CSV:', error)
-      alert('Erro ao exportar para CSV')
+      console.error('❌ Erro CSV:', error)
+      alert('❌ Erro ao exportar CSV: ' + error.message)
     }
   }
 
   const exportToExcel = () => {
-    // Verificar se há estrutura de dados para exportar
-    if (!data || data.length === 0) {
-      alert('Não há dados para exportar')
-      return
-    }
-
+    console.log('🟢 Função exportToExcel chamada!', { tableName, selectedYear, dados: filteredData.length })
+    
     try {
-      // Preparar dados para Excel
-      const wsData = []
-      
-      // Cabeçalho (sem Média Anual para tabela faturamento)
-      const header = tableName === 'faturamento' 
-        ? ['Categoria', ...monthKeys, 'Total Anual']
-        : ['Categoria', ...monthKeys, 'Total Anual', 'Média Anual']
-      wsData.push(header)
-      
-      // Dados das linhas (sem Média Anual para tabela faturamento)
-      data.forEach(row => {
-        const excelRow = tableName === 'faturamento'
-          ? [
-              row.categoria,
-              ...monthKeys.map(month => parseNumber(row[month])),
-              parseNumber(row.Total_Anual)
-            ]
-          : [
-              row.categoria,
-              ...monthKeys.map(month => parseNumber(row[month])),
-              parseNumber(row.Total_Anual),
-              parseNumber(row.Media_Anual)
-            ]
-        wsData.push(excelRow)
-      })
-      
-      // Linha de totais (tratamento especial para faturamento, excluir para impostos)
-      if (tableName !== 'impostos') {
-        let totalsRow
-        if (tableName === 'faturamento') {
-          const achievement = calculateGoalAchievement()
-          totalsRow = [
-            'ATINGIMENTO META',
-            ...monthKeys.map(month => `${(achievement[month] || 0).toFixed(1)}%`),
-            `${(achievement.Total_Anual || 0).toFixed(1)}%`
-          ]
-        } else {
-          totalsRow = [
-            'TOTAL GERAL',
-            ...monthKeys.map(month => parseNumber(columnTotals[month])),
-            parseNumber(columnTotals.Total_Anual),
-            parseNumber(columnTotals.Media_Anual)
-          ]
-        }
-        wsData.push(totalsRow)
+      if (!filteredData || filteredData.length === 0) {
+        alert('❌ Nenhum dado disponível para exportar')
+        return
       }
+
+      if (!XLSX) {
+        alert('Biblioteca Excel não disponível')
+        return
+      }
+
+      const worksheetData = [
+        ['CATEGORIA', 'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ', 'TOTAL', 'MÉDIA']
+      ]
       
-      // Criar workbook e worksheet
-      const wb = XLSX.utils.book_new()
-      const ws = XLSX.utils.aoa_to_sheet(wsData)
-      
-      // Adicionar worksheet ao workbook
-      XLSX.utils.book_append_sheet(wb, ws, tableName)
-      
-      // Download
-      XLSX.writeFile(wb, `${tableName}_${new Date().toISOString().slice(0, 10)}.xlsx`)
-      
+      filteredData.forEach(row => {
+        const total = calculateRowTotal(row)
+        const average = calculateRowAverage(row)
+        
+        worksheetData.push([
+          row.categoria,
+          parseFloat(row.Janeiro) || 0,
+          parseFloat(row.Fevereiro) || 0,
+          parseFloat(row.Marco) || 0,
+          parseFloat(row.Abril) || 0,
+          parseFloat(row.Maio) || 0,
+          parseFloat(row.Junho) || 0,
+          parseFloat(row.Julho) || 0,
+          parseFloat(row.Agosto) || 0,
+          parseFloat(row.Setembro) || 0,
+          parseFloat(row.Outubro) || 0,
+          parseFloat(row.Novembro) || 0,
+          parseFloat(row.Dezembro) || 0,
+          total,
+          average
+        ])
+      })
+
+      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Dados')
+      XLSX.writeFile(workbook, `${tableName}_${selectedYear}.xlsx`)
+
+      alert('✅ Excel exportado com sucesso!')
     } catch (error) {
-      console.error('Erro ao exportar Excel:', error)
-      alert('Erro ao exportar para Excel')
+      console.error('❌ Erro Excel:', error)
+      alert('❌ Erro ao exportar Excel: ' + error.message)
     }
   }
 
   const exportToPDF = () => {
-    // Verificar se há estrutura de dados para exportar
-    if (!data || data.length === 0) {
-      alert('Não há dados para exportar')
-      return
-    }
-
+    console.log('🟢 Função exportToPDF chamada!', { tableName, selectedYear, dados: filteredData.length })
+    
     try {
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      })
+      if (!filteredData || filteredData.length === 0) {
+        alert('❌ Nenhum dado disponível para exportar')
+        return
+      }
+
+      if (!jsPDF) {
+        alert('Biblioteca PDF não disponível')
+        return
+      }
+
+      const pdf = new jsPDF('landscape', 'mm', 'a4')
       
-      // Preparar dados para tabela
-      const tableData = []
+      pdf.setFontSize(16)
+      pdf.text(`Relatório ${tableName} - ${selectedYear}`, 20, 20)
       
-      // Dados das linhas (sem Média Anual para tabela faturamento)
-      data.forEach(row => {
-        const pdfRow = tableName === 'faturamento'
-          ? [
-              row.categoria,
-              ...monthKeys.map(month => formatNumber(row[month])),
-              formatNumber(row.Total_Anual)
-            ]
-          : [
-              row.categoria,
-              ...monthKeys.map(month => formatNumber(row[month])),
-              formatNumber(row.Total_Anual),
-              formatNumber(row.Media_Anual)
-            ]
-        tableData.push(pdfRow)
-      })
-      
-      // Linha de totais (tratamento especial para faturamento, excluir para impostos)
-      if (tableName !== 'impostos') {
-        let totalsRow
-        if (tableName === 'faturamento') {
-          const achievement = calculateGoalAchievement()
-          totalsRow = [
-            'ATINGIMENTO META',
-            ...monthKeys.map(month => `${(achievement[month] || 0).toFixed(1)}%`),
-            `${(achievement.Total_Anual || 0).toFixed(1)}%`
-          ]
-        } else {
-          totalsRow = [
-            'TOTAL GERAL',
-            ...monthKeys.map(month => formatNumber(columnTotals[month])),
-            formatNumber(columnTotals.Total_Anual),
-            formatNumber(columnTotals.Media_Anual)
-          ]
-        }
-        tableData.push(totalsRow)
+      const tableData = filteredData.map(row => [
+        row.categoria,
+        (parseFloat(row.Janeiro) || 0).toFixed(2),
+        (parseFloat(row.Fevereiro) || 0).toFixed(2),
+        (parseFloat(row.Marco) || 0).toFixed(2),
+        (parseFloat(row.Abril) || 0).toFixed(2),
+        (parseFloat(row.Maio) || 0).toFixed(2),
+        (parseFloat(row.Junho) || 0).toFixed(2),
+        (parseFloat(row.Julho) || 0).toFixed(2),
+        (parseFloat(row.Agosto) || 0).toFixed(2),
+        (parseFloat(row.Setembro) || 0).toFixed(2),
+        (parseFloat(row.Outubro) || 0).toFixed(2),
+        (parseFloat(row.Novembro) || 0).toFixed(2),
+        (parseFloat(row.Dezembro) || 0).toFixed(2),
+        calculateRowTotal(row).toFixed(2),
+        calculateRowAverage(row).toFixed(2)
+      ])
+
+      if (pdf.autoTable) {
+        pdf.autoTable({
+          head: [['CATEGORIA', 'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ', 'TOTAL', 'MÉDIA']],
+          body: tableData,
+          startY: 30,
+          styles: { fontSize: 8 }
+        })
+      } else {
+        // Fallback se autoTable não estiver disponível
+        let y = 40
+        tableData.forEach(row => {
+          pdf.setFontSize(8)
+          pdf.text(row.join(' | '), 10, y)
+          y += 6
+        })
       }
       
-      // Adicionar tabela ocupando toda a página
-      const tableHeader = tableName === 'faturamento' 
-        ? [['Categoria', ...monthKeys, 'Total Anual']]
-        : [['Categoria', ...monthKeys, 'Total Anual', 'Média Anual']]
-      
-      autoTable(doc, {
-        startY: 10,
-        head: tableHeader,
-        body: tableData,
-        styles: { 
-          fontSize: 7, 
-          cellPadding: 2,
-          halign: 'center',
-          valign: 'middle',
-          lineColor: [200, 200, 200],
-          lineWidth: 0.1
-        },
-        headStyles: { 
-          fillColor: [0, 68, 136], 
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          fontSize: 7
-        },
-        alternateRowStyles: { fillColor: [245, 245, 245] },
-        bodyStyles: { textColor: [50, 50, 50] },
-        columnStyles: tableName === 'faturamento' 
-          ? {
-              0: { halign: 'left', cellWidth: 25 }, // Categoria - à esquerda
-              1: { halign: 'center', cellWidth: 16.5 }, // Janeiro - centralizado
-              2: { halign: 'center', cellWidth: 16.5 }, // Fevereiro
-              3: { halign: 'center', cellWidth: 16.5 }, // Março
-              4: { halign: 'center', cellWidth: 16.5 }, // Abril
-              5: { halign: 'center', cellWidth: 16.5 }, // Maio
-              6: { halign: 'center', cellWidth: 16.5 }, // Junho
-              7: { halign: 'center', cellWidth: 16.5 }, // Julho
-              8: { halign: 'center', cellWidth: 16.5 }, // Agosto
-              9: { halign: 'center', cellWidth: 16.5 }, // Setembro
-              10: { halign: 'center', cellWidth: 16.5 }, // Outubro
-              11: { halign: 'center', cellWidth: 16.5 }, // Novembro
-              12: { halign: 'center', cellWidth: 16.5 }, // Dezembro
-              13: { halign: 'center', cellWidth: 20 }, // Total Anual - centralizado
-            }
-          : {
-              0: { halign: 'left', cellWidth: 25 }, // Categoria - à esquerda
-              1: { halign: 'center', cellWidth: 16.5 }, // Janeiro - centralizado
-              2: { halign: 'center', cellWidth: 16.5 }, // Fevereiro
-              3: { halign: 'center', cellWidth: 16.5 }, // Março
-              4: { halign: 'center', cellWidth: 16.5 }, // Abril
-              5: { halign: 'center', cellWidth: 16.5 }, // Maio
-              6: { halign: 'center', cellWidth: 16.5 }, // Junho
-              7: { halign: 'center', cellWidth: 16.5 }, // Julho
-              8: { halign: 'center', cellWidth: 16.5 }, // Agosto
-              9: { halign: 'center', cellWidth: 16.5 }, // Setembro
-              10: { halign: 'center', cellWidth: 16.5 }, // Outubro
-              11: { halign: 'center', cellWidth: 16.5 }, // Novembro
-              12: { halign: 'center', cellWidth: 16.5 }, // Dezembro
-              13: { halign: 'center', cellWidth: 20 }, // Total Anual - centralizado
-              14: { halign: 'center', cellWidth: 20 }  // Média Anual - centralizado
-            },
-        margin: { left: 12, right: 12, top: 10, bottom: 15 },
-        theme: 'striped',
-        tableWidth: 'auto',
-        halign: 'center',
-        horizontalPageBreak: false,
-        pageBreak: 'avoid',
-        showHead: 'firstPage',
-        showFoot: 'never',
-        tableBreak: 'avoid',
-        rowPageBreak: 'avoid',
-        didParseCell: function (data) {
-          // Aplicar estilo do cabeçalho na linha TOTAL GERAL (exceto para impostos)
-          if (tableName !== 'impostos' && data.row.index === tableData.length - 1) { // Última linha (TOTAL GERAL)
-            data.cell.styles.fillColor = [0, 68, 136] // Mesma cor do cabeçalho
-            data.cell.styles.textColor = [255, 255, 255] // Texto branco
-            data.cell.styles.fontStyle = 'bold'
-            data.cell.styles.fontSize = 7
-          }
-        }
-      })
-      
-      // Data e hora no canto inferior direito
-      const pageWidth = doc.internal.pageSize.getWidth()
-      const pageHeight = doc.internal.pageSize.getHeight()
-      const now = new Date()
-      const dateTimeString = `Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR')}`
-      
-      doc.setFontSize(7)
-      const dateTimeWidth = doc.getTextWidth(dateTimeString)
-      doc.text(dateTimeString, pageWidth - dateTimeWidth - 10, pageHeight - 10)
-      
-      // Download
-      doc.save(`${tableName}_${new Date().toISOString().slice(0, 10)}.pdf`)
-      
+      pdf.save(`${tableName}_${selectedYear}.pdf`)
+      alert('✅ PDF exportado com sucesso!')
     } catch (error) {
-      console.error('Erro ao exportar PDF:', error)
-      console.error('Detalhes do erro:', error.message)
-      alert(`Erro ao exportar para PDF: ${error.message}`)
+      console.error('❌ Erro PDF:', error)
+      alert('❌ Erro ao exportar PDF: ' + error.message)
     }
   }
 
-  // Funções para navegação linha por linha
-  const scrollUp = () => {
-    if (currentRowIndex > 0) {
-      setCurrentRowIndex(currentRowIndex - 1)
-    }
+  // Função de teste para verificar se a passagem funciona
+  const testExport = () => {
+    alert('🎯 Função de teste funcionando! Dados disponíveis: ' + filteredData.length)
+    console.log('🎯 Teste de exportação:', { tableName, selectedYear, filteredData })
   }
 
-  const scrollDown = () => {
-    if (currentRowIndex < filteredData.length) {
-      setCurrentRowIndex(currentRowIndex + 1)
-    }
-  }
-
-  // Calcular linhas visíveis baseado no índice atual e filtro de categorias
-  const getVisibleRows = () => {
-    if (!filteredData || filteredData.length === 0) return []
-    
-    // Se currentRowIndex = 0, mostra todas as linhas filtradas
-    // Se currentRowIndex > 0, esconde as primeiras currentRowIndex linhas filtradas
-    if (currentRowIndex === 0) {
-      return filteredData
-    }
-    
-    return filteredData.slice(currentRowIndex)
-  }
-
-  // Resetar índice quando mudar de tabela
+  // Configurar funções de exportação para o Dashboard pai
   useEffect(() => {
-    setCurrentRowIndex(0)
-  }, [tableName])
+    if (onExportFunctionsReady) {
+      console.log('🔧 Configurando funções de exportação na TableView:', {
+        tableName,
+        selectedYear,
+        hasData: filteredData.length > 0,
+        exportFunctions: typeof exportToCSV
+      })
+      onExportFunctionsReady({
+        exportToCSV,
+        exportToExcel,
+        exportToPDF,
+        testExport
+      })
+    }
+  }, [filteredData, selectedYear, tableName, onExportFunctionsReady])
 
   if (loading) {
     return (
-      <div className="table-loading">
-        <div className="table-loading-spinner"></div>
-        
+      <div style={loadingStyle}>
+        <div style={spinnerStyle}></div>
+        <p style={{ fontWeight: '600', margin: 0, fontSize: '1.1rem' }}>Carregando dados...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="table-error">
-        <div className="error-icon">⚠️</div>
-        <h3>Erro ao carregar dados</h3>
-        <p>{error}</p>
-        <button className="usifix-btn-primary" onClick={loadData}>
+      <div style={{
+        ...loadingStyle,
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 242, 242, 0.95) 100%)',
+        border: '3px solid #ef4444'
+      }}>
+        <h3 style={{ color: '#dc2626', margin: 0, fontSize: '1.5rem' }}>Erro ao carregar dados</h3>
+        <p style={{ color: '#7f1d1d', margin: 0, fontSize: '1.1rem' }}>{error}</p>
+        <button 
+          onClick={loadData}
+          style={{
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            color: 'white',
+            border: 'none',
+            padding: '1rem 2rem',
+            borderRadius: '12px',
+            fontWeight: '700',
+            cursor: 'pointer'
+          }}
+        >
           Tentar novamente
         </button>
       </div>
     )
   }
 
-  const visibleRows = getVisibleRows()
-
-  const handleYearChange = (year) => {
-    setSelectedYear(year)
-    setCurrentRowIndex(0)
+  if (filteredData.length === 0) {
+  return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '400px',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+        border: '3px solid #3b82f6',
+        borderRadius: '20px',
+        margin: '2rem',
+        padding: '3rem',
+        boxShadow: '0 20px 40px rgba(59, 130, 246, 0.1)'
+      }}>
+        <div style={{
+          fontSize: '3rem',
+          marginBottom: '1rem',
+          color: '#3b82f6'
+        }}>
+          📅
+        </div>
+        <h3 style={{ 
+          color: '#1e40af', 
+          margin: '0 0 1rem 0', 
+          fontSize: '1.5rem',
+          fontWeight: '700',
+          textAlign: 'center'
+        }}>
+          Nenhum dado encontrado para {selectedYear}
+        </h3>
+        <p style={{ 
+          color: '#64748b', 
+          margin: '0', 
+          fontSize: '1.1rem',
+          textAlign: 'center',
+          lineHeight: '1.6'
+        }}>
+          A tabela <strong>{tableName}</strong> não possui dados cadastrados para o ano {selectedYear}.<br/>
+          Tente selecionar outro ano ou verifique se os dados foram inseridos corretamente.
+        </p>
+        <div style={{
+          marginTop: '2rem',
+          display: 'flex',
+          gap: '1rem'
+        }}>
+            <button 
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.3s ease'
+            }}
+            onClick={() => handleYearChange(2025)}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)'
+              e.target.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0px)'
+              e.target.style.boxShadow = 'none'
+            }}
+          >
+            Ver 2025
+            </button>
+          <button
+            style={{
+              background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.3s ease'
+            }}
+            onClick={loadData}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)'
+              e.target.style.boxShadow = '0 8px 25px rgba(107, 114, 128, 0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0px)'
+              e.target.style.boxShadow = 'none'
+            }}
+          >
+            Recarregar dados
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <>
-      {/* Seletor de anos - FORA da estrutura da tabela, posicionado de forma fixa */}
-      <div className="year-selector-compact">
-        <div className="year-buttons-right">
-          <button 
-            className={`year-btn-compact ${selectedYear === 2024 ? 'active' : ''}`}
-            onClick={() => handleYearChange(2024)}
-          >
-            2024
-          </button>
-          <button 
-            className={`year-btn-compact ${selectedYear === 2025 ? 'active' : ''}`}
-            onClick={() => handleYearChange(2025)}
-          >
-            2025
-          </button>
-        </div>
-      </div>
-    
-      {/* Setas posicionadas FORA da estrutura da tabela */}
-      <div className="scroll-controls-fixed">
+      <style>
+        {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          
+          .simple-table tbody tr:nth-child(even):not(.total-geral-row) {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+          }
+          
+          .simple-table tbody tr:nth-child(odd):not(.total-geral-row) {
+            background: #ffffff !important;
+          }
+          
+          .simple-table tbody tr:hover:not(.total-geral-row) {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 43, 85, 0.15) !important;
+          }
+          
+          .simple-table-container {
+            margin: 0 !important;
+            padding: 0 !important;
+            min-height: 200px !important;
+            max-height: calc(100vh - 60px) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            position: relative !important;
+            overflow: visible !important;
+            width: calc(100% - 120px) !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          
+          .table-wrapper {
+            width: calc(100% - 2rem) !important;
+            height: auto !important;
+            min-height: auto !important;
+            overflow: hidden !important;
+            margin: 0 1rem 0.5rem 1rem !important;
+            position: relative !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          
+          .table-wrapper::before,
+          .table-wrapper::after {
+            content: none !important;
+          }
+          
+          .simple-table * {
+            box-sizing: border-box !important;
+          }
+          
+          .simple-table td,
+          .simple-table th {
+            outline: none !important;
+            border: none !important;
+          }
+          
+          .simple-table tr {
+            border: none !important;
+            outline: none !important;
+          }
+          
+          .simple-table {
+            height: auto !important;
+            position: relative !important;
+            display: table !important;
+            width: 100% !important;
+            background: transparent !important;
+            border: none !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            box-shadow: none !important;
+          }
+          
+          .simple-table thead {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 10 !important;
+            background: #002b55 !important;
+            border: 3px solid #002b55 !important;
+            border-radius: 16px 16px 0 0 !important;
+            box-shadow: 0 10px 30px rgba(0, 43, 85, 0.25) !important;
+          }
+          
+          .simple-table thead th:first-child {
+            border-radius: 13px 0 0 0 !important;
+          }
+          
+          .simple-table thead th:last-child {
+            border-radius: 0 13px 0 0 !important;
+          }
+          
+          .simple-table tbody {
+            transition: transform 0.3s ease !important;
+            position: relative !important;
+            z-index: 5 !important;
+            display: table-row-group !important;
+          }
+          
+          .simple-table tbody tr:not(.total-geral-row) {
+            border: none !important;
+          }
+          
+          .simple-table tbody tr:not(.total-geral-row) td {
+            border: none !important;
+          }
+          
+          .total-geral-row {
+            background: #002b55 !important;
+            border: 3px solid #002b55 !important;
+            border-top: 4px solid #000000 !important;
+            border-radius: 0 0 16px 16px !important;
+            box-shadow: 0 10px 30px rgba(0, 43, 85, 0.25) !important;
+          }
+          
+          .total-geral-row td:first-child {
+            border-radius: 0 0 0 13px !important;
+          }
+          
+          .total-geral-row td:last-child {
+            border-radius: 0 0 13px 0 !important;
+          }
+        `}
+      </style>
+      
+      {/* Botões de navegação */}
+      <div style={navigationStyle}>
         <button 
-          className="scroll-arrow scroll-up"
-          onClick={scrollUp}
-          disabled={!canScrollUp}
+          style={hoverUp ? arrowButtonHoverStyle : arrowButtonStyle}
+          onClick={() => scrollToRow('up')}
+          onMouseEnter={() => setHoverUp(true)}
+          onMouseLeave={() => setHoverUp(false)}
           title="Subir uma linha"
         >
-          ▲
+          ↑
         </button>
         <button 
-          className="scroll-arrow scroll-down"
-          onClick={scrollDown}
-          disabled={!canScrollDown}
+          style={hoverDown ? arrowButtonHoverStyle : arrowButtonStyle}
+          onClick={() => scrollToRow('down')}
+          onMouseEnter={() => setHoverDown(true)}
+          onMouseLeave={() => setHoverDown(false)}
           title="Descer uma linha"
         >
-          ▼
+          ↓
         </button>
       </div>
 
-      <div className="table-view">
-        <div className="table-wrapper">
-          <div className="table-container">
-<<<<<<< HEAD
-            {/* Setas posicionadas ao lado das colunas */}
-            <div className="scroll-controls-fixed">
-              <button 
-                className="scroll-arrow scroll-up"
-                onClick={scrollUp}
-                disabled={currentRowIndex === 0}
-                title="Subir uma linha"
-              >
-                ▲
-              </button>
-              <button 
-                className="scroll-arrow scroll-down"
-                onClick={scrollDown}
-                disabled={currentRowIndex >= filteredData.length - 1}
-                title="Descer uma linha"
-              >
-                ▼
-              </button>
-            </div>
-            
-=======
->>>>>>> parent of 13528bb (feat: remove a sidebar do dashboard, simplifica a lógica de fullscreen e aprimora os estilos dos botões de controle)
-            <div className="table-scroll-container">
-              {visibleRows && visibleRows.length > 0 ? (
-                <table ref={tableRef} className="data-table">
-                <thead>
-                  <tr>
-                    <th className="sticky-col">Categoria</th>
-                    {monthKeys.map((month) => (
-                      <th key={month} className="month-col">
-                        {month}
-                      </th>
-                    ))}
-                    <th className="total-col">Total Anual</th>
-                    {/* Ocultar coluna Média Anual apenas na tabela faturamento */}
-                    {tableName !== 'faturamento' && (
-                      <th className="average-col">Média Anual</th>
+      <div className="simple-table-container" style={containerStyle}>
+        {/* Botões de filtro por ano */}
+        <div style={yearFilterStyle}>
+          <button
+            style={selectedYear === 2025 ? yearButtonActiveStyle : yearButtonStyle}
+            onClick={() => handleYearChange(2025)}
+            onMouseEnter={(e) => {
+              if (selectedYear !== 2025) {
+                e.target.style.background = 'linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%)'
+                e.target.style.transform = 'translateY(-2px)'
+                e.target.style.boxShadow = '0 4px 16px rgba(0, 43, 85, 0.2)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedYear !== 2025) {
+                e.target.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+                e.target.style.transform = 'translateY(0px)'
+                e.target.style.boxShadow = '0 2px 8px rgba(0, 43, 85, 0.1)'
+              }
+            }}
+          >
+            2025
+          </button>
+          <button
+            style={selectedYear === 2024 ? yearButtonActiveStyle : yearButtonStyle}
+            onClick={() => handleYearChange(2024)}
+            onMouseEnter={(e) => {
+              if (selectedYear !== 2024) {
+                e.target.style.background = 'linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%)'
+                e.target.style.transform = 'translateY(-2px)'
+                e.target.style.boxShadow = '0 4px 16px rgba(0, 43, 85, 0.2)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedYear !== 2024) {
+                e.target.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+                e.target.style.transform = 'translateY(0px)'
+                e.target.style.boxShadow = '0 2px 8px rgba(0, 43, 85, 0.1)'
+              }
+            }}
+          >
+            2024
+          </button>
+        </div>
+
+        <div className="table-wrapper" style={wrapperStyle}>
+          <table className="simple-table" style={tableStyle}>
+            <thead style={theadStyle}>
+              <tr>
+                <th style={thFirstStyle}>CATEGORIA</th>
+                {monthKeys.map((month, index) => (
+                  <th key={month} style={thStyle}>{monthLabels[index]}</th>
+                ))}
+                <th style={thTotalStyle}>TOTAL</th>
+                <th style={thMediaStyle}>MÉDIA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+              {filteredData.map((row, index) => (
+                <tr key={row.id} style={{
+                  background: index % 2 === 0 ? 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' : '#ffffff',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}>
+                  <td style={categoriaStyle} title={row.categoria}>
+                              {row.categoria}
+                    <span
+                      style={
+                        hoveredNoteIcon === row.id 
+                          ? noteIconHoverStyle 
+                          : hasNote(row) 
+                            ? noteIconActiveStyle 
+                            : noteIconStyle
+                      }
+                      onClick={() => openNotesModal(row)}
+                      onMouseEnter={() => setHoveredNoteIcon(row.id)}
+                      onMouseLeave={() => setHoveredNoteIcon(null)}
+                      title={hasNote(row) ? 'Ver anotação' : 'Adicionar anotação'}
+                    >
+                      +
+                    </span>
+                        </td>
+                  {monthKeys.map(month => {
+                    let cellStyle = numberStyle
+                    
+                    // Verificar se é valor máximo ou mínimo na linha FATURAMENTO
+                    if (isMaxValueFaturamento(row, month)) {
+                      cellStyle = maxValueFaturamentoStyle
+                    } else if (isMinValueFaturamento(row, month)) {
+                      cellStyle = minValueFaturamentoStyle
+                    } else if (isMaxValue(row, month)) {
+                      cellStyle = maxValueStyle
+                    }
+                    
+                    return (
+                      <td 
+                        key={month} 
+                        style={cellStyle} 
+                        title={formatNumber(row[month])}
+                      >
+                                {formatNumber(row[month])}
+                          </td>
+                    )
+                  })}
+                  <td style={totalStyle} title={formatNumber(calculateRowTotal(row))}>
+                    {formatNumber(calculateRowTotal(row))}
+                  </td>
+                  <td style={mediaStyle} title={formatNumber(calculateRowAverage(row))}>
+                    {formatNumber(calculateRowAverage(row))}
+                  </td>
+                </tr>
+              ))}
+
+              {/* Linha FATURAMENTO X META (apenas para faturamento) */}
+              {isFaturamento && faturamentoXMeta && filteredData.length > 0 && (
+                <tr style={{
+                  background: filteredData.length % 2 === 0 ? 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' : '#ffffff',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}>
+                  <td style={categoriaStyle}>
+                    FATURAMENTO X META
+                        </td>
+                  {monthKeys.map(month => {
+                    const value = faturamentoXMeta[month] || 0
+                    const isPositive = value >= 0
+                    
+                    return (
+                      <td key={month} style={{
+                        ...numberStyle,
+                        color: isPositive ? '#16a34a' : '#dc2626',
+                        fontWeight: 'bold'
+                      }}>
+                        {isPositive ? '+' : ''}{formatNumber(value)}
+                          </td>
+                    )
+                  })}
+                  <td style={totalStyle}>
+                    {formatNumber(
+                      monthKeys.reduce((sum, month) => sum + (parseFloat(faturamentoXMeta[month]) || 0), 0)
                     )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Exibir linhas da tabela */}
-                  {visibleRows.map((row) => (
-                    <tr key={row.id}>
-                      {/* Coluna Categoria */}
-                      <td className="sticky-col category-cell">
-                        {editingCell?.id === row.id && editingCell?.field === 'categoria' ? (
-                          <input
-                            type="text"
-                            value={tempValue}
-                            onChange={handleInputChange}
-                            onBlur={() => handleInputBlur(row.id, 'categoria')}
-                            onKeyDown={(e) => handleKeyPress(e, row.id, 'categoria')}
-                            className="cell-input"
-                            autoFocus
-                          />
-                        ) : (
-                          <div 
-                            className="cell-content"
-                            onClick={() => handleCellClick(row.id, 'categoria')}
-                          >
-                            {row.categoria}
-                          </div>
-                        )}
-                      </td>
-                      
-                      {/* Meses */}
-                      {monthKeys.map((month) => (
-                        <td key={month} className="month-col">
-                          {editingCell?.id === row.id && editingCell?.field === month ? (
-                            <input
-                              type="text"
-                              value={tempValue}
-                              onChange={handleInputChange}
-                              onBlur={() => handleInputBlur(row.id, month)}
-                              onKeyDown={(e) => handleKeyPress(e, row.id, month)}
-                              className="cell-input number-input"
-                              autoFocus
-                            />
-                          ) : (
-                            <div 
-                              className="cell-content"
-                              onClick={() => handleCellClick(row.id, month)}
-                            >
-                              {formatNumber(row[month])}
-                            </div>
-                          )}
-                        </td>
-                      ))}
-                      
-                      {/* Total Anual */}
-                      <td className="total-col total-cell">
-                        <div className="cell-content">
-                          {formatNumber(row.Total_Anual)}
-                        </div>
-                      </td>
-                      
-                      {/* Média Anual (oculta para faturamento) */}
-                      {tableName !== 'faturamento' && (
-                        <td className="average-col average-cell">
-                          <div className="cell-content">
-                            {formatNumber(row.Media_Anual)}
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-                {/* Rodapé com totais (oculto para impostos) */}
-                {tableName !== 'impostos' && (
-                  <tfoot>
-                    <tr className="totals-row">
-                      <td className="sticky-col total-label">
-                        <div className="total-label-container">
-                          <span className="total-text">TOTAL GERAL</span>
-                        </div>
-                      </td>
-                      {monthKeys.map((month) => (
-                        <td key={month} className="month-col total-value">
-                          {formatNumber(columnTotals[month] || 0)}
-                        </td>
-                      ))}
-                      <td className="total-col total-value grand-total">
-                        {formatNumber(columnTotals.Total_Anual || 0)}
-                      </td>
-                      {tableName !== 'faturamento' && (
-                        <td className="average-col total-value average-total">
-                          {formatNumber(columnTotals.Media_Anual || 0)}
-                        </td>
-                      )}
-                    </tr>
-                  </tfoot>
-                )}
-                </table>
-              ) : (
-                <div className="table-empty">
-                  <div className="empty-icon">📊</div>
-                  <h3>Nenhum dado encontrado</h3>
-                  <p>Não há dados para exibir nesta tabela para o ano {selectedYear}</p>
-                </div>
+                  </td>
+                  <td style={mediaStyle}>
+                    {formatNumber(
+                      monthKeys.reduce((sum, month) => sum + (parseFloat(faturamentoXMeta[month]) || 0), 0) / 12
+                    )}
+                  </td>
+                      </tr>
               )}
+              
+              {/* Linha de TOTAL GERAL / META ATINGIDA */}
+              <tr className="total-geral-row" style={totalGeralRowStyle}>
+                <td style={totalGeralCategoriaStyle}>
+                  <span style={{
+                    color: '#ffffff',
+                    fontWeight: '900',
+                    fontSize: '12px',
+                    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.8px'
+                  }}>
+                    {isFaturamento ? 'META ATINGIDA' : (showComparative ? 'COMPARATIVO' : 'TOTAL GERAL')}
+                  </span>
+                  {/* Seta apenas para tabelas que não são faturamento */}
+                  {!isFaturamento && (
+                            <span 
+                      style={
+                        hoveredComparativeIcon 
+                          ? comparativeIconHoverStyle 
+                          : showComparative 
+                            ? comparativeIconActiveStyle 
+                            : comparativeIconStyle
+                      }
+                      onClick={toggleComparative}
+                      onMouseEnter={() => setHoveredComparativeIcon(true)}
+                      onMouseLeave={() => setHoveredComparativeIcon(false)}
+                      title={showComparative ? 'Voltar para Total Geral' : 'Ver Comparativo'}
+                    >
+                      ↓
+                            </span>
+                  )}
+                        </td>
+                {monthKeys.map(month => {
+                  const comparativeData = getComparativeData(totals)
+                  const comparative = comparativeData ? comparativeData[month] : null
+                  const dataToShow = isFaturamento ? metaAtingida : totals
+                  
+                  return (
+                    <td key={month} style={totalGeralNumberStyle}>
+                      {isFaturamento ? (
+                        // Modo Faturamento: mostra percentual da meta atingida
+                        <span style={{
+                          color: (dataToShow[month] && dataToShow[month] < 100) ? '#fbbf24' : '#ffffff',
+                          fontWeight: '800',
+                          fontSize: '12px',
+                          fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+                        }}>
+                          {dataToShow[month] ? `${dataToShow[month].toFixed(1)}%` : '0,0%'}
+                        </span>
+                      ) : showComparative ? (
+                        // Modo Comparativo: só mostra percentuais
+                        comparative ? (
+                          <span style={{
+                            color: comparative.isIncrease ? '#16a34a' : '#dc2626',
+                            fontWeight: '800',
+                            fontSize: '12px',
+                            fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+                          }}>
+                            {comparative.isIncrease ? '+' : '-'}{comparative.percent.toFixed(1)}%
+                          </span>
+                        ) : (
+                          <span style={{ 
+                            color: '#ffffff', 
+                            opacity: 0.5,
+                            fontSize: '12px',
+                            fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+                          }}>-</span>
+                        )
+                      ) : (
+                        // Modo Total Geral: mostra valores totais
+                        <span style={{
+                          color: '#ffffff',
+                          fontWeight: '800',
+                          fontSize: '12px',
+                          fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+                        }}>
+                          {formatNumber(totals[month])}
+                        </span>
+                      )}
+                          </td>
+                  )
+                })}
+                <td style={totalGeralTotalStyle} title={isFaturamento ? 'Percentual total de meta atingida' : formatNumber(totalSum)}>
+                  <span style={{
+                    color: isFaturamento ? (() => {
+                      const avgPercentage = Object.keys(metaAtingida)
+                        .filter(key => key !== 'categoria')
+                        .reduce((sum, key) => sum + (metaAtingida[key] || 0), 0) / 12
+                      return avgPercentage < 100 ? '#fbbf24' : '#ffffff'
+                    })() : '#ffffff',
+                    fontWeight: '900',
+                    fontSize: '12px',
+                    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+                  }}>
+                    {isFaturamento ? (
+                      // Total da meta atingida (soma de todos os percentuais dividido por 12)
+                      (() => {
+                        const avgPercentage = Object.keys(metaAtingida)
+                          .filter(key => key !== 'categoria')
+                          .reduce((sum, key) => sum + (metaAtingida[key] || 0), 0) / 12
+                        return `${avgPercentage.toFixed(1)}%`
+                      })()
+                    ) : (
+                      formatNumber(totalSum)
+                    )}
+                  </span>
+                        </td>
+                <td style={totalGeralMediaStyle} title={isFaturamento ? 'Percentual médio de meta atingida' : formatNumber(totalAverage)}>
+                  <span style={{
+                    color: isFaturamento ? (() => {
+                      const avgPercentage = Object.keys(metaAtingida)
+                        .filter(key => key !== 'categoria')
+                        .reduce((sum, key) => sum + (metaAtingida[key] || 0), 0) / 12
+                      return avgPercentage < 100 ? '#fbbf24' : '#ffffff'
+                    })() : '#ffffff',
+                    fontWeight: '900',
+                    fontSize: '12px',
+                    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+                  }}>
+                    {isFaturamento ? (
+                      // Média da meta atingida (mesmo valor que o total)
+                      `${(Object.keys(metaAtingida)
+                        .filter(key => key !== 'categoria')
+                        .reduce((sum, key) => sum + (metaAtingida[key] || 0), 0) / 12
+                      ).toFixed(1)}%`
+                    ) : (
+                      formatNumber(totalAverage)
+                    )}
+                  </span>
+                </td>
+                      </tr>
+            </tbody>
+                </table>
+                </div>
             </div>
+
+      {/* Modal de Anotações */}
+      {showNotesModal && (
+        <div style={modalOverlayStyle} onClick={closeNotesModal}>
+          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              Anotações - {currentNoteItem?.categoria}
           </div>
+            <textarea
+              style={textareaStyle}
+              value={noteContent}
+              onChange={(e) => setNoteContent(e.target.value)}
+              placeholder="Digite suas anotações aqui..."
+              autoFocus
+              onFocus={(e) => e.target.style.borderColor = '#002b55'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+            />
+            <div style={buttonContainerStyle}>
+              <button
+                style={cancelButtonStyle}
+                onClick={closeNotesModal}
+                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.target.style.transform = 'translateY(0px)'}
+              >
+                Cancelar
+              </button>
+              <button
+                style={saveButtonStyle}
+                onClick={saveNote}
+                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.target.style.transform = 'translateY(0px)'}
+              >
+                Salvar
+              </button>
         </div>
       </div>
+        </div>
+      )}
     </>
   )
-} 
+}

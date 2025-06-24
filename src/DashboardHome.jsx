@@ -132,7 +132,8 @@ export default function DashboardHome() {
         <div className="departments-cards">
           {Object.entries(stats).map(([key, stat]) => {
             const config = departmentConfig[key]
-            const percentage = totalGeral > 0 ? (stat.total / totalGeral) * 100 : 0
+            // Para faturamento (receita), não calcular porcentagem do total de gastos
+            const percentage = key === 'faturamento' ? 0 : (totalGeral > 0 ? (stat.total / totalGeral) * 100 : 0)
             
             return (
               <div key={key} className="department-card" style={{ '--department-color': config.color }}>
@@ -153,15 +154,15 @@ export default function DashboardHome() {
                   </div>
                   
                   <div className="stat-item">
-                    <span className="stat-label">% do Total</span>
-                    <span className="stat-value">{percentage.toFixed(1)}%</span>
+                    <span className="stat-label">{key === 'faturamento' ? 'Receita' : '% do Total'}</span>
+                    <span className="stat-value">{key === 'faturamento' ? '100%' : `${percentage.toFixed(1)}%`}</span>
                   </div>
                 </div>
                 
                 <div className="department-progress">
                   <div 
                     className="progress-bar" 
-                    style={{ width: `${percentage}%` }}
+                    style={{ width: `${key === 'faturamento' ? '100' : percentage}%` }}
                   ></div>
                 </div>
               </div>

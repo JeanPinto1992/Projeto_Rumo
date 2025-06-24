@@ -21,7 +21,7 @@ export default function Dashboard({ user, onLogout }) {
   const [error, setError] = useState(null)
   const [showExportDropdown, setShowExportDropdown] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [sidebarVisible, setSidebarVisible] = useState(true)
+
   const [exportFunctions, setExportFunctions] = useState({
     exportToCSV: () => console.warn('CSV export not ready'),
     exportToExcel: () => console.warn('Excel export not ready'),
@@ -39,35 +39,39 @@ export default function Dashboard({ user, onLogout }) {
 
   // Funções para lidar com exportações
   const handleExport = (type) => {
+    console.log('Tentando exportar:', type, 'Tab ativa:', activeTab)
+    console.log('Funções disponíveis:', exportFunctions)
+    
     if (activeTab === 'dashboard') {
       alert('Selecione uma tabela para exportar dados')
       return
     }
 
-
-
     switch (type) {
       case 'csv':
+        console.log('Executando exportToCSV...')
         if (exportFunctions.exportToCSV && typeof exportFunctions.exportToCSV === 'function') {
           exportFunctions.exportToCSV()
         } else {
-          console.warn('exportToCSV function not available')
+          console.warn('exportToCSV function not available', exportFunctions)
           alert('Função de exportação CSV não está disponível. Aguarde o carregamento completo da tabela.')
         }
         break
       case 'excel':
+        console.log('Executando exportToExcel...')
         if (exportFunctions.exportToExcel && typeof exportFunctions.exportToExcel === 'function') {
           exportFunctions.exportToExcel()
         } else {
-          console.warn('exportToExcel function not available')
+          console.warn('exportToExcel function not available', exportFunctions)
           alert('Função de exportação Excel não está disponível. Aguarde o carregamento completo da tabela.')
         }
         break
       case 'pdf':
+        console.log('Executando exportToPDF...')
         if (exportFunctions.exportToPDF && typeof exportFunctions.exportToPDF === 'function') {
           exportFunctions.exportToPDF()
         } else {
-          console.warn('exportToPDF function not available')
+          console.warn('exportToPDF function not available', exportFunctions)
           alert('Função de exportação PDF não está disponível. Aguarde o carregamento completo da tabela.')
         }
         break
@@ -76,13 +80,11 @@ export default function Dashboard({ user, onLogout }) {
   }
 
   const handleSetExportFunctions = (functions) => {
+    console.log('Configurando funções de exportação:', functions)
     setExportFunctions(functions)
   }
 
-  // Função para toggle da sidebar
-  const toggleSidebar = () => {
-    setSidebarVisible(!sidebarVisible)
-  }
+
 
   // Função para entrar/sair do modo fullscreen
   const toggleFullscreen = () => {
@@ -194,30 +196,11 @@ export default function Dashboard({ user, onLogout }) {
     return null
   }
 
-
-
   return (
     <div className={`dashboard ${isFullscreen ? 'fullscreen-mode' : ''}`}>
-<<<<<<< HEAD
-=======
-      {/* Logo no canto superior direito */}
-      <div className="top-right-logo">
-        <img 
-          src="/Logo-SynNova.svg" 
-          alt="Logo SynNova" 
-          className="header-logo"
-          onError={(e) => {
-            // Fallback para Usifix se SynNova não carregar
-            e.target.src = "/USIFIX VETOR MINI.svg";
-          }}
-        />
-      </div>
-
->>>>>>> parent of 13528bb (feat: remove a sidebar do dashboard, simplifica a lógica de fullscreen e aprimora os estilos dos botões de controle)
       {/* Container Principal com Sidebar e Conteúdo */}
-      <div className={`dashboard-body ${!sidebarVisible ? 'sidebar-collapsed' : ''} ${isFullscreen ? 'fullscreen-mode' : ''}`}>
+      <div className={`dashboard-body ${isFullscreen ? 'fullscreen-mode' : ''}`}>
         {/* Sidebar com Logo, Navegação e Controles */}
-<<<<<<< HEAD
         <aside className="dashboard-sidebar">
           {/* Logo SynNova no cantinho da sidebar */}
           <div className="sidebar-logo">
@@ -231,9 +214,6 @@ export default function Dashboard({ user, onLogout }) {
             />
           </div>
           
-=======
-        <aside className={`dashboard-sidebar ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
->>>>>>> parent of 13528bb (feat: remove a sidebar do dashboard, simplifica a lógica de fullscreen e aprimora os estilos dos botões de controle)
           {/* Header da Sidebar com Logo e Título */}
           <div className="sidebar-header">
             <img 
@@ -270,20 +250,20 @@ export default function Dashboard({ user, onLogout }) {
             ))}
           </nav>
           
-          {/* Controles da Sidebar */}
-          <div className="sidebar-controls">
+          {/* Controles da Sidebar - Botões Circulares */}
+          <div className="sidebar-controls-circular">
             {/* Botão Fullscreen */}
             <button 
-              className="control-btn fullscreen-btn"
+              className="circular-btn fullscreen-btn"
               onClick={toggleFullscreen}
               title={isFullscreen ? "Sair da tela cheia (ESC)" : "Entrar em tela cheia"}
             >
               {isFullscreen ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
                 </svg>
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
                 </svg>
               )}
@@ -292,11 +272,11 @@ export default function Dashboard({ user, onLogout }) {
             {/* Botão de Exportar */}
             <div className="export-dropdown-container">
               <button 
-                className="control-btn export-btn"
+                className="circular-btn export-btn"
                 onClick={() => setShowExportDropdown(!showExportDropdown)}
                 title="Exportar relatório"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="6,9 6,2 18,2 18,9"></polyline>
                   <path d="M6,9 L18,9 L18,16 L6,16 Z"></path>
                   <rect x="6" y="11" width="12" height="3"></rect>
@@ -312,7 +292,6 @@ export default function Dashboard({ user, onLogout }) {
                     onClick={() => handleExport('csv')}
                     disabled={activeTab === 'dashboard'}
                   >
-                    <span className="export-icon">📊</span>
                     <span>CSV</span>
                   </button>
                   <button 
@@ -320,15 +299,13 @@ export default function Dashboard({ user, onLogout }) {
                     onClick={() => handleExport('excel')}
                     disabled={activeTab === 'dashboard'}
                   >
-                    <span className="export-icon">📋</span>
-                    <span>Excel</span>
+                    <span>EXCEL</span>
                   </button>
                   <button 
                     className="export-option pdf-option"
                     onClick={() => handleExport('pdf')}
                     disabled={activeTab === 'dashboard'}
                   >
-                    <span className="export-icon">📄</span>
                     <span>PDF</span>
                   </button>
                 </div>
@@ -336,8 +313,8 @@ export default function Dashboard({ user, onLogout }) {
             </div>
 
             {/* Botão de Sair */}
-            <button className="control-btn logout-btn" onClick={onLogout} title="Sair">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <button className="circular-btn logout-btn" onClick={onLogout} title="Sair">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                 <polyline points="16,17 21,12 16,7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -345,22 +322,7 @@ export default function Dashboard({ user, onLogout }) {
             </button>
           </div>
 
-          {/* Abinha Toggle Sidebar - DENTRO da sidebar */}
-          <div className="sidebar-toggle-tab">
-            <button 
-              className="sidebar-toggle-btn"
-              onClick={toggleSidebar}
-              title={sidebarVisible ? "Ocultar menu" : "Mostrar menu"}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                {sidebarVisible ? (
-                  <polyline points="15,18 9,12 15,6"></polyline>
-                ) : (
-                  <polyline points="9,18 15,12 9,6"></polyline>
-                )}
-              </svg>
-            </button>
-          </div>
+
         </aside>
 
         {/* Main Content */}
@@ -385,4 +347,4 @@ export default function Dashboard({ user, onLogout }) {
       </div>
     </div>
   )
-} 
+}
