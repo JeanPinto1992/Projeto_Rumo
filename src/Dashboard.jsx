@@ -75,6 +75,15 @@ export default function Dashboard({ user, onLogout }) {
           alert('Função de exportação PDF não está disponível. Aguarde o carregamento completo da tabela.')
         }
         break
+      case 'test':
+        console.log('🎯 Executando função de teste...')
+        if (exportFunctions.testExport && typeof exportFunctions.testExport === 'function') {
+          exportFunctions.testExport()
+        } else {
+          console.warn('testExport function not available', exportFunctions)
+          alert('❌ Função de teste não disponível')
+        }
+        break
     }
     setShowExportDropdown(false)
   }
@@ -290,23 +299,27 @@ export default function Dashboard({ user, onLogout }) {
                   <button 
                     className="export-option csv-option"
                     onClick={() => handleExport('csv')}
-                    disabled={activeTab === 'dashboard'}
                   >
                     <span>CSV</span>
                   </button>
                   <button 
                     className="export-option excel-option"
                     onClick={() => handleExport('excel')}
-                    disabled={activeTab === 'dashboard'}
                   >
                     <span>EXCEL</span>
                   </button>
                   <button 
                     className="export-option pdf-option"
                     onClick={() => handleExport('pdf')}
-                    disabled={activeTab === 'dashboard'}
                   >
                     <span>PDF</span>
+                  </button>
+                  <button 
+                    className="export-option"
+                    onClick={() => handleExport('test')}
+                    style={{ background: '#f59e0b', color: 'white' }}
+                  >
+                    <span>🎯 TESTE</span>
                   </button>
                 </div>
               )}
