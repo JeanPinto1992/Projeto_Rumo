@@ -3,6 +3,7 @@ import { supabase } from './lib/supabaseClient.js'
 import TableView from './TableView.jsx'
 import RHView from './RHView.jsx'
 import DashboardHome from './DashboardHome.jsx'
+import ChartsView from './ChartsView.jsx'
 import './styles/dashboard.css'
 
 const TABLES = [
@@ -25,6 +26,8 @@ export default function Dashboard({ user, onLogout }) {
   const [selectedYear, setSelectedYear] = useState(2025)
   const [viewMode, setViewMode] = useState('monthly') // 'monthly' ou 'yearly'
   const [tabCache, setTabCache] = useState(new Set()) // Cache para abas já visitadas
+  const [chartType, setChartType] = useState('bar') // 'bar', 'line', 'circle'
+  const [showChartTypeDropdown, setShowChartTypeDropdown] = useState(false)
 
   const [exportFunctions, setExportFunctions] = useState({
     exportToCSV: () => console.warn('CSV export not ready'),
@@ -156,13 +159,16 @@ export default function Dashboard({ user, onLogout }) {
       if (showExportDropdown && !event.target.closest('.export-dropdown-container')) {
         setShowExportDropdown(false)
       }
+      if (showChartTypeDropdown && !event.target.closest('.chart-type-dropdown-container')) {
+        setShowChartTypeDropdown(false)
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [showExportDropdown])
+  }, [showExportDropdown, showChartTypeDropdown])
 
   // Função para renderizar conteúdo baseado na aba ativa
   const renderContent = () => {
@@ -190,6 +196,10 @@ export default function Dashboard({ user, onLogout }) {
 
     if (activeTab === 'dashboard') {
       return <DashboardHome selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} />
+    }
+
+    if (activeTab === 'graficos') {
+      return <ChartsView selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} chartType={chartType} />
     }
 
     // Renderizar RHView para a aba de Recursos Humanos
@@ -261,6 +271,60 @@ export default function Dashboard({ user, onLogout }) {
               <span className="nav-text">Dashboard</span>
             </button>
             
+            <div className="nav-item-with-dropdown">
+              <button
+                className={`nav-item ${activeTab === 'graficos' ? 'active' : ''}`}
+                onClick={() => handleTabChange('graficos')}
+              >
+                <span className="nav-icon">📈</span>
+                <span className="nav-text">Gráficos</span>
+              </button>
+              
+              {activeTab === 'graficos' && (
+                <div className="chart-type-dropdown-container">
+                  <button 
+                    className="chart-type-toggle"
+                    onClick={() => setShowChartTypeDropdown(!showChartTypeDropdown)}
+                    title="Tipo de gráfico"
+                  >
+                    ▼
+                  </button>
+                  
+                  {showChartTypeDropdown && (
+                    <div className="chart-type-dropdown">
+                      <button 
+                        className={`chart-type-option ${chartType === 'bar' ? 'active' : ''}`}
+                        onClick={() => {
+                          setChartType('bar')
+                          setShowChartTypeDropdown(false)
+                        }}
+                      >
+                        📊 Barras
+                      </button>
+                      <button 
+                        className={`chart-type-option ${chartType === 'line' ? 'active' : ''}`}
+                        onClick={() => {
+                          setChartType('line')
+                          setShowChartTypeDropdown(false)
+                        }}
+                      >
+                        📈 Linhas
+                      </button>
+                      <button 
+                        className={`chart-type-option ${chartType === 'circle' ? 'active' : ''}`}
+                        onClick={() => {
+                          setChartType('circle')
+                          setShowChartTypeDropdown(false)
+                        }}
+                      >
+                        🥧 Círculo
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            
             {TABLES.map(table => (
               <button
                 key={table.id}
@@ -273,8 +337,8 @@ export default function Dashboard({ user, onLogout }) {
             ))}
           </nav>
           
-          {/* Seletor de Mês - Apenas na aba Dashboard */}
-          {activeTab === 'dashboard' && (
+          {/* Seletor de Mês - Apenas nas abas Dashboard e Gráficos */}
+          {(activeTab === 'dashboard' || activeTab === 'graficos') && (
             <div className="month-selector">
             <h3 className="month-selector-title">📅 Período</h3>
             <div className="year-selector">

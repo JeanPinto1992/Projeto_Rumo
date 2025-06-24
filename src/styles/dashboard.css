@@ -698,6 +698,71 @@ html, body {
   color: rgb(153, 27, 27);
 }
 
+/* Dropdown para tipo de gráfico */
+.nav-item-with-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.chart-type-dropdown-container {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+}
+
+.chart-type-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.chart-type-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.chart-type-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 43, 85, 0.2);
+  border: 1px solid rgba(0, 43, 85, 0.1);
+  min-width: 120px;
+  overflow: hidden;
+}
+
+.chart-type-option {
+  display: block;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: #002b55;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.chart-type-option:hover {
+  background: rgba(0, 43, 85, 0.05);
+}
+
+.chart-type-option.active {
+  background: rgba(0, 43, 85, 0.1);
+  font-weight: 700;
+}
+
 /* .export-icon removido - não usado mais */
 
 /* Transições removidas para evitar loading deslizante */

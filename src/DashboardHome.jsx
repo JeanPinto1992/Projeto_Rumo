@@ -15,12 +15,7 @@ export default function DashboardHome({ selectedMonth, selectedYear, viewMode })
   }, [selectedMonth, selectedYear, viewMode])
 
   const loadDashboardData = async () => {
-      // Carregamento otimizado para experiência instantânea
-  if (!initialLoad) {
-    // Micro-loading apenas para feedback mínimo
-    setLoading(true)
-    setTimeout(() => setLoading(false), 150)
-  }
+    // Carregamento instantâneo sem delay
     try {
       const tables = ['administrativo', 'almoxarifado', 'faturamento', 'impostos', 'logistica', 'manutencao', 'rh_gastos_gerais', 'rh_custos_totais', 'rh_passivo_trabalhista']
       const newStats = {}
