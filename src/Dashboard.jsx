@@ -17,6 +17,7 @@ const TABLES = [
 
 export default function Dashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [isTransitioning, setIsTransitioning] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showExportDropdown, setShowExportDropdown] = useState(false)
@@ -30,6 +31,18 @@ export default function Dashboard({ user, onLogout }) {
     exportToExcel: () => console.warn('Excel export not ready'),
     exportToPDF: () => console.warn('PDF export not ready')
   })
+
+  // Função customizada para mudança de aba com transição suave para todas as abas
+  const handleTabChange = (newTab) => {
+    // Sempre aplicar transição suave ao mudar de aba
+    setIsTransitioning(true)
+    setActiveTab(newTab)
+    
+    // Remover classe de transição após a animação
+    setTimeout(() => {
+      setIsTransitioning(false)
+    }, 500) // 500ms = duração da animação CSS
+  }
 
   // Resetar funções de exportação quando mudar de aba
   useEffect(() => {
@@ -87,8 +100,6 @@ export default function Dashboard({ user, onLogout }) {
     console.log('Configurando funções de exportação:', functions)
     setExportFunctions(functions)
   }
-
-
 
   // Função para entrar/sair do modo fullscreen
   const toggleFullscreen = () => {
@@ -236,7 +247,7 @@ export default function Dashboard({ user, onLogout }) {
           <nav className="sidebar-nav">
             <button
               className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => handleTabChange('dashboard')}
             >
               <span className="nav-icon">📊</span>
               <span className="nav-text">Dashboard</span>
@@ -246,7 +257,7 @@ export default function Dashboard({ user, onLogout }) {
               <button
                 key={table.id}
                 className={`nav-item ${activeTab === table.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(table.id)}
+                onClick={() => handleTabChange(table.id)}
               >
                 <span className="nav-icon">{table.icon}</span>
                 <span className="nav-text">{table.name}</span>
@@ -383,7 +394,7 @@ export default function Dashboard({ user, onLogout }) {
 
         {/* Main Content */}
         <main className="dashboard-main">
-          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''}`}>
+          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''} ${isTransitioning ? 'slide-in-right' : ''}`}>
             {renderContent()}
           </div>
         </main>

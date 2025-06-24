@@ -213,12 +213,12 @@ html, body {
   flex: 1;
 }
 
-/* Seletor de Mês */
+/* Seletor de Mês - subido mais para cima */
 .month-selector {
   padding: 0.25rem 0.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  margin-top: -0.25rem;
+  margin-top: -1rem; /* Subiu mais para cima */
 }
 
 .month-selector-title {
@@ -287,10 +287,11 @@ html, body {
   font-weight: 600;
 }
 
-/* Controles da Sidebar - Botões Circulares em Fila */
+/* Controles da Sidebar - Botões Circulares em Fila - subidos */
 .sidebar-controls-circular {
   margin-top: auto;
-  padding: 1rem 0.5rem;
+  padding: 0.5rem 0.5rem; /* Reduzido o padding superior */
+  margin-bottom: 0.5rem; /* Margem inferior para elevar */
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   flex-direction: row;
@@ -368,7 +369,7 @@ html, body {
 }
 
 .content-body:not(.dashboard-active) {
-  padding: 50px 120px 50px 120px !important; /* PADDING MUITO MAIOR - 120px nas laterais */
+  padding: 1.5rem 0.2rem !important; /* Padding mínimo para expandir tabelas ao máximo */
 }
 
 /* Padding específico para a aba Dashboard - sem padding extra */
@@ -514,7 +515,7 @@ html, body {
   }
   
   .content-body:not(.dashboard-active) {
-    padding: 40px 300px 40px 100px !important; /* PADDING MUITO MAIOR para tablets */
+    padding: 1.5rem 0.15rem !important; /* Padding mínimo para expandir tabelas ao máximo em tablets */
   }
 }
 
@@ -603,7 +604,7 @@ html, body {
   }
   
   .content-body:not(.dashboard-active) {
-    padding: 20px 80px 20px 80px !important; /* PADDING MUITO MAIOR para mobile */
+    padding: 1.5rem 0.1rem !important; /* Padding mínimo para expandir tabelas ao máximo em mobile */
   }
 }
 
@@ -696,4 +697,37 @@ html, body {
 }
 
 /* .export-icon removido - não usado mais */
+
+/* Animação suave da direita para esquerda para todas as abas */
+@keyframes slideRight {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Aplicar animação suave e rápida para qualquer aba */
+.content-body.slide-in-right {
+  animation: slideRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow-x: hidden !important;
+  will-change: transform;
+  transform: translateZ(0); /* Força aceleração de hardware */
+}
+
+/* Garantir que o conteúdo não "chacoalhe" durante a animação */
+.content-body.slide-in-right > * {
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translateZ(0); /* Força aceleração de hardware */
+  -webkit-font-smoothing: antialiased; /* Suaviza fontes durante animação */
+}
+
+/* Garantir que tables não chacoalhem */
+.content-body.slide-in-right table,
+.content-body.slide-in-right .table-container {
+  backface-visibility: hidden;
+  will-change: auto;
+}
 

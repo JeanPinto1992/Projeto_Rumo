@@ -17,7 +17,7 @@ const monthLabels = [
 const containerStyle = {
   display: 'flex',
   flexDirection: 'column',
-  width: 'calc(100% - 120px)', // Largura reduzida para dar espaço às setas
+  width: 'calc(100% - 40px)', // 40px reservados para as setas
   padding: '0',
   boxSizing: 'border-box',
   margin: '0',
@@ -97,7 +97,7 @@ const thStyle = {
   fontSize: '12px',
   letterSpacing: '0.5px',
   textTransform: 'uppercase',
-  width: '5.8%',
+  width: '7%', // Aumentado para não cortar valores
   color: 'white',
   background: '#002b55'
 }
@@ -105,7 +105,7 @@ const thStyle = {
 const thFirstStyle = {
   ...thStyle,
   textAlign: 'left',
-  width: '10%',
+  width: '8%', // Reduzido para dar mais espaço aos meses
   background: '#002b55',
   border: 'none',
   fontSize: '12px',
@@ -309,7 +309,9 @@ const numberStyle = {
   background: 'rgba(248, 250, 252, 0.5)',
   fontSize: '0.75rem',
   color: '#374151',
-  border: 'none'
+  border: 'none',
+  whiteSpace: 'nowrap', // Evita quebra de linha
+  overflow: 'visible' // Permite que valores sejam visíveis
 }
 
 const totalStyle = {
@@ -403,16 +405,19 @@ const spinnerStyle = {
   animation: 'spin 1.2s linear infinite'
 }
 
-// Estilos para os botões de navegação (à direita da tabela)
-const navigationStyle = {
-  display: 'flex',
-  flexDirection: 'column',
+// Estilos para os botões de navegação (centralizados nos 40px disponíveis)
+const navigationUpStyle = {
   position: 'fixed',
-  right: '30px', // Posição fixa à direita da tela
-  top: '50%',
-  transform: 'translateY(-50%)',
-  gap: '1rem',
-  zIndex: 1000 // Z-index alto para ficar sobre tudo
+  right: '5px', // Bem próximo da borda direita nos 40px disponíveis
+  top: '100px', // Subido mais para cima
+  zIndex: 1000
+}
+
+const navigationDownStyle = {
+  position: 'fixed',
+  right: '5px', // Bem próximo da borda direita nos 40px disponíveis
+  bottom: '20px', // Descido mais para baixo
+  zIndex: 1000
 }
 
 const arrowButtonStyle = {
@@ -432,6 +437,15 @@ const arrowButtonStyle = {
   boxShadow: '0 4px 12px rgba(0, 43, 85, 0.3)' // Sombra mais forte para destaque
 }
 
+const arrowButtonFlashStyle = {
+  ...arrowButtonStyle,
+  background: 'linear-gradient(135deg, #002b55 0%, #004080 100%)',
+  color: '#ffffff',
+  transform: 'scale(1.2)',
+  boxShadow: '0 8px 24px rgba(0, 43, 85, 0.8)',
+  border: '3px solid #ffffff'
+}
+
 const arrowButtonHoverStyle = {
   ...arrowButtonStyle,
   background: 'linear-gradient(135deg, #002b55 0%, #004080 100%)',
@@ -448,6 +462,8 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
   const [scrollPosition, setScrollPosition] = useState(0)
   const [hoverUp, setHoverUp] = useState(false)
   const [hoverDown, setHoverDown] = useState(false)
+  const [flashUp, setFlashUp] = useState(false)
+  const [flashDown, setFlashDown] = useState(false)
   
   // Estados para o sistema de anotações
   const [showNotesModal, setShowNotesModal] = useState(false)
@@ -765,6 +781,15 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
 
   // Função para navegar linha por linha (sem scrollbar)
   const scrollToRow = (direction) => {
+    // Efeito de piscar
+    if (direction === 'up') {
+      setFlashUp(true)
+      setTimeout(() => setFlashUp(false), 200)
+    } else if (direction === 'down') {
+      setFlashDown(true)
+      setTimeout(() => setFlashDown(false), 200)
+    }
+    
     const table = document.querySelector('.simple-table tbody')
     const allRows = table?.querySelectorAll('tr') // Todas as linhas incluindo TOTAL GERAL
     const dataRows = table?.querySelectorAll('tr:not(.total-geral-row)') // Apenas linhas de dados
@@ -836,7 +861,7 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
     // Se não encontrar as linhas necessárias, retorna null
     if (!faturamentoRow || !metaRow) return null
 
-    const faturamentoXMeta = { categoria: 'FATURAMENTO X META' }
+    const faturamentoXMeta = { categoria: 'FAT X META' }
     
         monthKeys.forEach(month => {
       const faturamento = parseFloat(faturamentoRow[month]) || 0
@@ -1314,7 +1339,7 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
             flex-direction: column !important;
             position: relative !important;
             overflow: visible !important;
-            width: calc(100% - 120px) !important;
+            width: calc(100% - 40px) !important;
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
@@ -1417,27 +1442,35 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
         `}
       </style>
       
-      {/* Botões de navegação */}
-      <div style={navigationStyle}>
-        <button 
-          style={hoverUp ? arrowButtonHoverStyle : arrowButtonStyle}
-          onClick={() => scrollToRow('up')}
-          onMouseEnter={() => setHoverUp(true)}
-          onMouseLeave={() => setHoverUp(false)}
-          title="Subir uma linha"
-        >
-          ↑
-        </button>
-        <button 
-          style={hoverDown ? arrowButtonHoverStyle : arrowButtonStyle}
-          onClick={() => scrollToRow('down')}
-          onMouseEnter={() => setHoverDown(true)}
-          onMouseLeave={() => setHoverDown(false)}
-          title="Descer uma linha"
-        >
-          ↓
-        </button>
-      </div>
+      {/* Botão de navegação para cima - alinhado com cabeçalhos */}
+      <button 
+        style={{
+          ...arrowButtonStyle, 
+          ...navigationUpStyle, 
+          ...(flashUp ? arrowButtonFlashStyle : hoverUp ? arrowButtonHoverStyle : {})
+        }}
+        onClick={() => scrollToRow('up')}
+        onMouseEnter={() => setHoverUp(true)}
+        onMouseLeave={() => setHoverUp(false)}
+        title="Subir uma linha"
+      >
+        ↑
+      </button>
+      
+      {/* Botão de navegação para baixo - bem embaixo */}
+      <button 
+        style={{
+          ...arrowButtonStyle, 
+          ...navigationDownStyle, 
+          ...(flashDown ? arrowButtonFlashStyle : hoverDown ? arrowButtonHoverStyle : {})
+        }}
+        onClick={() => scrollToRow('down')}
+        onMouseEnter={() => setHoverDown(true)}
+        onMouseLeave={() => setHoverDown(false)}
+        title="Descer uma linha"
+      >
+        ↓
+      </button>
 
       <div className="simple-table-container" style={containerStyle}>
         {/* Botões de filtro por ano */}
@@ -1560,7 +1593,7 @@ export default function TableView({ tableName, onExportFunctionsReady }) {
                   cursor: 'pointer'
                 }}>
                   <td style={categoriaStyle}>
-                    FATURAMENTO X META
+                    FAT X META
                         </td>
                   {monthKeys.map(month => {
                     const value = faturamentoXMeta[month] || 0

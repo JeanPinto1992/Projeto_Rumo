@@ -12,6 +12,10 @@
   /* Esconder scrollbar */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* Internet Explorer 10+ */
+  /* Estado padrão - sempre visível quando não há animação */
+  transform: translateX(0);
+  opacity: 1;
+  transition: none; /* Sem transição padrão para evitar conflitos */
 }
 
 .dashboard-home::-webkit-scrollbar {
