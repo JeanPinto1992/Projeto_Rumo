@@ -383,36 +383,12 @@ const totalGeralMediaStyle = {
   border: 'none'
 }
 
-const loadingStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '400px',
-  textAlign: 'center',
-  gap: '1rem',
-  padding: '2rem',
-  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
-  borderRadius: '16px',
-  border: '2px solid #e5e7eb',
-  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
-  color: '#002b55'
-}
-
-const spinnerStyle = {
-  width: '50px',
-  height: '50px',
-  border: '4px solid rgba(0, 43, 85, 0.2)',
-  borderTopColor: '#002b55',
-  borderRadius: '50%',
-  animation: 'spin 1.2s linear infinite'
-}
+// Estilos de loading removidos - não são mais necessários
 
 // Estilos inline obsoletos removidos - usando apenas CSS
 
 export default function TableView({ tableName, onExportFunctionsReady, isFirstLoad = true }) {
   const [data, setData] = useState([])
-  const [loading, setLoading] = useState(isFirstLoad)
   const [error, setError] = useState(null)
   const [selectedYear, setSelectedYear] = useState(2025)
   const [scrollPosition, setScrollPosition] = useState(0)
@@ -420,7 +396,7 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
   const [hoverDown, setHoverDown] = useState(false)
   const [flashUp, setFlashUp] = useState(false)
   const [flashDown, setFlashDown] = useState(false)
-  const [fadeIn, setFadeIn] = useState(!isFirstLoad)
+  const [fadeIn, setFadeIn] = useState(true) // Sempre true para aparecer tudo junto
   
   // Estados para o sistema de anotações
   const [showNotesModal, setShowNotesModal] = useState(false)
@@ -433,19 +409,13 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
   const [hoveredComparativeIcon, setHoveredComparativeIcon] = useState(false)
 
   useEffect(() => {
-    // Para transições entre abas, manter dados antigos visíveis momentaneamente
-    if (!isFirstLoad) {
-      setFadeIn(true)
-    }
+    // Carregamento instantâneo sem delays
     loadData()
   }, [tableName])
 
-  // Efeito de fade in suave quando dados estão prontos
+  // Efeito simplificado - dados prontos instantaneamente
   useEffect(() => {
-    if (data.length > 0) {
-      setFadeIn(true)
-      setLoading(false)
-    }
+    // Loading removido - sem estado de loading
   }, [data])
 
   // Fechar modal com tecla Escape
@@ -463,10 +433,7 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
   }, [showNotesModal])
 
   const loadData = async () => {
-    // Só mostrar loading se for primeira carga e não temos dados
-    if (isFirstLoad && data.length === 0) {
-      setLoading(true)
-    }
+    // Loading removido - carregamento instantâneo sempre
     setError(null)
 
     try {
@@ -479,13 +446,12 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
       
       // Transição instantânea para evitar piscar "sem dados"
       setData(tableData || [])
-      setFadeIn(true)
       
     } catch (err) {
       console.error('Erro ao carregar dados:', err)
       setError(`Erro ao carregar dados da tabela "${tableName}": ${err.message}`)
     } finally {
-      setLoading(false)
+      // Loading removido
     }
   }
 
@@ -1148,27 +1114,24 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
     }
   }, [filteredData, selectedYear, tableName, onExportFunctionsReady])
 
-  // Só mostrar loading na primeira carga da aplicação
-  if (loading && isFirstLoad && data.length === 0 && !fadeIn) {
-    return (
-      <div style={{
-        ...loadingStyle,
-        opacity: 0.9,
-        transition: 'opacity 0.3s ease',
-        minHeight: '200px'
-      }}>
-        <div style={spinnerStyle}></div>
-        <p style={{ fontWeight: '600', margin: 0, fontSize: '1.1rem' }}>Carregando dados...</p>
-      </div>
-    )
-  }
+  // Loading completamente removido - sempre renderização instantânea
 
   if (error) {
     return (
       <div style={{
-        ...loadingStyle,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '400px',
+        textAlign: 'center',
+        gap: '1rem',
+        padding: '2rem',
         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 242, 242, 0.95) 100%)',
-        border: '3px solid #ef4444'
+        borderRadius: '16px',
+        border: '3px solid #ef4444',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
+        color: '#002b55'
       }}>
         <h3 style={{ color: '#dc2626', margin: 0, fontSize: '1.5rem' }}>Erro ao carregar dados</h3>
         <p style={{ color: '#7f1d1d', margin: 0, fontSize: '1.1rem' }}>{error}</p>
@@ -1190,8 +1153,8 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
     )
   }
 
-  // Só mostrar "sem dados" se não está carregando e realmente não há dados após a carga completa
-  if (!loading && filteredData.length === 0 && data.length > 0) {
+  // Só mostrar "sem dados" se realmente não há dados após a carga completa
+  if (filteredData.length === 0 && data.length > 0) {
   return (
       <div style={{
         display: 'flex',
@@ -1300,8 +1263,7 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        opacity: fadeIn ? 1 : 0.3,
-        transition: 'opacity 0.4s ease-in-out'
+        opacity: 1
       }}>
 
         
@@ -1517,9 +1479,8 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
 
       <div className="simple-table-container" style={{
         ...containerStyle,
-        opacity: fadeIn ? 1 : 0.3,
-        transition: 'opacity 0.4s ease-in-out',
-        transform: fadeIn ? 'translateY(0)' : 'translateY(10px)',
+        opacity: 1,
+        transform: 'translateY(0)',
         position: 'relative'
       }}>
 

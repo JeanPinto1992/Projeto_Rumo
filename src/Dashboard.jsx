@@ -29,7 +29,7 @@ export default function Dashboard({ user, onLogout }) {
   const [chartType, setChartType] = useState('bar') // 'bar', 'line', 'circle'
   const [showChartTypeDropdown, setShowChartTypeDropdown] = useState(false)
   const [showSectorsDropdown, setShowSectorsDropdown] = useState(false)
-  const [isTransitioning, setIsTransitioning] = useState(false) // Estado para transições suaves
+  // Estado para transições removido - mudanças agora instantâneas
   const [tableAnimationClass, setTableAnimationClass] = useState('table-appear') // Classe de animação para tabelas
   const [animationKey, setAnimationKey] = useState(0) // Key para forçar re-render da animação
 
@@ -45,55 +45,19 @@ export default function Dashboard({ user, onLogout }) {
   const handleTabChange = (newTab) => {
     if (newTab === activeTab) return // Evitar re-render desnecessário
     
-    // Dashboard e Gráficos têm mudança direta sem loading
-    if (newTab === 'graficos' || newTab === 'dashboard') {
-      setError(null)
-      setActiveTab(newTab)
-      setTabCache(prev => new Set([...prev, newTab]))
-      setTableAnimationClass('table-appear-blur')
-      setAnimationKey(prev => prev + 1)
-      return
-    }
+    // Mudança instantânea para todos os tipos de aba
+    setError(null)
     
-    setIsTransitioning(true)
-    setError(null) // Limpar erros anteriores
+    // Usar a mesma animação do Faturamento para todas as abas (comportamento ideal)
+    const uniformAnimation = 'table-appear-scale'
+    setTableAnimationClass(uniformAnimation)
     
-    // Escolher animação baseada no tipo de conteúdo
-    const animationTypes = {
-      'dashboard': 'table-appear-scale',
-      'administrativo': 'table-appear',
-      'almoxarifado': 'table-appear-left',
-      'faturamento': 'table-appear-scale',
-      'impostos': 'table-appear',
-      'logistica': 'table-appear-left',
-      'manutencao': 'table-appear-blur',
-      'rh': 'dramatic-enter'
-    }
-    
-    // Usar animação especial para primeiro carregamento
-    const isFirstTime = !tabCache.has(newTab)
-    const selectedAnimation = isFirstTime ? 'first-load' : (animationTypes[newTab] || 'table-appear')
-    setTableAnimationClass(selectedAnimation)
-    
-    // Transição suave com delay reduzido
-    setTimeout(() => {
-      try {
-        setActiveTab(newTab)
-        // Adicionar aba ao cache para futuras transições mais rápidas
-        setTabCache(prev => new Set([...prev, newTab]))
-        
-        // Finalizar transição mais rapidamente
-        setTimeout(() => {
-          setIsTransitioning(false)
-          // Incrementar key para forçar re-render da animação
-          setAnimationKey(prev => prev + 1)
-        }, 50)
-      } catch (err) {
-        console.error('Erro durante transição de aba:', err)
-        setError('Erro ao carregar o conteúdo. Tente novamente.')
-        setIsTransitioning(false)
-      }
-    }, 100)
+    // Mudança instantânea sem delays
+    setActiveTab(newTab)
+    // Adicionar aba ao cache para futuras transições mais rápidas
+    setTabCache(prev => new Set([...prev, newTab]))
+    // Incrementar key para forçar re-render da animação
+    setAnimationKey(prev => prev + 1)
   }
 
   // Resetar funções de exportação quando mudar de aba
@@ -233,17 +197,8 @@ export default function Dashboard({ user, onLogout }) {
 
   // Função para renderizar conteúdo baseado na aba ativa
   const renderContent = () => {
-    // Loading removido - apenas transições suaves agora
+    // Loading removido - transições instantâneas
     
-    if (isTransitioning) {
-      return (
-        <div className="content-transitioning">
-          <div className="transition-spinner"></div>
-          <p>Preparando dados...</p>
-        </div>
-      )
-    }
-
     if (error) {
       return (
         <div className="dashboard-error">
@@ -374,29 +329,26 @@ export default function Dashboard({ user, onLogout }) {
                   {showChartTypeDropdown && (
                     <div className="chart-type-dropdown">
                       <button 
-                        className={`chart-type-option ${chartType === 'bar' ? 'active' : ''} ${isTransitioning ? 'transitioning' : ''}`}
+                        className={`chart-type-option ${chartType === 'bar' ? 'active' : ''}`}
                         onClick={() => {
                           setChartType('bar')
                         }}
-                        disabled={isTransitioning}
                       >
                         📊 Barras
                       </button>
                       <button 
-                        className={`chart-type-option ${chartType === 'line' ? 'active' : ''} ${isTransitioning ? 'transitioning' : ''}`}
+                        className={`chart-type-option ${chartType === 'line' ? 'active' : ''}`}
                         onClick={() => {
                           setChartType('line')
                         }}
-                        disabled={isTransitioning}
                       >
                         📈 Linhas
                       </button>
                       <button 
-                        className={`chart-type-option ${chartType === 'circle' ? 'active' : ''} ${isTransitioning ? 'transitioning' : ''}`}
+                        className={`chart-type-option ${chartType === 'circle' ? 'active' : ''}`}
                         onClick={() => {
                           setChartType('circle')
                         }}
-                        disabled={isTransitioning}
                       >
                         🥧 Círculo
                       </button>
@@ -431,11 +383,10 @@ export default function Dashboard({ user, onLogout }) {
                     {TABLES.map(table => (
                       <button 
                         key={table.id}
-                        className={`chart-type-option ${activeTab === table.id ? 'active' : ''} ${isTransitioning ? 'transitioning' : ''}`}
+                        className={`chart-type-option ${activeTab === table.id ? 'active' : ''}`}
                         onClick={() => {
                           handleTabChange(table.id)
                         }}
-                        disabled={isTransitioning}
                       >
                         <span style={{ marginRight: '0.5rem' }}>{table.icon}</span>
                         {table.name}
@@ -578,7 +529,7 @@ export default function Dashboard({ user, onLogout }) {
 
         {/* Main Content */}
         <main className="dashboard-main">
-          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''} ${isTransitioning ? 'transitioning' : 'content-ready'}`}>
+          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''} content-ready`}>
             {renderContent()}
           </div>
         </main>
