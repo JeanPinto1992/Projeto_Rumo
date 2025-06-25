@@ -193,13 +193,13 @@
   transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* ✨ Estados de zoom - Inflação no lugar (área de conteúdo) */
+/* ✨ Estados de zoom - Inflação no lugar (área de conteúdo respeitando sidebar) */
 .chart-overlay.zoom-ready {
-  /* Estado pronto - área de conteúdo disponível com margem de segurança */
-  top:0px; /* ✨ Margem superior */
-  left: calc(0px + -0px); /* ✨ Sidebar + margem lateral */
-  width: calc(100vw - 193px - 5px); /* ✨ Largura com margens */
-  height: calc(100vh - 5px); /* ✨ Altura com margens */
+  /* Estado pronto - área de conteúdo disponível */
+  top: 0px; /* ✨ Margem superior */
+  left: 0px; /* ✨ Após sidebar (193px) + margem (10px) */
+  width: calc(89.6vw - 0px); /* ✨ Largura disponível - sidebar - margens */
+  height: calc(100vh - 5px); /* ✨ Altura total - margens */
 }
 
 .chart-overlay.zoom-in {
@@ -212,40 +212,44 @@
   animation: deflateChart 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-/* ✨ Keyframes para inflar da posição original (sincronizado com zoom-ready) */
+/* ✨ Keyframes para inflar - da posição REAL de cada gráfico para área de conteúdo */
 @keyframes inflateChart {
   0% {
+    /* ✨ SEMPRE partir da posição real do gráfico clicado */
     top: var(--origin-y);
     left: var(--origin-x);
     width: var(--origin-width);
     height: var(--origin-height);
-    opacity: 1; /* ✨ Sem transparência inicial */
+    opacity: 1;
     border-radius: 6px;
     padding: 0.5rem;
   }
   100% {
-    top: 0px; /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
-    left: calc(0px + -0px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
-    width: calc(100vw - 193px - 5px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
-    height: calc(100vh - 5px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
-    opacity: 1; /* ✨ Sem transparência final */
+    /* ✨ Expandir para área de conteúdo (sincronizado com zoom-ready) */
+    top: 10px; /* ✨ Margem superior */
+    left: 203px; /* ✨ Após sidebar + margem */
+    width: calc(100vw - 203px - 10px); /* ✨ Largura da área de conteúdo */
+    height: calc(100vh - 20px); /* ✨ Altura com margens */
+    opacity: 1;
     border-radius: 12px;
     padding: 1.5rem;
   }
 }
 
-/* ✨ Keyframes para deflar de volta à posição original (sincronizado com zoom-ready) */
+/* ✨ Keyframes para deflar - da área de conteúdo PARA posição REAL de cada gráfico */
 @keyframes deflateChart {
   0% {
-    top: 0px; /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
-    left: calc(0px + -0px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
-    width: calc(100vw - 193px - 5px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
-    height: calc(100vh - 5px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
-    opacity: 1; /* ✨ Sem transparência inicial */
+    /* ✨ Partir da área de conteúdo (sincronizado com zoom-ready) */
+    top: 10px; /* ✨ Margem superior */
+    left: 203px; /* ✨ Após sidebar + margem */
+    width: calc(100vw - 203px - 10px); /* ✨ Largura da área de conteúdo */
+    height: calc(100vh - 20px); /* ✨ Altura com margens */
+    opacity: 1;
     border-radius: 12px;
     padding: 1.5rem;
   }
   100% {
+    /* ✨ SEMPRE retornar para posição real do gráfico clicado */
     top: var(--origin-y);
     left: var(--origin-x);
     width: var(--origin-width);
@@ -339,53 +343,13 @@
 /* ✨ Responsividade para tablet (1024px) */
 @media (max-width: 1024px) {
   .chart-overlay.zoom-ready {
-    top: 0px; /* ✨ Tela cheia em tablet */
-    left: calc(0px + -0px); /* ✨ Sobrepor sidebar em tablet */
-    width: calc(100vw - 5px); /* ✨ Largura quase total */
-    height: calc(100vh - 5px); /* ✨ Altura quase total */
+    top: 10px; /* ✨ Margem superior */
+    left: 176px; /* ✨ Após sidebar tablet (166px) + margem (10px) */
+    width: calc(100vw - 176px - 10px); /* ✨ Largura disponível - sidebar - margens */
+    height: calc(100vh - 20px); /* ✨ Altura com margens */
   }
   
-  @keyframes inflateChart {
-    0% {
-      top: var(--origin-y);
-      left: var(--origin-x);
-      width: var(--origin-width);
-      height: var(--origin-height);
-      opacity: 1;
-      border-radius: 6px;
-      padding: 0.5rem;
-    }
-    100% {
-      top: 0px; /* ✨ SINCRONIZADO com zoom-ready tablet */
-      left: calc(0px + -0px); /* ✨ SINCRONIZADO com zoom-ready tablet */
-      width: calc(100vw - 5px); /* ✨ SINCRONIZADO com zoom-ready tablet */
-      height: calc(100vh - 5px); /* ✨ SINCRONIZADO com zoom-ready tablet */
-      opacity: 1;
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-  }
-  
-  @keyframes deflateChart {
-    0% {
-      top: 0px; /* ✨ SINCRONIZADO com zoom-ready tablet */
-      left: calc(0px + -0px); /* ✨ SINCRONIZADO com zoom-ready tablet */
-      width: calc(100vw - 5px); /* ✨ SINCRONIZADO com zoom-ready tablet */
-      height: calc(100vh - 5px); /* ✨ SINCRONIZADO com zoom-ready tablet */
-      opacity: 1;
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-    100% {
-      top: var(--origin-y);
-      left: var(--origin-x);
-      width: var(--origin-width);
-      height: var(--origin-height);
-      opacity: 0;
-      border-radius: 6px;
-      padding: 0.5rem;
-    }
-  }
+  /* ✨ Animações globais já funcionam corretamente com var(--origin-x/y) */
 }
 
 @media (max-width: 768px) {
@@ -423,51 +387,11 @@
   
   /* ✨ Responsividade para mobile */
   .chart-overlay.zoom-ready {
-    top: 0px; /* ✨ Tela cheia em mobile */
-    left: calc(0px + -0px); /* ✨ Sobrepor sidebar em mobile */
-    width: calc(100vw - 5px); /* ✨ Largura quase total */
-    height: calc(100vh - 5px); /* ✨ Altura quase total */
+    top: 10px; /* ✨ Margem superior */
+    left: 79px; /* ✨ Após sidebar mobile (69px) + margem (10px) */
+    width: calc(100vw - 79px - 10px); /* ✨ Largura disponível - sidebar - margens */
+    height: calc(100vh - 20px); /* ✨ Altura com margens */
   }
   
-  @keyframes inflateChart {
-    0% {
-      top: var(--origin-y);
-      left: var(--origin-x);
-      width: var(--origin-width);
-      height: var(--origin-height);
-      opacity: 1;
-      border-radius: 6px;
-      padding: 0.5rem;
-    }
-    100% {
-      top: 0px; /* ✨ SINCRONIZADO com zoom-ready mobile */
-      left: calc(0px + -0px); /* ✨ SINCRONIZADO com zoom-ready mobile */
-      width: calc(100vw - 5px); /* ✨ SINCRONIZADO com zoom-ready mobile */
-      height: calc(100vh - 5px); /* ✨ SINCRONIZADO com zoom-ready mobile */
-      opacity: 1;
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-  }
-  
-  @keyframes deflateChart {
-    0% {
-      top: 0px; /* ✨ SINCRONIZADO com zoom-ready mobile */
-      left: calc(0px + -0px); /* ✨ SINCRONIZADO com zoom-ready mobile */
-      width: calc(100vw - 5px); /* ✨ SINCRONIZADO com zoom-ready mobile */
-      height: calc(100vh - 5px); /* ✨ SINCRONIZADO com zoom-ready mobile */
-      opacity: 1;
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-    100% {
-      top: var(--origin-y);
-      left: var(--origin-x);
-      width: var(--origin-width);
-      height: var(--origin-height);
-      opacity: 0;
-      border-radius: 6px;
-      padding: 0.5rem;
-    }
-  }
+  /* ✨ Animações globais já funcionam corretamente com var(--origin-x/y) */
 } 

@@ -284,17 +284,23 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       setTimeout(() => {
         setExpandedChart(null)
         setIsZooming(false)
+        
+        // ✨ Restaurar opacidade do gráfico original quando animação terminar
+        if (clickedCardRef) {
+          clickedCardRef.style.opacity = '1'
+        }
+        
         setClickedCardRef(null)
       }, 600)
     } else {
-      // ✨ Expandir - "inflar" da posição original
+      // ✨ Expandir - "inflar" da posição original (canto superior esquerdo)
       const clickedElement = event.currentTarget
       const rect = clickedElement.getBoundingClientRect()
       
-      // Capturar posição exata do gráfico clicado
+      // ✨ Capturar posição do canto superior esquerdo do gráfico clicado
       setZoomOrigin({
-        x: rect.left,
-        y: rect.top,
+        x: rect.left, // Canto esquerdo
+        y: rect.top,  // Canto superior  
         width: rect.width,
         height: rect.height
       })
@@ -303,6 +309,9 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       setZoomDirection('in')
       setIsZooming(true)
       setExpandedChart(tableId)
+      
+      // ✨ Ocultar gráfico original imediatamente para parecer que ele próprio está expandindo
+      clickedElement.style.opacity = '0'
       
       setTimeout(() => {
         setIsZooming(false)
