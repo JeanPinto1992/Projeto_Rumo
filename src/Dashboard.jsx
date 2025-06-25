@@ -529,7 +529,7 @@ export default function Dashboard({ user, onLogout }) {
 
         {/* Main Content */}
         <main className="dashboard-main">
-          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''} content-ready`}>
+          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''} ${activeTab === 'graficos' ? 'charts-active' : ''} content-ready`}>
             {renderContent()}
           </div>
         </main>

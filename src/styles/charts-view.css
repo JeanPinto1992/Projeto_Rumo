@@ -1,7 +1,7 @@
 .charts-view {
-  padding: 0.3rem;
+  padding: 0; /* Padding vem do container pai (content-body) */
   background: transparent;
-  height: calc(100vh - 10px);
+  height: 100vh; /* Altura total da viewport - padding vem do container pai */
   width: 100%;
   overflow-y: auto;
   overflow-x: visible; /* Garantir que conteúdo não seja cortado */
@@ -9,20 +9,7 @@
   z-index: 10;
   /* Garantir visibilidade completa dos elementos */
   box-sizing: border-box;
-  /* Estado inicial para animação */
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-}
-
-/* Estado de carregamento silencioso */
-.charts-view.charts-loading-silent {
-  opacity: 0;
-  transform: translate3d(0, 25px, 0);
-}
-
-/* Estado quando dados estão prontos */
-.charts-view.charts-ready {
+  /* Animações removidas - usar animação do Dashboard */
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
@@ -49,8 +36,8 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  gap: 0.5rem;
-  height: 100%;
+  gap: 0.2rem; /* Igual ao padding das bordas (desktop) */
+  height: calc(100vh - 0.4rem); /* Compensar padding vertical do container (0.2rem × 2) */
   max-width: 100%;
   margin: 0;
 }
@@ -60,38 +47,14 @@
   border-radius: 6px;
   padding: 0.3rem;
   box-shadow: 0 2px 8px rgba(0, 43, 85, 0.1);
-  border: 1px solid rgba(0, 43, 85, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease-out, translate 0.3s ease-out;
+  border: 2px solid; /* Borda colorida será definida inline */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
   height: 100%;
-  /* Estado inicial para animação */
-  opacity: 0;
-  transform: translate3d(0, 20px, 0);
-  will-change: opacity, transform;
-}
-
-/* Animação escalonada para os cards */
-.charts-ready .chart-card:nth-child(1) { animation: slideInFromBottom 0.3s ease-out 0.05s forwards; }
-.charts-ready .chart-card:nth-child(2) { animation: slideInFromBottom 0.3s ease-out 0.1s forwards; }
-.charts-ready .chart-card:nth-child(3) { animation: slideInFromBottom 0.3s ease-out 0.15s forwards; }
-.charts-ready .chart-card:nth-child(4) { animation: slideInFromBottom 0.3s ease-out 0.2s forwards; }
-.charts-ready .chart-card:nth-child(5) { animation: slideInFromBottom 0.3s ease-out 0.25s forwards; }
-.charts-ready .chart-card:nth-child(6) { animation: slideInFromBottom 0.3s ease-out 0.3s forwards; }
-.charts-ready .chart-card:nth-child(7) { animation: slideInFromBottom 0.3s ease-out 0.35s forwards; }
-.charts-ready .chart-card:nth-child(8) { animation: slideInFromBottom 0.3s ease-out 0.4s forwards; }
-.charts-ready .chart-card:nth-child(9) { animation: slideInFromBottom 0.3s ease-out 0.45s forwards; }
-
-/* Keyframe para animação dos cards */
-@keyframes slideInFromBottom {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 20px, 0);
-  }
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
+  /* Animações removidas - aparecer tudo junto como outras abas */
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
 }
 
 .chart-card:hover {
@@ -170,6 +133,8 @@
   .charts-grid {
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(5, 1fr);
+    gap: 0.15rem; /* Igual ao padding das bordas (tablet) */
+    height: calc(100vh - 0.3rem); /* Compensar padding vertical do tablet (0.15rem × 2) */
   }
 }
 
@@ -179,20 +144,15 @@
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 8px 32px rgba(0, 43, 85, 0.2);
-  border: 1px solid rgba(0, 43, 85, 0.1);
-  height: calc(100vh - 20px);
+  border: 2px solid; /* Borda colorida será definida inline */
+  height: calc(100vh - 0.4rem); /* Compensar padding vertical do container (0.2rem × 2) */
   width: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
-  /* Estado inicial para animação */
-  opacity: 0;
-  transform: translate3d(0, 20px, 0);
-}
-
-/* Animação para gráfico expandido quando dados estão prontos */
-.charts-ready .expanded-chart-container {
-  animation: slideInFromBottom 0.3s ease-out 0.05s forwards;
+  /* Animação removida - usar animação do Dashboard */
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
 }
 
 .expanded-chart-header {
@@ -279,11 +239,13 @@
   .charts-grid {
     grid-template-columns: 1fr;
     grid-template-rows: repeat(9, 1fr);
-    gap: 0.3rem;
+    gap: 0.1rem; /* Igual ao padding das bordas (mobile) */
+    height: calc(100vh - 0.2rem); /* Compensar padding vertical do mobile (0.1rem × 2) */
   }
   
   .charts-view {
-    padding: 0.3rem;
+    padding: 0; /* Padding vem do container pai em mobile também */
+    height: 100vh; /* Altura total da viewport - padding vem do container pai */
   }
   
   .chart-header h3 {

@@ -406,6 +406,11 @@ html, body {
   padding: 1.5rem 0.2rem !important; /* Padding mínimo para expandir tabelas ao máximo */
 }
 
+/* Exceção para a aba de gráficos - padding simétrico */
+.content-body.charts-active {
+  padding: 0.2rem !important; /* Espaçamento igual em todas as direções para gráficos */
+}
+
 /* Padding específico para a aba Dashboard - sem padding extra */
 .content-body.dashboard-active {
   padding: 0 !important;
@@ -545,6 +550,11 @@ html, body {
   .content-body:not(.dashboard-active) {
     padding: 1.5rem 0.15rem !important; /* Padding mínimo para expandir tabelas ao máximo em tablets */
   }
+  
+  /* Exceção para gráficos em tablet - padding simétrico */
+  .content-body.charts-active {
+    padding: 0.15rem !important; /* Espaçamento igual em tablet para gráficos */
+  }
 }
 
 @media (max-width: 768px) {
@@ -657,6 +667,11 @@ html, body {
   
   .content-body:not(.dashboard-active) {
     padding: 1.5rem 0.1rem !important; /* Padding mínimo para expandir tabelas ao máximo em mobile */
+  }
+  
+  /* Exceção para gráficos em mobile - padding simétrico */
+  .content-body.charts-active {
+    padding: 0.1rem !important; /* Espaçamento igual em mobile para gráficos */
   }
 }
 

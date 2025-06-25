@@ -34,11 +34,11 @@ const TABLES = [
   { id: 'administrativo', name: 'Administrativo', icon: '🏢', color: '#008dd0' },
   { id: 'almoxarifado', name: 'Almoxarifado', icon: '📦', color: '#95c6eb' },
   { id: 'faturamento', name: 'Faturamento', icon: '💰', color: '#4ba3d1' },
-  { id: 'impostos', name: 'Impostos', icon: '📊', color: '#006ba3' },
+  { id: 'impostos', name: 'Impostos', icon: '🧾', color: '#006ba3' },
   { id: 'logistica', name: 'Logística', icon: '🚛', color: '#005a8a' },
   { id: 'manutencao', name: 'Manutenção', icon: '🔧', color: '#004e75' },
-  { id: 'rh_gastos_gerais', name: 'RH - Gastos Gerais', icon: '💰', color: '#8B5CF6' },
-  { id: 'rh_custos_totais', name: 'RH - Custos Totais', icon: '📊', color: '#7C3AED' },
+  { id: 'rh_gastos_gerais', name: 'RH - Gastos Gerais', icon: '💸', color: '#8B5CF6' },
+  { id: 'rh_custos_totais', name: 'RH - Custos Totais', icon: '📈', color: '#7C3AED' },
   { id: 'rh_passivo_trabalhista', name: 'RH - Passivo Trabalhista', icon: '⚖️', color: '#6D28D9' }
 ]
 
@@ -297,8 +297,8 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     }
 
     return (
-      <div className={`charts-view ${isDataReady ? 'charts-ready' : 'charts-loading-silent'}`}>
-        <div className="expanded-chart-container">
+      <div className="charts-view">
+        <div className="expanded-chart-container" style={{ borderColor: table.color }}>
           <div className="expanded-chart-header">
             <h2>
               <span style={{ marginRight: '0.5rem' }}>{table.icon}</span>
@@ -478,7 +478,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   }
 
   return (
-    <div className={`charts-view ${isDataReady ? 'charts-ready' : 'charts-loading-silent'}`}>
+    <div className="charts-view">
       <div className="charts-grid">
         
         {/* Gráfico individual para cada tabela */}
@@ -517,6 +517,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
               key={table.id} 
               className="chart-card"
               onClick={() => handleChartClick(table.id)}
+              style={{ borderColor: table.color }}
             >
               <div className="chart-header">
                 <h3>
