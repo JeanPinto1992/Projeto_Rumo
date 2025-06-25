@@ -4,8 +4,11 @@
   height: calc(100vh - 10px);
   width: 100%;
   overflow-y: auto;
+  overflow-x: visible; /* Garantir que conteúdo não seja cortado */
   position: relative;
   z-index: 10;
+  /* Garantir visibilidade completa dos elementos */
+  box-sizing: border-box;
 }
 
 .charts-view::before {
@@ -108,6 +111,9 @@
   flex-grow: 1;
   position: relative;
   min-height: 0;
+  overflow: visible; /* Garantir que gráficos não sejam cortados */
+  /* Garantir que labels e tooltips sejam visíveis */
+  z-index: 1;
 }
 
 

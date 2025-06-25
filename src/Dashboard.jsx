@@ -29,6 +29,15 @@ export default function Dashboard({ user, onLogout }) {
   const [chartType, setChartType] = useState('bar') // 'bar', 'line', 'circle'
   const [showChartTypeDropdown, setShowChartTypeDropdown] = useState(false)
   const [showSectorsDropdown, setShowSectorsDropdown] = useState(false)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
+
+  // Debug: Log estados importantes
+  console.log('Dashboard renderizado com estados:', {
+    activeTab,
+    showChartTypeDropdown,
+    showSectorsDropdown,
+    chartType
+  })
 
   const [exportFunctions, setExportFunctions] = useState({
     exportToCSV: () => console.warn('CSV export not ready'),
@@ -154,6 +163,20 @@ export default function Dashboard({ user, onLogout }) {
     }
   }, [isFullscreen])
 
+  // Função para garantir visibilidade dos dropdowns
+  const ensureDropdownVisibility = (dropdownType) => {
+    const dropdown = document.querySelector('.chart-type-dropdown')
+    console.log('Garantindo visibilidade do dropdown:', dropdownType, dropdown)
+    
+    if (dropdown) {
+      // Apenas adicionar classe para forçar visibilidade via CSS
+      dropdown.classList.add('visible')
+      console.log('Classe "visible" adicionada ao dropdown')
+    } else {
+      console.warn('Dropdown não encontrado')
+    }
+  }
+
   // Fechar dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -162,9 +185,15 @@ export default function Dashboard({ user, onLogout }) {
       }
       if (showChartTypeDropdown && !event.target.closest('.chart-type-dropdown-container')) {
         setShowChartTypeDropdown(false)
+        // Remover classe de visibilidade
+        const dropdown = document.querySelector('.chart-type-dropdown')
+        if (dropdown) dropdown.classList.remove('visible')
       }
       if (showSectorsDropdown && !event.target.closest('.chart-type-dropdown-container')) {
         setShowSectorsDropdown(false)
+        // Remover classe de visibilidade
+        const dropdown = document.querySelector('.chart-type-dropdown')
+        if (dropdown) dropdown.classList.remove('visible')
       }
     }
 
@@ -173,6 +202,22 @@ export default function Dashboard({ user, onLogout }) {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showExportDropdown, showChartTypeDropdown, showSectorsDropdown])
+
+  // Garantir visibilidade quando dropdown abrir/fechar
+  useEffect(() => {
+    console.log('Estado dos dropdowns mudou:', { showChartTypeDropdown, showSectorsDropdown })
+    if (showChartTypeDropdown || showSectorsDropdown) {
+      console.log('Dropdown deveria estar aberto, garantindo visibilidade...')
+      setTimeout(() => ensureDropdownVisibility('dropdown'), 10)
+    } else {
+      console.log('Dropdown deveria estar fechado, removendo visibilidade...')
+      // Remover classe de visibilidade quando fechar
+      const dropdown = document.querySelector('.chart-type-dropdown')
+      if (dropdown) {
+        dropdown.classList.remove('visible')
+      }
+    }
+  }, [showChartTypeDropdown, showSectorsDropdown])
 
   // Função para renderizar conteúdo baseado na aba ativa
   const renderContent = () => {
@@ -275,7 +320,7 @@ export default function Dashboard({ user, onLogout }) {
               <span className="nav-text">Dashboard</span>
             </button>
             
-            <div className="nav-item-with-dropdown">
+            <div className={`nav-item-with-dropdown ${showChartTypeDropdown ? 'dropdown-active' : ''}`}>
               <button
                 className={`nav-item ${activeTab === 'graficos' ? 'active' : ''}`}
                 onClick={() => handleTabChange('graficos')}
@@ -288,17 +333,46 @@ export default function Dashboard({ user, onLogout }) {
                 <div className="chart-type-dropdown-container">
                   <button 
                     className="chart-type-toggle"
-                    onClick={() => setShowChartTypeDropdown(!showChartTypeDropdown)}
+                    onClick={(event) => {
+                      console.log('Clicou na seta dropdown! Estado atual:', showChartTypeDropdown)
+                      
+                      // Não precisa mais calcular posição - CSS cuida disso
+                      
+                      setShowChartTypeDropdown(!showChartTypeDropdown)
+                      console.log('Novo estado será:', !showChartTypeDropdown)
+                    }}
                     title="Tipo de gráfico"
                   >
                     ▼
                   </button>
                   
                   {showChartTypeDropdown && (
-                    <div className="chart-type-dropdown">
+                    <div className="chart-type-dropdown" style={{
+                      display: 'block',
+                      position: 'absolute', /* Voltar para absolute */
+                      top: '0px', /* Logo acima da linha */
+                      left: '100%', /* Fora da sidebar, à direita */
+                      width: window.innerWidth <= 768 ? '65px' : window.innerWidth <= 1024 ? '150px' : '175px', /* Largura um pouco maior */
+                      minWidth: window.innerWidth <= 768 ? '65px' : window.innerWidth <= 1024 ? '150px' : '175px',
+                      maxWidth: window.innerWidth <= 768 ? '65px' : window.innerWidth <= 1024 ? '150px' : '175px',
+                      zIndex: '2147483647', /* Z-index máximo possível */
+                      backgroundColor: '#ffffff', /* Fundo completamente branco */
+                      background: '#ffffff', /* Garantia adicional */
+                      border: '2px solid #002b55',
+                      borderRadius: '8px',
+                      marginTop: '0.25rem',
+                      boxShadow: '0 8px 32px rgba(0, 43, 85, 0.4)',
+                      backdropFilter: 'none', /* Remover blur */
+                      WebkitBackdropFilter: 'none', /* Remover blur no Safari */
+                      isolation: 'isolate', /* Criar contexto de stacking próprio */
+                      willChange: 'transform', /* Forçar nova camada */
+                      transform: 'translateZ(0)', /* Forçar hardware acceleration */
+                      contain: 'none' /* Não ser afetado por overflow de elementos pai */
+                    }}>
                       <button 
                         className={`chart-type-option ${chartType === 'bar' ? 'active' : ''}`}
                         onClick={() => {
+                          console.log('Selecionou gráfico de barras')
                           setChartType('bar')
                           setShowChartTypeDropdown(false)
                         }}
@@ -308,6 +382,7 @@ export default function Dashboard({ user, onLogout }) {
                       <button 
                         className={`chart-type-option ${chartType === 'line' ? 'active' : ''}`}
                         onClick={() => {
+                          console.log('Selecionou gráfico de linhas')
                           setChartType('line')
                           setShowChartTypeDropdown(false)
                         }}
@@ -317,6 +392,7 @@ export default function Dashboard({ user, onLogout }) {
                       <button 
                         className={`chart-type-option ${chartType === 'circle' ? 'active' : ''}`}
                         onClick={() => {
+                          console.log('Selecionou gráfico de círculo')
                           setChartType('circle')
                           setShowChartTypeDropdown(false)
                         }}
@@ -329,7 +405,7 @@ export default function Dashboard({ user, onLogout }) {
               )}
             </div>
 
-            <div className="nav-item-with-dropdown">
+            <div className={`nav-item-with-dropdown ${showSectorsDropdown ? 'dropdown-active' : ''}`}>
               <button
                 className={`nav-item ${['administrativo', 'almoxarifado', 'faturamento', 'impostos', 'logistica', 'manutencao', 'rh'].includes(activeTab) ? 'active' : ''}`}
                 onClick={() => handleTabChange('administrativo')}
@@ -341,14 +417,41 @@ export default function Dashboard({ user, onLogout }) {
               <div className="chart-type-dropdown-container">
                 <button 
                   className="chart-type-toggle"
-                  onClick={() => setShowSectorsDropdown(!showSectorsDropdown)}
+                  onClick={(event) => {
+                    console.log('Clicou na seta dropdown Setores! Estado atual:', showSectorsDropdown)
+                    
+                                         // Não precisa mais calcular posição - CSS cuida disso
+                    
+                    setShowSectorsDropdown(!showSectorsDropdown)
+                  }}
                   title="Selecionar setor"
                 >
                   ▼
                 </button>
                 
                 {showSectorsDropdown && (
-                  <div className="chart-type-dropdown">
+                  <div className="chart-type-dropdown" style={{
+                                         display: 'block',
+                     position: 'absolute', /* Voltar para absolute */
+                     top: '0px', /* Logo acima da linha */
+                     left: '100%', /* Fora da sidebar, à direita */
+                                                              width: window.innerWidth <= 768 ? '65px' : window.innerWidth <= 1024 ? '150px' : '175px', /* Largura um pouco maior */
+                     minWidth: window.innerWidth <= 768 ? '65px' : window.innerWidth <= 1024 ? '150px' : '175px',
+                     maxWidth: window.innerWidth <= 768 ? '65px' : window.innerWidth <= 1024 ? '150px' : '175px',
+                     zIndex: '2147483647', /* Z-index máximo possível */
+                     backgroundColor: '#ffffff', /* Fundo completamente branco */
+                     background: '#ffffff', /* Garantia adicional */
+                     border: '2px solid #002b55',
+                     borderRadius: '8px',
+                     marginTop: '0.25rem',
+                     boxShadow: '0 8px 32px rgba(0, 43, 85, 0.4)',
+                     backdropFilter: 'none', /* Remover blur */
+                     WebkitBackdropFilter: 'none', /* Remover blur no Safari */
+                     isolation: 'isolate', /* Criar contexto de stacking próprio */
+                     willChange: 'transform', /* Forçar nova camada */
+                     transform: 'translateZ(0)', /* Forçar hardware acceleration */
+                     contain: 'none' /* Não ser afetado por overflow de elementos pai */
+                  }}>
                     {TABLES.map(table => (
                       <button 
                         key={table.id}

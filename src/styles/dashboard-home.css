@@ -163,8 +163,10 @@
 
 .departments-scroll-container {
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Mudado para visible para não cortar conteúdo */
   padding: 0 6rem;
+  /* Garantir que o conteúdo dos cards seja visível */
+  z-index: 1;
 }
 
 .departments-cards {
@@ -178,6 +180,9 @@
   width: 100%;
   max-width: calc(5 * (280px + 1.5rem));
   margin: 0 auto;
+  /* Garantir que conteúdo dos cards não seja cortado durante scroll */
+  padding: 0.5rem 0;
+  box-sizing: border-box;
 }
 
 .departments-cards::-webkit-scrollbar {
@@ -188,7 +193,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border: 2px solid var(--usifix-blue-dark);
   color: var(--usifix-blue-dark);
   border-radius: 50%;
@@ -201,8 +206,10 @@
   font-size: 1.2rem;
   font-weight: bold;
   transition: all 0.3s ease;
-  z-index: 10;
-  box-shadow: 0 4px 12px rgba(0, 43, 85, 0.2);
+  z-index: 100; /* Aumentado o z-index para ficar acima dos cards */
+  box-shadow: 0 4px 12px rgba(0, 43, 85, 0.3);
+  /* Garantir que as setas não afetem o layout dos cards */
+  backdrop-filter: blur(10px);
 }
 
 .scroll-arrow:hover {
@@ -228,12 +235,15 @@
   padding: 1.5rem;
   transition: all var(--usifix-transition-normal);
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Mudado para visible para não cortar conteúdo */
   width: 280px;
   min-width: 280px;
   max-width: 280px;
   flex-shrink: 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  /* Garantir que texto e ícones sejam completamente visíveis */
+  word-wrap: break-word;
+  box-sizing: border-box;
 }
 
 .department-card::before {
@@ -395,17 +405,20 @@
   
   .departments-scroll-container {
     padding: 0 4rem;
+    overflow: visible; /* Manter visibilidade do conteúdo em tablets */
   }
   
   .departments-cards {
     width: 100%;
     max-width: calc(3 * (280px + 1.5rem));
+    padding: 0.5rem 0; /* Manter padding para não cortar conteúdo */
   }
   
   .scroll-arrow {
     width: 40px;
     height: 40px;
     font-size: 1rem;
+    z-index: 100; /* Manter z-index alto em tablets */
   }
   
   .summary-grid {
@@ -421,23 +434,28 @@
   
   .departments-scroll-container {
     padding: 0 3.5rem;
+    overflow: visible; /* Manter visibilidade do conteúdo em mobile médio */
   }
   
   .departments-cards {
     width: 100%;
     max-width: calc(2 * (250px + 1.5rem));
+    padding: 0.5rem 0; /* Manter padding para não cortar conteúdo */
   }
   
   .department-card {
     width: 250px;
     min-width: 250px;
     max-width: 250px;
+    overflow: visible; /* Garantir visibilidade completa */
+    word-wrap: break-word;
   }
   
   .scroll-arrow {
     width: 35px;
     height: 35px;
     font-size: 0.9rem;
+    z-index: 100; /* Manter z-index alto em mobile médio */
   }
   
   .departments-grid,
@@ -477,12 +495,14 @@
   
   .departments-scroll-container {
     padding: 0 3rem;
+    overflow: visible; /* Manter visibilidade do conteúdo em mobile pequeno */
   }
   
   .departments-cards {
     gap: 1rem;
     width: 100%;
     max-width: calc(1 * (220px + 1rem));
+    padding: 0.5rem 0; /* Manter padding para não cortar conteúdo */
   }
   
   .department-card {
@@ -490,12 +510,16 @@
     width: 220px;
     min-width: 220px;
     max-width: 220px;
+    overflow: visible; /* Garantir visibilidade completa */
+    word-wrap: break-word;
+    box-sizing: border-box;
   }
   
   .scroll-arrow {
     width: 30px;
     height: 30px;
     font-size: 0.8rem;
+    z-index: 100; /* Manter z-index alto em mobile pequeno */
   }
   
   .summary-item {
