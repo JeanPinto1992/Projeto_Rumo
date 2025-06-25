@@ -84,14 +84,39 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape' && expandedChart) {
-        // ✨ Fechar com efeito de zoom out
-        setZoomDirection('out')
-        setIsZooming(true)
+        // ✨ Fechar com efeito de zoom out com alinhamento perfeito
+        
+        // ✨ Recapturar a posição atual do gráfico original para alinhamento perfeito
+        if (clickedCardRef) {
+          const currentRect = clickedCardRef.getBoundingClientRect()
+          // Atualizar as coordenadas de destino com a posição atual real
+          setZoomOrigin(prev => ({
+            ...prev,
+            startX: currentRect.left,
+            startY: currentRect.top,
+            startWidth: currentRect.width,
+            startHeight: currentRect.height
+          }))
+          
+          // ✨ Pequeno delay para garantir que as coordenadas sejam aplicadas ao CSS
+          setTimeout(() => {
+            setZoomDirection('out')
+            setIsZooming(true)
+            
+            // ✨ Restaurar opacidade quase imediatamente para transição suave
+            setTimeout(() => {
+              clickedCardRef.style.opacity = '1'
+            }, 50)
+          }, 10)
+        } else {
+          setZoomDirection('out')
+          setIsZooming(true)
+        }
         
         setTimeout(() => {
           setExpandedChart(null)
           setIsZooming(false)
-        }, 600)
+        }, 620)
       }
     }
 
@@ -99,7 +124,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [expandedChart])
+  }, [expandedChart, clickedCardRef])
 
   const loadChartsData = async () => {
     // ✨ CORREÇÃO: Cache inteligente - atualização instantânea para mês/modo, só loading para ano novo
@@ -279,22 +304,41 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   // Função para expandir/contrair gráfico inflando no lugar
   const handleChartClick = (tableId, event) => {
     if (expandedChart === tableId) {
-      // ✨ Minimizar - "desinflar" de volta para posição original
-      setZoomDirection('out')
-      setIsZooming(true)
+      // ✨ Minimizar - "desinflar" de volta para posição original ATUALIZADA
       
-      // Aguardar animação de deflação completa
+      // ✨ Recapturar a posição atual do gráfico original para alinhamento perfeito
+      if (clickedCardRef) {
+        const currentRect = clickedCardRef.getBoundingClientRect()
+        // Atualizar as coordenadas de destino com a posição atual real
+        setZoomOrigin(prev => ({
+          ...prev,
+          startX: currentRect.left,
+          startY: currentRect.top,
+          startWidth: currentRect.width,
+          startHeight: currentRect.height
+        }))
+        
+        // ✨ Pequeno delay para garantir que as coordenadas sejam aplicadas ao CSS
+        setTimeout(() => {
+          setZoomDirection('out')
+          setIsZooming(true)
+          
+          // ✨ Restaurar opacidade quase imediatamente para transição suave
+          setTimeout(() => {
+            clickedCardRef.style.opacity = '1'
+          }, 50)
+        }, 10)
+      } else {
+        setZoomDirection('out')
+        setIsZooming(true)
+      }
+      
+      // Aguardar animação de deflação completa para limpar estados
       setTimeout(() => {
         setExpandedChart(null)
         setIsZooming(false)
-        
-        // ✨ Restaurar opacidade do gráfico original quando animação terminar
-        if (clickedCardRef) {
-          clickedCardRef.style.opacity = '1'
-        }
-        
         setClickedCardRef(null)
-      }, 600)
+      }, 620) // Aumentar um pouco devido ao delay inicial
     } else {
       // ✨ Expandir - "inflar" da posição original para posição final específica
       const clickedElement = event.currentTarget

@@ -246,13 +246,23 @@
     border-radius: 12px;
     padding: 1.5rem;
   }
-  100% {
-    /* ✨ SEMPRE retornar para posição original específica do gráfico clicado */
+  85% {
+    /* ✨ Começar a desaparecer antes do final para transição suave */
     top: var(--start-y);
     left: var(--start-x);
     width: var(--start-width);
     height: var(--start-height);
-    opacity: 0; /* ✨ Desaparecer ao final */
+    opacity: 0.3;
+    border-radius: 6px;
+    padding: 0.3rem;
+  }
+  100% {
+    /* ✨ Desaparecer completamente um pouco antes do final */
+    top: var(--start-y);
+    left: var(--start-x);
+    width: var(--start-width);
+    height: var(--start-height);
+    opacity: 0;
     border-radius: 6px;
     padding: 0.3rem;
   }
