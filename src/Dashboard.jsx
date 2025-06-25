@@ -308,7 +308,6 @@ export default function Dashboard({ user, onLogout }) {
                         className={`chart-type-option ${chartType === 'bar' ? 'active' : ''}`}
                         onClick={() => {
                           setChartType('bar')
-                          setShowChartTypeDropdown(false)
                         }}
                       >
                         📊 Barras
@@ -317,7 +316,6 @@ export default function Dashboard({ user, onLogout }) {
                         className={`chart-type-option ${chartType === 'line' ? 'active' : ''}`}
                         onClick={() => {
                           setChartType('line')
-                          setShowChartTypeDropdown(false)
                         }}
                       >
                         📈 Linhas
@@ -326,7 +324,6 @@ export default function Dashboard({ user, onLogout }) {
                         className={`chart-type-option ${chartType === 'circle' ? 'active' : ''}`}
                         onClick={() => {
                           setChartType('circle')
-                          setShowChartTypeDropdown(false)
                         }}
                       >
                         🥧 Círculo
@@ -365,7 +362,6 @@ export default function Dashboard({ user, onLogout }) {
                         className={`chart-type-option ${activeTab === table.id ? 'active' : ''}`}
                         onClick={() => {
                           handleTabChange(table.id)
-                          setShowSectorsDropdown(false)
                         }}
                       >
                         <span style={{ marginRight: '0.5rem' }}>{table.icon}</span>
