@@ -1,0 +1,77 @@
+/* ===================================================================
+   CSS CRÍTICO - SETAS DE NAVEGAÇÃO DA TABELA
+   ================================================================== */
+
+/* SETAS DE NAVEGAÇÃO DA TABELA - FIXADAS NA VIEWPORT */
+
+/* Seletores genéricos para pegar todas as variações de classe das setas */
+button[class*="table-navigation-arrows"], 
+.table-navigation-arrows,
+button[class*="table-arrow"],
+.table-arrow-up,
+.table-arrow-down {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  background: white !important;
+  border: 2px solid #002b55 !important;
+  color: #002b55 !important;
+  border-radius: 50% !important;
+  width: 50px !important;
+  height: 50px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  font-size: 1.2rem !important;
+  font-weight: bold !important;
+  box-shadow: 0 4px 12px rgba(0, 43, 85, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.3s ease !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  outline: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: all !important;
+}
+
+/* Hover das setas */
+button[class*="table-navigation-arrows"]:hover, 
+.table-navigation-arrows:hover,
+button[class*="table-arrow"]:hover,
+.table-arrow-up:hover,
+.table-arrow-down:hover {
+  background: #002b55 !important;
+  color: white !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 20px rgba(0, 43, 85, 0.4) !important;
+}
+
+/* Seta para cima - fixada no topo da viewport */
+button[class*="table-arrow-up"], 
+.table-arrow-up {
+  right: 80px !important;
+  top:55px !important;
+  left: auto !important;
+  bottom: auto !important;
+}
+
+/* Seta para baixo - fixada no topo da viewport */
+button[class*="table-arrow-down"], 
+.table-arrow-down {
+  right: 20px !important;
+  top: 840px !important;
+  left: auto !important;
+  bottom: auto !important;
+}
+
+/* Flash effect */
+button[class*="flash"],
+.flash {
+  background: linear-gradient(135deg, #002b55 0%, #004080 100%) !important;
+  color: white !important;
+  transform: scale(1.2) !important;
+  box-shadow: 0 8px 24px rgba(0, 43, 85, 0.9) !important;
+  border: 2px solid white !important;
+} 

@@ -18,7 +18,7 @@ const TABLES = [
 
 export default function Dashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard')
-  const [loading, setLoading] = useState(false)
+  // Loading removido - interface sempre instantânea
   const [error, setError] = useState(null)
   const [showExportDropdown, setShowExportDropdown] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -29,6 +29,9 @@ export default function Dashboard({ user, onLogout }) {
   const [chartType, setChartType] = useState('bar') // 'bar', 'line', 'circle'
   const [showChartTypeDropdown, setShowChartTypeDropdown] = useState(false)
   const [showSectorsDropdown, setShowSectorsDropdown] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false) // Estado para transições suaves
+  const [tableAnimationClass, setTableAnimationClass] = useState('table-appear') // Classe de animação para tabelas
+  const [animationKey, setAnimationKey] = useState(0) // Key para forçar re-render da animação
 
 
 
@@ -40,9 +43,57 @@ export default function Dashboard({ user, onLogout }) {
 
   // Função para mudança de aba com transição suave
   const handleTabChange = (newTab) => {
-    setActiveTab(newTab)
-    // Adicionar aba ao cache para futuras transições mais rápidas
-    setTabCache(prev => new Set([...prev, newTab]))
+    if (newTab === activeTab) return // Evitar re-render desnecessário
+    
+    // Dashboard e Gráficos têm mudança direta sem loading
+    if (newTab === 'graficos' || newTab === 'dashboard') {
+      setError(null)
+      setActiveTab(newTab)
+      setTabCache(prev => new Set([...prev, newTab]))
+      setTableAnimationClass('table-appear-blur')
+      setAnimationKey(prev => prev + 1)
+      return
+    }
+    
+    setIsTransitioning(true)
+    setError(null) // Limpar erros anteriores
+    
+    // Escolher animação baseada no tipo de conteúdo
+    const animationTypes = {
+      'dashboard': 'table-appear-scale',
+      'administrativo': 'table-appear',
+      'almoxarifado': 'table-appear-left',
+      'faturamento': 'table-appear-scale',
+      'impostos': 'table-appear',
+      'logistica': 'table-appear-left',
+      'manutencao': 'table-appear-blur',
+      'rh': 'dramatic-enter'
+    }
+    
+    // Usar animação especial para primeiro carregamento
+    const isFirstTime = !tabCache.has(newTab)
+    const selectedAnimation = isFirstTime ? 'first-load' : (animationTypes[newTab] || 'table-appear')
+    setTableAnimationClass(selectedAnimation)
+    
+    // Transição suave com delay reduzido
+    setTimeout(() => {
+      try {
+        setActiveTab(newTab)
+        // Adicionar aba ao cache para futuras transições mais rápidas
+        setTabCache(prev => new Set([...prev, newTab]))
+        
+        // Finalizar transição mais rapidamente
+        setTimeout(() => {
+          setIsTransitioning(false)
+          // Incrementar key para forçar re-render da animação
+          setAnimationKey(prev => prev + 1)
+        }, 50)
+      } catch (err) {
+        console.error('Erro durante transição de aba:', err)
+        setError('Erro ao carregar o conteúdo. Tente novamente.')
+        setIsTransitioning(false)
+      }
+    }, 100)
   }
 
   // Resetar funções de exportação quando mudar de aba
@@ -182,11 +233,13 @@ export default function Dashboard({ user, onLogout }) {
 
   // Função para renderizar conteúdo baseado na aba ativa
   const renderContent = () => {
-    if (loading) {
+    // Loading removido - apenas transições suaves agora
+    
+    if (isTransitioning) {
       return (
-        <div className="content-loading">
-          <div className="content-loading-spinner"></div>
-          <p>Carregando dados...</p>
+        <div className="content-transitioning">
+          <div className="transition-spinner"></div>
+          <p>Preparando dados...</p>
         </div>
       )
     }
@@ -205,35 +258,51 @@ export default function Dashboard({ user, onLogout }) {
     }
 
     if (activeTab === 'dashboard') {
-      return <DashboardHome selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} />
+      return (
+        <div key={`dashboard-${animationKey}`} className={`content-wrapper ${tableAnimationClass}`}>
+          <DashboardHome selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} />
+        </div>
+      )
     }
 
     if (activeTab === 'graficos') {
-      return <ChartsView selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} chartType={chartType} />
+      return (
+        <div key={`graficos-${animationKey}`} className={`content-wrapper ${tableAnimationClass}`}>
+          <ChartsView selectedMonth={selectedMonth} selectedYear={selectedYear} viewMode={viewMode} chartType={chartType} />
+        </div>
+      )
     }
 
     // Renderizar RHView para a aba de Recursos Humanos
     if (activeTab === 'rh') {
-      return <RHView 
-        selectedMonth={selectedMonth} 
-        selectedYear={selectedYear} 
-        viewMode={viewMode} 
-        onExportFunctionsReady={handleSetExportFunctions}
-        isFirstLoad={!tabCache.has(activeTab)}
-      />
+      return (
+        <div key={`rh-${animationKey}`} className={`content-wrapper ${tableAnimationClass}`}>
+          <RHView 
+            selectedMonth={selectedMonth} 
+            selectedYear={selectedYear} 
+            viewMode={viewMode} 
+            onExportFunctionsReady={handleSetExportFunctions}
+            isFirstLoad={!tabCache.has(activeTab)}
+          />
+        </div>
+      )
     }
 
     // Renderizar TableView para outras abas
     const currentTable = TABLES.find(table => table.id === activeTab)
     if (currentTable) {
-      return <TableView 
-        tableName={activeTab} 
-        selectedMonth={selectedMonth} 
-        selectedYear={selectedYear} 
-        viewMode={viewMode} 
-        onExportFunctionsReady={handleSetExportFunctions}
-        isFirstLoad={!tabCache.has(activeTab)}
-      />
+      return (
+        <div key={`${activeTab}-${animationKey}`} className={`content-wrapper ${tableAnimationClass}`}>
+          <TableView 
+            tableName={activeTab} 
+            selectedMonth={selectedMonth} 
+            selectedYear={selectedYear} 
+            viewMode={viewMode} 
+            onExportFunctionsReady={handleSetExportFunctions}
+            isFirstLoad={!tabCache.has(activeTab)}
+          />
+        </div>
+      )
     }
 
     return null
@@ -305,26 +374,29 @@ export default function Dashboard({ user, onLogout }) {
                   {showChartTypeDropdown && (
                     <div className="chart-type-dropdown">
                       <button 
-                        className={`chart-type-option ${chartType === 'bar' ? 'active' : ''}`}
+                        className={`chart-type-option ${chartType === 'bar' ? 'active' : ''} ${isTransitioning ? 'transitioning' : ''}`}
                         onClick={() => {
                           setChartType('bar')
                         }}
+                        disabled={isTransitioning}
                       >
                         📊 Barras
                       </button>
                       <button 
-                        className={`chart-type-option ${chartType === 'line' ? 'active' : ''}`}
+                        className={`chart-type-option ${chartType === 'line' ? 'active' : ''} ${isTransitioning ? 'transitioning' : ''}`}
                         onClick={() => {
                           setChartType('line')
                         }}
+                        disabled={isTransitioning}
                       >
                         📈 Linhas
                       </button>
                       <button 
-                        className={`chart-type-option ${chartType === 'circle' ? 'active' : ''}`}
+                        className={`chart-type-option ${chartType === 'circle' ? 'active' : ''} ${isTransitioning ? 'transitioning' : ''}`}
                         onClick={() => {
                           setChartType('circle')
                         }}
+                        disabled={isTransitioning}
                       >
                         🥧 Círculo
                       </button>
@@ -359,10 +431,11 @@ export default function Dashboard({ user, onLogout }) {
                     {TABLES.map(table => (
                       <button 
                         key={table.id}
-                        className={`chart-type-option ${activeTab === table.id ? 'active' : ''}`}
+                        className={`chart-type-option ${activeTab === table.id ? 'active' : ''} ${isTransitioning ? 'transitioning' : ''}`}
                         onClick={() => {
                           handleTabChange(table.id)
                         }}
+                        disabled={isTransitioning}
                       >
                         <span style={{ marginRight: '0.5rem' }}>{table.icon}</span>
                         {table.name}
@@ -505,7 +578,7 @@ export default function Dashboard({ user, onLogout }) {
 
         {/* Main Content */}
         <main className="dashboard-main">
-          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''}`}>
+          <div className={`content-body ${activeTab === 'dashboard' ? 'dashboard-active' : ''} ${isTransitioning ? 'transitioning' : 'content-ready'}`}>
             {renderContent()}
           </div>
         </main>

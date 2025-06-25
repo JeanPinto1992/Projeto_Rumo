@@ -21,22 +21,27 @@ html, body {
 
 /* Logo superior direita removida */
 
-/* Marca d'água com logo */
+/* Marca d'água com logo - centralizada na tela inteira, atrás do conteúdo */
 .dashboard::before {
   content: '';
   position: fixed;
   top: 50%;
-  left: 50%;
+  left: 50%; /* Centrar na tela inteira */
   transform: translate(-50%, -50%);
-  width: 300px;
-  height: 300px;
+  width: 400px;
+  height: 400px;
   background-image: url('/USIFIX VETOR MINI.svg');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.05;
-  z-index: 0;
+  opacity: 0.08; /* Reduzida para ficar sutil atrás do conteúdo */
+  z-index: -1; /* Z-index negativo para ficar atrás de tudo */
   pointer-events: none;
+  /* Garantir que a marca d'água apareça */
+  display: block;
+  will-change: transform;
+  /* Forçar renderização */
+  filter: grayscale(0);
 }
 
 /* Modo Fullscreen - Oculta sidebar e abinha */
@@ -407,23 +412,7 @@ html, body {
   overflow: hidden;
 }
 
-.content-body::before {
-  content: '';
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 550px;
-  height: 550px;
-  background-image: url('/USIFIX VETOR MINI.svg');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  opacity: 0.18;
-  z-index: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
+/* Marca d'água removida daqui - usando apenas a da classe .dashboard::before */
 
 .content-loading {
   display: flex;
@@ -507,6 +496,15 @@ html, body {
     width: calc(100% - 166px);
   }
   
+  /* Ajustar marca d'água para tablets */
+  .dashboard::before {
+    left: 50%; /* Manter centralizado em tablets */
+    width: 300px;
+    height: 300px;
+    opacity: 0.06; /* Sutil atrás do conteúdo */
+    z-index: -1;
+  }
+  
   .sidebar-header {
     padding: 1rem;
   }
@@ -559,6 +557,15 @@ html, body {
     width: calc(100% - 69px);
   }
   
+  /* Ajustar marca d'água para mobile */
+  .dashboard::before {
+    left: 50%; /* Manter centralizado em mobile */
+    width: 250px;
+    height: 250px;
+    opacity: 0.05; /* Sutil atrás do conteúdo */
+    z-index: -1;
+  }
+  
   .sidebar-header {
     padding: 0.5rem;
     justify-content: center;
@@ -586,6 +593,21 @@ html, body {
   .nav-icon {
     font-size: 1.4rem;
     width: 100%;
+  }
+  
+  /* Garantir que dropdowns sejam visíveis mesmo sem texto em mobile */
+  .nav-item-with-dropdown {
+    position: relative !important;
+    overflow: visible !important;
+  }
+  
+  .nav-item-with-dropdown .chart-type-dropdown-container {
+    display: block !important;
+    position: absolute !important;
+    right: 2px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 1001 !important;
   }
   
   .sidebar-controls-circular {
@@ -844,6 +866,18 @@ html, body {
   font-weight: 700;
 }
 
+.chart-type-option.transitioning {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.chart-type-option:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.5);
+}
+
 /* Responsivo para dropdown */
 @media (max-width: 1024px) {
   .nav-item-with-dropdown .chart-type-dropdown {
@@ -875,10 +909,207 @@ html, body {
   .chart-type-option span {
     margin-right: 0.3rem;
   }
+  
+  /* Garantir que as setas sejam visíveis em mobile */
+  .chart-type-dropdown-container {
+    right: 0.25rem; /* Posição mais central para mobile */
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .chart-type-toggle {
+    padding: 0.25rem 0.35rem;
+    font-size: 0.7rem;
+    min-width: 20px;
+    min-height: 20px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    /* Garantir visibilidade */
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+  }
 }
 
 /* Esconder scrollbars dos dropdowns */
 .chart-type-dropdown::-webkit-scrollbar {
   display: none;
+}
+
+/* Transições Suaves para Mudança de Conteúdo */
+.content-body.transitioning {
+  opacity: 0.3;
+  transform: translateY(15px);
+  transition: opacity 0.1s ease-out, transform 0.1s ease-out;
+}
+
+.content-body.content-ready {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.2s ease-in, transform 0.2s ease-out;
+}
+
+.content-transitioning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--usifix-radius-lg);
+  margin: 1.5rem;
+  padding: 1.5rem;
+}
+
+.transition-spinner {
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  will-change: transform;
+}
+
+.content-transitioning p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Animações suaves para carregamento de dados */
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Animações de Entrada para Tabelas e Componentes - Otimizadas com Hardware Acceleration */
+@keyframes slideInUp {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 15px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  0% {
+    opacity: 0;
+    transform: translate3d(-20px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes scaleInCenter {
+  0% {
+    opacity: 0;
+    transform: scale3d(0.97, 0.97, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes fadeInBlur {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Content wrapper para animações */
+.content-wrapper {
+  width: 100%;
+  height: 100%;
+  /* Estado inicial: invisível e posicionado para animação */
+  opacity: 0;
+  transform: translate3d(0, 15px, 0);
+  /* Otimizações de performance */
+  will-change: opacity, transform;
+  /* Garantir que o conteúdo não seja cortado durante animações */
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+/* Classes para aplicar nas tabelas */
+.content-wrapper.table-appear {
+  animation: slideInUp 0.3s ease-out forwards;
+}
+
+.content-wrapper.table-appear-left {
+  animation: slideInFromLeft 0.25s ease-out forwards;
+}
+
+.content-wrapper.table-appear-scale {
+  animation: scaleInCenter 0.3s ease-out forwards;
+}
+
+.content-wrapper.table-appear-blur {
+  animation: fadeInBlur 0.25s ease-out forwards;
+}
+
+/* Animação simplificada para linhas da tabela (opcional) */
+.table-row-stagger {
+  opacity: 0;
+  animation: slideInUp 0.2s ease-out forwards;
+}
+
+/* Delays reduzidos para melhor performance */
+.table-row-stagger:nth-child(1) { animation-delay: 0.02s; }
+.table-row-stagger:nth-child(2) { animation-delay: 0.04s; }
+.table-row-stagger:nth-child(3) { animation-delay: 0.06s; }
+.table-row-stagger:nth-child(4) { animation-delay: 0.08s; }
+.table-row-stagger:nth-child(5) { animation-delay: 0.1s; }
+
+/* Remover delays para elementos subsequentes para melhor performance */
+.table-row-stagger:nth-child(n+6) { animation-delay: 0.12s; }
+
+/* Animação especial para primeiro carregamento */
+@keyframes firstLoad {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.content-wrapper.first-load {
+  animation: firstLoad 0.3s ease-out forwards;
+}
+
+/* Efeito de sobreposição para transições mais dramáticas */
+.content-wrapper.dramatic-enter {
+  animation: slideInUp 0.3s ease-out forwards;
+}
+
+/* SETA PARA CIMA - Linha 35 */
+button[class*="table-arrow-up"],
+.table-arrow-up {
+  right: 0px !important;
+}
+
+/* SETA PARA BAIXO - Linha 43 */
+button[class*="table-arrow-down"], 
+.table-arrow-down {
+  right: 0px !important;
 }
 

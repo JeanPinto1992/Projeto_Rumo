@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabaseClient.js'
+import './styles/urgent-fix.css'
 import './styles/table-view.css'
 // As bibliotecas PDF e Excel são carregadas via CDN no index.html
 
@@ -407,54 +408,7 @@ const spinnerStyle = {
   animation: 'spin 1.2s linear infinite'
 }
 
-// Estilos para os botões de navegação (centralizados nos 40px disponíveis)
-const navigationUpStyle = {
-  position: 'fixed',
-  right: '5px', // Bem próximo da borda direita nos 40px disponíveis
-  top: '100px', // Subido mais para cima
-  zIndex: 1000
-}
-
-const navigationDownStyle = {
-  position: 'fixed',
-  right: '5px', // Bem próximo da borda direita nos 40px disponíveis
-  bottom: '20px', // Descido mais para baixo
-  zIndex: 1000
-}
-
-const arrowButtonStyle = {
-  width: '50px', // Tamanho menor para não ocupar muito espaço
-  height: '50px',
-  borderRadius: '50%',
-  border: '3px solid #002b55',
-  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-  color: '#002b55',
-  fontSize: '1.6rem', // Tamanho da seta
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  transition: 'all 0.3s ease',
-  boxShadow: '0 4px 12px rgba(0, 43, 85, 0.3)' // Sombra mais forte para destaque
-}
-
-const arrowButtonFlashStyle = {
-  ...arrowButtonStyle,
-  background: 'linear-gradient(135deg, #002b55 0%, #004080 100%)',
-  color: '#ffffff',
-  transform: 'scale(1.2)',
-  boxShadow: '0 8px 24px rgba(0, 43, 85, 0.8)',
-  border: '3px solid #ffffff'
-}
-
-const arrowButtonHoverStyle = {
-  ...arrowButtonStyle,
-  background: 'linear-gradient(135deg, #002b55 0%, #004080 100%)',
-  color: '#ffffff',
-  scale: '1.1',
-  boxShadow: '0 6px 20px rgba(0, 43, 85, 0.5)' // Sombra ainda mais forte no hover
-}
+// Estilos inline obsoletos removidos - usando apenas CSS
 
 export default function TableView({ tableName, onExportFunctionsReady, isFirstLoad = true }) {
   const [data, setData] = useState([])
@@ -1540,13 +1494,9 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
         `}
       </style>
       
-      {/* Botão de navegação para cima - alinhado com cabeçalhos */}
+      {/* Setas de navegação - FORA do container da tabela para ficarem fixas na janela */}
       <button 
-        style={{
-          ...arrowButtonStyle, 
-          ...navigationUpStyle, 
-          ...(flashUp ? arrowButtonFlashStyle : hoverUp ? arrowButtonHoverStyle : {})
-        }}
+        className={`table-navigation-arrows table-arrow-up ${flashUp ? 'flash' : ''}`}
         onClick={() => scrollToRow('up')}
         onMouseEnter={() => setHoverUp(true)}
         onMouseLeave={() => setHoverUp(false)}
@@ -1555,13 +1505,8 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
         ↑
       </button>
       
-      {/* Botão de navegação para baixo - bem embaixo */}
       <button 
-        style={{
-          ...arrowButtonStyle, 
-          ...navigationDownStyle, 
-          ...(flashDown ? arrowButtonFlashStyle : hoverDown ? arrowButtonHoverStyle : {})
-        }}
+        className={`table-navigation-arrows table-arrow-down ${flashDown ? 'flash' : ''}`}
         onClick={() => scrollToRow('down')}
         onMouseEnter={() => setHoverDown(true)}
         onMouseLeave={() => setHoverDown(false)}
@@ -1577,6 +1522,7 @@ export default function TableView({ tableName, onExportFunctionsReady, isFirstLo
         transform: fadeIn ? 'translateY(0)' : 'translateY(10px)',
         position: 'relative'
       }}>
+
         {/* Botões de filtro por ano */}
         <div style={{
           ...yearFilterStyle,

@@ -6,8 +6,7 @@ export default function DashboardHome({ selectedMonth, selectedYear, viewMode })
   const [stats, setStats] = useState({})
   const [previousStats, setPreviousStats] = useState({})
   const [comparativeData, setComparativeData] = useState({})
-  const [loading, setLoading] = useState(false)
-  const [initialLoad, setInitialLoad] = useState(true)
+  // Estados de loading removidos - carregamento silencioso
   const [scrollContainer, setScrollContainer] = useState(null)
 
   // Carregamento imediato sem debounce para experiência instantânea
@@ -257,12 +256,8 @@ export default function DashboardHome({ selectedMonth, selectedYear, viewMode })
 
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error)
-    } finally {
-      setLoading(false)
-      if (initialLoad) {
-        setInitialLoad(false)
-      }
     }
+    // Loading removido - carregamento silencioso em background
   }
 
   const formatCurrency = (value) => {
@@ -411,7 +406,7 @@ export default function DashboardHome({ selectedMonth, selectedYear, viewMode })
   }
 
   return (
-    <div className={`dashboard-home ${!hasData ? 'loading-data' : ''}`}>{/* Estrutura sempre visível, apenas indicador sutil de loading */}
+    <div className="dashboard-home">{/* Interface sempre visível - carregamento silencioso */}
 
 
       {/* Cards de Resumo */}

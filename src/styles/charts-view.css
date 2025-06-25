@@ -9,6 +9,22 @@
   z-index: 10;
   /* Garantir visibilidade completa dos elementos */
   box-sizing: border-box;
+  /* Estado inicial para animação */
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+/* Estado de carregamento silencioso */
+.charts-view.charts-loading-silent {
+  opacity: 0;
+  transform: translate3d(0, 25px, 0);
+}
+
+/* Estado quando dados estão prontos */
+.charts-view.charts-ready {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
 }
 
 .charts-view::before {
@@ -17,24 +33,7 @@
 
 
 
-.charts-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  color: #002b55;
-}
-
-.charts-loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(0, 43, 85, 0.2);
-  border-top-color: #002b55;
-  border-radius: 50%;
-  animation: spin 1.2s linear infinite;
-  margin-bottom: 1rem;
-}
+/* Loading removido - não usado mais */
 
 .charts-error {
   display: flex;
@@ -62,10 +61,37 @@
   padding: 0.3rem;
   box-shadow: 0 2px 8px rgba(0, 43, 85, 0.1);
   border: 1px solid rgba(0, 43, 85, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease-out, translate 0.3s ease-out;
   display: flex;
   flex-direction: column;
   height: 100%;
+  /* Estado inicial para animação */
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+  will-change: opacity, transform;
+}
+
+/* Animação escalonada para os cards */
+.charts-ready .chart-card:nth-child(1) { animation: slideInFromBottom 0.3s ease-out 0.05s forwards; }
+.charts-ready .chart-card:nth-child(2) { animation: slideInFromBottom 0.3s ease-out 0.1s forwards; }
+.charts-ready .chart-card:nth-child(3) { animation: slideInFromBottom 0.3s ease-out 0.15s forwards; }
+.charts-ready .chart-card:nth-child(4) { animation: slideInFromBottom 0.3s ease-out 0.2s forwards; }
+.charts-ready .chart-card:nth-child(5) { animation: slideInFromBottom 0.3s ease-out 0.25s forwards; }
+.charts-ready .chart-card:nth-child(6) { animation: slideInFromBottom 0.3s ease-out 0.3s forwards; }
+.charts-ready .chart-card:nth-child(7) { animation: slideInFromBottom 0.3s ease-out 0.35s forwards; }
+.charts-ready .chart-card:nth-child(8) { animation: slideInFromBottom 0.3s ease-out 0.4s forwards; }
+.charts-ready .chart-card:nth-child(9) { animation: slideInFromBottom 0.3s ease-out 0.45s forwards; }
+
+/* Keyframe para animação dos cards */
+@keyframes slideInFromBottom {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 .chart-card:hover {
@@ -159,6 +185,14 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  /* Estado inicial para animação */
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+}
+
+/* Animação para gráfico expandido quando dados estão prontos */
+.charts-ready .expanded-chart-container {
+  animation: slideInFromBottom 0.3s ease-out 0.05s forwards;
 }
 
 .expanded-chart-header {

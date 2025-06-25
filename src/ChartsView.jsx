@@ -55,14 +55,18 @@ const monthLabels = [
 
 export default function ChartsView({ selectedMonth, selectedYear, viewMode, chartType = 'bar' }) {
   const [chartsData, setChartsData] = useState({})
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [initialLoad, setInitialLoad] = useState(true)
   const [expandedChart, setExpandedChart] = useState(null)
+  const [isDataReady, setIsDataReady] = useState(false)
 
   useEffect(() => {
     loadChartsData()
   }, [selectedMonth, selectedYear, viewMode])
+
+  // Estado inicial - começar sempre com isDataReady = false para animação
+  useEffect(() => {
+    setIsDataReady(false)
+  }, [])
 
   // Detectar tecla ESC para sair do modo expandido
   useEffect(() => {
@@ -79,10 +83,8 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   }, [expandedChart])
 
   const loadChartsData = async () => {
-    // Mostrar loading apenas no carregamento inicial
-    if (initialLoad) {
-      setLoading(true)
-    }
+    // Não mostrar loading - carregar dados silenciosamente
+    setIsDataReady(false)
     try {
       const newChartsData = {}
 
@@ -190,14 +192,14 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       }
 
       setChartsData(newChartsData)
+      // Pequeno delay para permitir animação suave
+      setTimeout(() => {
+        setIsDataReady(true)
+      }, 30)
     } catch (error) {
       console.error('Erro ao carregar dados dos gráficos:', error)
       setError('Erro ao carregar dados dos gráficos')
-    } finally {
-      setLoading(false)
-      if (initialLoad) {
-        setInitialLoad(false)
-      }
+      setIsDataReady(true) // Mostrar erro com animação também
     }
   }
 
@@ -237,15 +239,6 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   }
 
 
-
-  if (loading) {
-    return (
-      <div className="charts-loading">
-        <div className="charts-loading-spinner"></div>
-        <p>Carregando gráficos...</p>
-      </div>
-    )
-  }
 
   if (error) {
     return (
@@ -300,7 +293,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     }
 
     return (
-      <div className="charts-view">
+      <div className={`charts-view ${isDataReady ? 'charts-ready' : 'charts-loading-silent'}`}>
         <div className="expanded-chart-container">
           <div className="expanded-chart-header">
             <h2>
@@ -481,7 +474,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   }
 
   return (
-    <div className="charts-view">
+    <div className={`charts-view ${isDataReady ? 'charts-ready' : 'charts-loading-silent'}`}>
       <div className="charts-grid">
         
         {/* Gráfico individual para cada tabela */}
