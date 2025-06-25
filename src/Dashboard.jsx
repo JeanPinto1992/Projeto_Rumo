@@ -337,7 +337,7 @@ export default function Dashboard({ user, onLogout }) {
             <div className={`nav-item-with-dropdown ${showSectorsDropdown ? 'dropdown-active' : ''}`}>
               <button
                 className={`nav-item ${['administrativo', 'almoxarifado', 'faturamento', 'impostos', 'logistica', 'manutencao', 'rh'].includes(activeTab) ? 'active' : ''}`}
-                onClick={() => handleTabChange('administrativo')}
+                onClick={() => setShowSectorsDropdown(!showSectorsDropdown)}
               >
                 <span className="nav-icon">🏢</span>
                 <span className="nav-text">Setores</span>
