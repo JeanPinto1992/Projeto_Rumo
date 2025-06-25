@@ -64,7 +64,10 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   
   // ✨ Estados para efeito de zoom no lugar
   const [isZooming, setIsZooming] = useState(false)
-  const [zoomOrigin, setZoomOrigin] = useState({ x: 0, y: 0, width: 0, height: 0 })
+  const [zoomOrigin, setZoomOrigin] = useState({ 
+    startX: 0, startY: 0, startWidth: 0, startHeight: 0,
+    endX: 0, endY: 0, endWidth: 0, endHeight: 0 
+  })
   const [zoomDirection, setZoomDirection] = useState('in')
   const [clickedCardRef, setClickedCardRef] = useState(null)
 
@@ -293,16 +296,28 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
         setClickedCardRef(null)
       }, 600)
     } else {
-      // ✨ Expandir - "inflar" da posição original (canto superior esquerdo)
+      // ✨ Expandir - "inflar" da posição original para posição final específica
       const clickedElement = event.currentTarget
       const rect = clickedElement.getBoundingClientRect()
       
-      // ✨ Capturar posição do canto superior esquerdo do gráfico clicado
+      // ✨ Usar posição final específica corrigida pelo usuário
+      const finalLeft = 0 // Posição corrigida
+      const finalTop = 0 // Posição corrigida  
+      const finalWidth = window.innerWidth * 0.896 // calc(89.6vw - 0px)
+      const finalHeight = window.innerHeight - 5 // calc(100vh - 5px)
+      
+      // ✨ Capturar posições específicas do gráfico clicado
       setZoomOrigin({
-        x: rect.left, // Canto esquerdo
-        y: rect.top,  // Canto superior  
-        width: rect.width,
-        height: rect.height
+        // Posição original
+        startX: rect.left,
+        startY: rect.top,
+        startWidth: rect.width,
+        startHeight: rect.height,
+        // Posição final específica corrigida
+        endX: finalLeft,
+        endY: finalTop,
+        endWidth: finalWidth,
+        endHeight: finalHeight
       })
       
       setClickedCardRef(clickedElement)
@@ -355,10 +370,14 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       <div 
         className={`chart-overlay ${isZooming ? `zoom-${zoomDirection}` : 'zoom-ready'}`}
         style={{ 
-          '--origin-x': `${zoomOrigin.x}px`,
-          '--origin-y': `${zoomOrigin.y}px`,
-          '--origin-width': `${zoomOrigin.width}px`,
-          '--origin-height': `${zoomOrigin.height}px`,
+          '--start-x': `${zoomOrigin.startX}px`,
+          '--start-y': `${zoomOrigin.startY}px`,
+          '--start-width': `${zoomOrigin.startWidth}px`,
+          '--start-height': `${zoomOrigin.startHeight}px`,
+          '--end-x': `${zoomOrigin.endX}px`,
+          '--end-y': `${zoomOrigin.endY}px`,
+          '--end-width': `${zoomOrigin.endWidth}px`,
+          '--end-height': `${zoomOrigin.endHeight}px`,
           borderColor: table.color
         }}
       >

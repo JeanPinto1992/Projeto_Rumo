@@ -167,8 +167,6 @@
   .charts-grid {
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(5, 1fr);
-    gap: 0.15rem; /* Igual ao padding das bordas (tablet) */
-    height: calc(100vh - 0.3rem); /* Compensar padding vertical do tablet (0.15rem × 2) */
   }
 }
 
@@ -183,80 +181,80 @@
   flex-direction: column;
   position: fixed;
   z-index: 1000; /* ✨ Z-index para aparecer acima dos outros elementos */
-  /* ✨ Usar custom properties para posição e tamanho inicial */
-  top: var(--origin-y);
-  left: var(--origin-x);
-  width: var(--origin-width);
-  height: var(--origin-height);
+  /* ✨ Usar custom properties para posições específicas de cada gráfico */
+  top: var(--start-y);
+  left: var(--start-x);
+  width: var(--start-width);
+  height: var(--start-height);
   /* ✨ Transform origin no centro do elemento para crescimento uniforme */
   transform-origin: center center;
   transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* ✨ Estados de zoom - Inflação no lugar (área de conteúdo respeitando sidebar) */
+/* ✨ Estados de zoom - Posição final específica para cada gráfico */
 .chart-overlay.zoom-ready {
-  /* Estado pronto - área de conteúdo disponível */
-  top: 0px; /* ✨ Margem superior */
-  left: 0px; /* ✨ Após sidebar (193px) + margem (10px) */
-  width: calc(89.6vw - 0px); /* ✨ Largura disponível - sidebar - margens */
-  height: calc(100vh - 5px); /* ✨ Altura total - margens */
+  /* Estado pronto - usar posição final calculada especificamente */
+  top: var(--end-y);
+  left: var(--end-x);
+  width: var(--end-width);
+  height: var(--end-height);
 }
 
 .chart-overlay.zoom-in {
-  /* Animação de inflação - da posição original para área disponível */
-  animation: inflateChart 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  /* Animação de inflação personalizada - da posição original específica para posição final específica */
+  animation: inflateChartCustom 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .chart-overlay.zoom-out {
-  /* Animação de deflação - da área disponível para posição original */
-  animation: deflateChart 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  /* Animação de deflação personalizada - da posição final específica para posição original específica */
+  animation: deflateChartCustom 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-/* ✨ Keyframes para inflar - da posição REAL de cada gráfico para área de conteúdo */
-@keyframes inflateChart {
+/* ✨ Keyframes personalizados para inflar - da posição REAL específica de cada gráfico para posição final específica */
+@keyframes inflateChartCustom {
   0% {
-    /* ✨ SEMPRE partir da posição real do gráfico clicado */
-    top: var(--origin-y);
-    left: var(--origin-x);
-    width: var(--origin-width);
-    height: var(--origin-height);
+    /* ✨ SEMPRE partir da posição real específica do gráfico clicado */
+    top: var(--start-y);
+    left: var(--start-x);
+    width: var(--start-width);
+    height: var(--start-height);
     opacity: 1;
     border-radius: 6px;
-    padding: 0.5rem;
+    padding: 0.3rem;
   }
   100% {
-    /* ✨ Expandir para área de conteúdo (sincronizado com zoom-ready) */
-    top: 10px; /* ✨ Margem superior */
-    left: 203px; /* ✨ Após sidebar + margem */
-    width: calc(100vw - 203px - 10px); /* ✨ Largura da área de conteúdo */
-    height: calc(100vh - 20px); /* ✨ Altura com margens */
+    /* ✨ Expandir para posição final específica calculada dinamicamente */
+    top: var(--end-y);
+    left: var(--end-x);
+    width: var(--end-width);
+    height: var(--end-height);
     opacity: 1;
     border-radius: 12px;
     padding: 1.5rem;
   }
 }
 
-/* ✨ Keyframes para deflar - da área de conteúdo PARA posição REAL de cada gráfico */
-@keyframes deflateChart {
+/* ✨ Keyframes personalizados para deflar - da posição final específica PARA posição original específica de cada gráfico */
+@keyframes deflateChartCustom {
   0% {
-    /* ✨ Partir da área de conteúdo (sincronizado com zoom-ready) */
-    top: 10px; /* ✨ Margem superior */
-    left: 203px; /* ✨ Após sidebar + margem */
-    width: calc(100vw - 203px - 10px); /* ✨ Largura da área de conteúdo */
-    height: calc(100vh - 20px); /* ✨ Altura com margens */
+    /* ✨ Partir da posição final específica calculada dinamicamente */
+    top: var(--end-y);
+    left: var(--end-x);
+    width: var(--end-width);
+    height: var(--end-height);
     opacity: 1;
     border-radius: 12px;
     padding: 1.5rem;
   }
   100% {
-    /* ✨ SEMPRE retornar para posição real do gráfico clicado */
-    top: var(--origin-y);
-    left: var(--origin-x);
-    width: var(--origin-width);
-    height: var(--origin-height);
+    /* ✨ SEMPRE retornar para posição original específica do gráfico clicado */
+    top: var(--start-y);
+    left: var(--start-x);
+    width: var(--start-width);
+    height: var(--start-height);
     opacity: 0; /* ✨ Desaparecer ao final */
     border-radius: 6px;
-    padding: 0.5rem;
+    padding: 0.3rem;
   }
 }
 
@@ -333,23 +331,9 @@
   box-shadow: inset 0 2px 8px rgba(0, 43, 85, 0.05);
 }
 
-@media (max-width: 1200px) {
-  .charts-grid {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(5, 1fr);
-  }
-}
-
-/* ✨ Responsividade para tablet (1024px) */
+/* ✨ Responsividade - as animações personalizadas funcionam automaticamente em todos os tamanhos */
 @media (max-width: 1024px) {
-  .chart-overlay.zoom-ready {
-    top: 10px; /* ✨ Margem superior */
-    left: 176px; /* ✨ Após sidebar tablet (166px) + margem (10px) */
-    width: calc(100vw - 176px - 10px); /* ✨ Largura disponível - sidebar - margens */
-    height: calc(100vh - 20px); /* ✨ Altura com margens */
-  }
-  
-  /* ✨ Animações globais já funcionam corretamente com var(--origin-x/y) */
+  /* As animações se adaptam automaticamente usando var(--end-x/y) calculadas dinamicamente */
 }
 
 @media (max-width: 768px) {
@@ -385,13 +369,5 @@
     font-size: 1.3rem;
   }
   
-  /* ✨ Responsividade para mobile */
-  .chart-overlay.zoom-ready {
-    top: 10px; /* ✨ Margem superior */
-    left: 79px; /* ✨ Após sidebar mobile (69px) + margem (10px) */
-    width: calc(100vw - 79px - 10px); /* ✨ Largura disponível - sidebar - margens */
-    height: calc(100vh - 20px); /* ✨ Altura com margens */
-  }
-  
-  /* ✨ Animações globais já funcionam corretamente com var(--origin-x/y) */
+  /* ✨ As animações personalizadas se adaptam automaticamente usando var(--end-x/y) */
 } 
