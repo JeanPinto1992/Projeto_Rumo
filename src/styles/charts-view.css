@@ -3,8 +3,7 @@
   background: transparent;
   height: 100vh; /* Altura total da viewport - padding vem do container pai */
   width: 100%;
-  overflow-y: auto;
-  overflow-x: visible; /* Garantir que conteúdo não seja cortado */
+  overflow: hidden; /* ✨ Remover todas as scrollbars */
   position: relative;
   z-index: 10;
   /* Garantir visibilidade completa dos elementos */
@@ -16,6 +15,16 @@
 
 .charts-view::before {
   content: none !important;
+}
+
+/* ✨ Garantir que não haja scrollbars em toda a view de gráficos */
+.charts-view * {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer e Edge */
+}
+
+.charts-view *::-webkit-scrollbar {
+  display: none; /* Chrome, Safari e Opera */
 }
 
 
@@ -52,15 +61,40 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  /* Animações removidas - aparecer tudo junto como outras abas */
+  /* ✨ Preparação para efeitos de zoom */
   opacity: 1;
   transform: translate3d(0, 0, 0);
+  transform-origin: center center;
+  cursor: pointer;
 }
 
 .chart-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.02);
   box-shadow: 0 6px 16px rgba(0, 43, 85, 0.15);
   cursor: pointer;
+}
+
+/* ✨ Efeito de clique no gráfico */
+.chart-card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* ✨ Estado da view durante zoom - sem transparência */
+.charts-view.zooming .charts-grid {
+  pointer-events: none;
+}
+
+.charts-view.zooming .chart-card {
+  opacity: 1; /* ✨ Manter opacidade total - sem transparência */
+  transform: scale(1); /* ✨ Manter tamanho original */
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* ✨ Background neutro durante zoom */
+.charts-view.zooming {
+  background: transparent;
+  transition: background 0.6s ease;
 }
 
 .chart-header {
@@ -100,7 +134,7 @@
   flex-grow: 1;
   position: relative;
   min-height: 0;
-  overflow: visible; /* Garantir que gráficos não sejam cortados */
+  overflow: hidden; /* ✨ Remover scrollbars dos gráficos */
   /* Garantir que labels e tooltips sejam visíveis */
   z-index: 1;
 }
@@ -138,21 +172,88 @@
   }
 }
 
-/* Gráfico Expandido */
-.expanded-chart-container {
-  background: rgba(255, 255, 255, 0.95);
+/* ✨ Overlay do Gráfico que Infla no Lugar */
+.chart-overlay {
+  background: rgba(255, 255, 255, 1); /* ✨ Fundo completamente opaco */
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 8px 32px rgba(0, 43, 85, 0.2);
   border: 2px solid; /* Borda colorida será definida inline */
-  height: calc(100vh - 0.4rem); /* Compensar padding vertical do container (0.2rem × 2) */
-  width: 100%;
   display: flex;
   flex-direction: column;
-  position: relative;
-  /* Animação removida - usar animação do Dashboard */
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
+  position: fixed;
+  z-index: 1000; /* ✨ Z-index para aparecer acima dos outros elementos */
+  /* ✨ Usar custom properties para posição e tamanho inicial */
+  top: var(--origin-y);
+  left: var(--origin-x);
+  width: var(--origin-width);
+  height: var(--origin-height);
+  /* ✨ Transform origin no centro do elemento para crescimento uniforme */
+  transform-origin: center center;
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ✨ Estados de zoom - Inflação no lugar (área de conteúdo) */
+.chart-overlay.zoom-ready {
+  /* Estado pronto - área de conteúdo disponível com margem de segurança */
+  top:0px; /* ✨ Margem superior */
+  left: calc(0px + -0px); /* ✨ Sidebar + margem lateral */
+  width: calc(100vw - 193px - 5px); /* ✨ Largura com margens */
+  height: calc(100vh - 5px); /* ✨ Altura com margens */
+}
+
+.chart-overlay.zoom-in {
+  /* Animação de inflação - da posição original para área disponível */
+  animation: inflateChart 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.chart-overlay.zoom-out {
+  /* Animação de deflação - da área disponível para posição original */
+  animation: deflateChart 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* ✨ Keyframes para inflar da posição original (sincronizado com zoom-ready) */
+@keyframes inflateChart {
+  0% {
+    top: var(--origin-y);
+    left: var(--origin-x);
+    width: var(--origin-width);
+    height: var(--origin-height);
+    opacity: 1; /* ✨ Sem transparência inicial */
+    border-radius: 6px;
+    padding: 0.5rem;
+  }
+  100% {
+    top: 0px; /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
+    left: calc(0px + -0px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
+    width: calc(100vw - 193px - 5px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
+    height: calc(100vh - 5px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
+    opacity: 1; /* ✨ Sem transparência final */
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+}
+
+/* ✨ Keyframes para deflar de volta à posição original (sincronizado com zoom-ready) */
+@keyframes deflateChart {
+  0% {
+    top: 0px; /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
+    left: calc(0px + -0px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
+    width: calc(100vw - 193px - 5px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
+    height: calc(100vh - 5px); /* ✨ SINCRONIZADO: mesmo valor de zoom-ready */
+    opacity: 1; /* ✨ Sem transparência inicial */
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  100% {
+    top: var(--origin-y);
+    left: var(--origin-x);
+    width: var(--origin-width);
+    height: var(--origin-height);
+    opacity: 0; /* ✨ Desaparecer ao final */
+    border-radius: 6px;
+    padding: 0.5rem;
+  }
 }
 
 .expanded-chart-header {
@@ -235,6 +336,58 @@
   }
 }
 
+/* ✨ Responsividade para tablet (1024px) */
+@media (max-width: 1024px) {
+  .chart-overlay.zoom-ready {
+    top: 0px; /* ✨ Tela cheia em tablet */
+    left: calc(0px + -0px); /* ✨ Sobrepor sidebar em tablet */
+    width: calc(100vw - 5px); /* ✨ Largura quase total */
+    height: calc(100vh - 5px); /* ✨ Altura quase total */
+  }
+  
+  @keyframes inflateChart {
+    0% {
+      top: var(--origin-y);
+      left: var(--origin-x);
+      width: var(--origin-width);
+      height: var(--origin-height);
+      opacity: 1;
+      border-radius: 6px;
+      padding: 0.5rem;
+    }
+    100% {
+      top: 0px; /* ✨ SINCRONIZADO com zoom-ready tablet */
+      left: calc(0px + -0px); /* ✨ SINCRONIZADO com zoom-ready tablet */
+      width: calc(100vw - 5px); /* ✨ SINCRONIZADO com zoom-ready tablet */
+      height: calc(100vh - 5px); /* ✨ SINCRONIZADO com zoom-ready tablet */
+      opacity: 1;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+  }
+  
+  @keyframes deflateChart {
+    0% {
+      top: 0px; /* ✨ SINCRONIZADO com zoom-ready tablet */
+      left: calc(0px + -0px); /* ✨ SINCRONIZADO com zoom-ready tablet */
+      width: calc(100vw - 5px); /* ✨ SINCRONIZADO com zoom-ready tablet */
+      height: calc(100vh - 5px); /* ✨ SINCRONIZADO com zoom-ready tablet */
+      opacity: 1;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    100% {
+      top: var(--origin-y);
+      left: var(--origin-x);
+      width: var(--origin-width);
+      height: var(--origin-height);
+      opacity: 0;
+      border-radius: 6px;
+      padding: 0.5rem;
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .charts-grid {
     grid-template-columns: 1fr;
@@ -266,5 +419,55 @@
 
   .expanded-chart-total .total-value {
     font-size: 1.3rem;
+  }
+  
+  /* ✨ Responsividade para mobile */
+  .chart-overlay.zoom-ready {
+    top: 0px; /* ✨ Tela cheia em mobile */
+    left: calc(0px + -0px); /* ✨ Sobrepor sidebar em mobile */
+    width: calc(100vw - 5px); /* ✨ Largura quase total */
+    height: calc(100vh - 5px); /* ✨ Altura quase total */
+  }
+  
+  @keyframes inflateChart {
+    0% {
+      top: var(--origin-y);
+      left: var(--origin-x);
+      width: var(--origin-width);
+      height: var(--origin-height);
+      opacity: 1;
+      border-radius: 6px;
+      padding: 0.5rem;
+    }
+    100% {
+      top: 0px; /* ✨ SINCRONIZADO com zoom-ready mobile */
+      left: calc(0px + -0px); /* ✨ SINCRONIZADO com zoom-ready mobile */
+      width: calc(100vw - 5px); /* ✨ SINCRONIZADO com zoom-ready mobile */
+      height: calc(100vh - 5px); /* ✨ SINCRONIZADO com zoom-ready mobile */
+      opacity: 1;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+  }
+  
+  @keyframes deflateChart {
+    0% {
+      top: 0px; /* ✨ SINCRONIZADO com zoom-ready mobile */
+      left: calc(0px + -0px); /* ✨ SINCRONIZADO com zoom-ready mobile */
+      width: calc(100vw - 5px); /* ✨ SINCRONIZADO com zoom-ready mobile */
+      height: calc(100vh - 5px); /* ✨ SINCRONIZADO com zoom-ready mobile */
+      opacity: 1;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    100% {
+      top: var(--origin-y);
+      left: var(--origin-x);
+      width: var(--origin-width);
+      height: var(--origin-height);
+      opacity: 0;
+      border-radius: 6px;
+      padding: 0.5rem;
+    }
   }
 } 
