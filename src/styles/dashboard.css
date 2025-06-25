@@ -85,9 +85,9 @@ html, body {
   position: relative;
 }
 
-/* Sidebar com Logo, Navegação e Controles - Largura reduzida em 40% */
+/* Sidebar com Logo, Navegação e Controles - Largura aumentada em 15% */
 .dashboard-sidebar {
-  width: 168px; /* 280px - 40% = 168px */
+  width: 193px; /* 168px + 15% = 193px */
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-right: 3px solid #002b55; /* Borda azul mais grossa */
@@ -99,7 +99,7 @@ html, body {
   top: 0;
   height: 100vh;
   z-index: 90;
-  overflow-x: hidden; /* Esconder scrollbar horizontal */
+  overflow-x: visible; /* Permitir que dropdowns apareçam */
   overflow-y: auto; /* Manter scroll vertical apenas onde necessário */
   /* Esconder scrollbars da sidebar */
   scrollbar-width: none; /* Firefox */
@@ -171,7 +171,7 @@ html, body {
   flex: 1;
   padding: 1rem 0;
   overflow-y: auto;
-  overflow-x: hidden; /* Esconder scrollbar horizontal */
+  overflow-x: visible; /* Permitir que dropdowns apareçam */
   /* Garantir que dropdowns sejam visíveis */
   position: relative;
   z-index: 1000;
@@ -376,8 +376,8 @@ html, body {
   height: 100vh;
   overflow: visible;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-left: 168px; /* Espaço para sidebar fixa reduzida */
-  width: calc(100% - 168px);
+  margin-left: 193px; /* Espaço para sidebar fixa aumentada */
+  width: calc(100% - 193px);
   /* Garantir que dropdowns não sejam cortados */
   position: relative;
   z-index: 1;
@@ -499,12 +499,12 @@ html, body {
 /* Responsive Design */
 @media (max-width: 1024px) {
   .dashboard-sidebar {
-    width: 144px; /* 240px - 40% = 144px */
+    width: 166px; /* 144px + 15% = 166px */
   }
   
   .dashboard-main {
-    margin-left: 144px;
-    width: calc(100% - 144px);
+    margin-left: 166px;
+    width: calc(100% - 166px);
   }
   
   .sidebar-header {
@@ -551,12 +551,12 @@ html, body {
 
 @media (max-width: 768px) {
   .dashboard-sidebar {
-    width: 60px; /* Sidebar ainda mais compacta - 40% de redução */
+    width: 69px; /* 60px + 15% = 69px */
   }
   
   .dashboard-main {
-    margin-left: 60px;
-    width: calc(100% - 60px);
+    margin-left: 69px;
+    width: calc(100% - 69px);
   }
   
   .sidebar-header {
@@ -743,29 +743,22 @@ html, body {
 .nav-item-with-dropdown {
   position: relative;
   width: 100%;
-  /* Garantir que dropdowns não sejam cortados pela sidebar */
   overflow: visible;
-  z-index: 2147483646; /* Garantir que o container do dropdown tenha prioridade */
 }
 
-/* Quando dropdown está ativo, garantir que ele tenha absoluta prioridade */
-.nav-item-with-dropdown.dropdown-active {
-  z-index: 2147483647 !important;
-}
-
-/* Garantir que dropdowns sejam renderizados fora da sidebar */
+/* Container do dropdown */
 .nav-item-with-dropdown .chart-type-dropdown {
-  position: absolute !important;
-  top: 0 !important;
-  left: 100% !important; /* Fora da sidebar */
-  margin-left: 5px !important; /* Pequena margem */
-  z-index: 2147483647 !important;
-  /* Garantir que não seja afetado por outras abas */
-  pointer-events: all !important;
-  isolation: isolate !important;
-  /* Criar uma camada própria acima de tudo */
-  will-change: transform !important;
-  transform: translateZ(0) !important;
+  position: absolute;
+  top: 115%; /* Logo abaixo da aba */
+  left: -9.43rem; /* Posicionar dropdown com ajuste preciso */
+  right: -0.5rem; /* Manter largura total da sidebar */
+  width: auto; /* Largura automática baseada em left/right */
+  z-index: 999999;
+  background: white;
+  border: 2px solid var(--usifix-blue-dark);
+  border-radius: 8px;
+  margin-top: 0.25rem;
+  box-shadow: 0 8px 32px rgba(0, 43, 85, 0.4);
 }
 
 .chart-type-dropdown-container {
@@ -805,39 +798,13 @@ html, body {
 }
 
 .chart-type-dropdown {
-  position: fixed !important; /* Mudado para fixed para garantir que fique acima de tudo */
-  top: auto !important;
-  right: auto !important;
-  left: auto !important;
-  margin-top: 0.25rem;
-  background: #ffffff !important; /* Fundo completamente branco */
-  background-color: #ffffff !important; /* Garantia adicional */
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 43, 85, 0.4) !important;
-  border: 2px solid rgba(0, 43, 85, 0.3) !important;
   max-height: 300px;
-  overflow-y: hidden !important; /* Esconder scrollbar vertical */
-  overflow-x: hidden !important; /* Esconder scrollbar horizontal */
-  z-index: 2147483647 !important; /* Z-index máximo possível */
-  /* Garantir que o dropdown seja completamente visível */
-  white-space: nowrap;
-  backdrop-filter: none !important; /* Remover blur para fundo opaco */
-  /* Garantir visibilidade em qualquer situação */
-  transform: none !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  box-sizing: border-box;
-  
-  /* Fundo completamente opaco */
-  -webkit-backdrop-filter: none !important;
-  
-  /* Animação suave para abertura */
-  animation: dropdownSlideDown 0.2s ease-out;
-  
-  /* Esconder todas as scrollbars */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  overflow: hidden;
+  /* Esconder scrollbars */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 /* Esconder scrollbar do dropdown no webkit */
@@ -877,264 +844,41 @@ html, body {
   font-weight: 700;
 }
 
-/* Garantir que ícones nos dropdowns sejam visíveis */
-.chart-type-option span {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  overflow: visible;
-}
-
-/* Ajuste adicional para os dropdowns em responsivo */
+/* Responsivo para dropdown */
 @media (max-width: 1024px) {
-  .chart-type-dropdown {
+  .nav-item-with-dropdown .chart-type-dropdown {
     max-height: 250px;
   }
 }
 
 @media (max-width: 768px) {
-  .chart-type-dropdown {
+  .nav-item-with-dropdown .chart-type-dropdown {
     max-height: 200px;
     font-size: 0.85rem;
   }
 }
 
-/* Fallback para quando JavaScript falha */
-.nav-item-with-dropdown:hover .chart-type-dropdown {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* .export-icon removido - não usado mais */
-
-/* Transições removidas para evitar loading deslizante */
-
-/* Regra de força máxima para garantir visibilidade dos dropdowns */
-.chart-type-dropdown[style*="display: block"],
-.chart-type-dropdown.visible {
-  position: fixed !important; /* Mudado para fixed */
-  z-index: 2147483647 !important; /* Z-index máximo possível */
-  background: #ffffff !important; /* Fundo completamente branco */
-  background-color: #ffffff !important; /* Garantia adicional */
-  border: 2px solid #002b55 !important;
-  box-shadow: 0 10px 40px rgba(0, 43, 85, 0.5) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  display: block !important;
-  pointer-events: all !important;
-  backdrop-filter: none !important; /* Remover blur */
-  -webkit-backdrop-filter: none !important; /* Remover blur no Safari */
-}
-
-/* Garantir que os botões dentro dos dropdowns sejam clicáveis */
-.chart-type-dropdown .chart-type-option {
-  pointer-events: all !important;
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* Debug e força máxima - regra adicional */
-.sidebar-nav .chart-type-dropdown {
-  position: absolute !important;
-  top: 100% !important;
-  right: 0 !important;
-  left: auto !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 999999 !important;
-}
-
-/* Quando o dropdown estiver ativo, garantir máxima prioridade */
-.chart-type-dropdown-container .chart-type-dropdown {
-  position: fixed !important; /* Mudado para fixed */
-  z-index: 2147483647 !important; /* Z-index máximo possível */
-  background: #ffffff !important; /* Fundo completamente branco */
-  background-color: #ffffff !important; /* Garantia adicional */
-  border: 2px solid #002b55 !important;
-  box-shadow: 0 15px 50px rgba(0, 43, 85, 0.6) !important;
-  backdrop-filter: none !important; /* Remover blur */
-  -webkit-backdrop-filter: none !important; /* Remover blur no Safari */
-}
-
-/* Estilos específicos para o texto dos dropdowns em mobile */
+/* Estilos responsivos para mobile */
 @media (max-width: 768px) {
   .chart-type-option {
-    padding: 0.4rem 0.25rem !important;
-    font-size: 0.7rem !important;
-    min-height: 32px !important;
-    white-space: normal !important;
-    text-align: center !important;
+    padding: 0.4rem 0.3rem;
+    font-size: 0.75rem;
+    text-align: center;
+    white-space: nowrap;
     line-height: 1.2;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
   }
   
   .chart-type-option span {
-    display: block !important;
-    font-size: 0.6rem !important;
-    margin: 0 !important;
-  }
-  
-  /* Esconder texto e mostrar apenas ícones em mobile ultra-compacto */
-  .dashboard-sidebar .chart-type-dropdown .chart-type-option {
-    justify-content: center !important;
+    margin-right: 0.3rem;
   }
 }
 
-/* Para desktop e tablet - garantir que o texto apareça completo */
-@media (min-width: 769px) {
-  .chart-type-option {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-}
-
-/* Garantir que o primeiro e último item do dropdown tenham border-radius correto */
-.chart-type-option:first-child {
-  border-radius: 6px 6px 0 0;
-}
-
-.chart-type-option:last-child {
-  border-bottom: none;
-  border-radius: 0 0 6px 6px;
-}
-
-/* Se há apenas um item, deve ter border-radius completo */
-.chart-type-option:only-child {
-  border-radius: 6px;
-}
-
-/* SCROLLBARS COMPLETAMENTE REMOVIDAS DOS DROPDOWNS */
+/* Esconder scrollbars dos dropdowns */
 .chart-type-dropdown::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
-}
-
-.chart-type-dropdown::-webkit-scrollbar-track {
-  display: none !important;
-}
-
-.chart-type-dropdown::-webkit-scrollbar-thumb {
-  display: none !important;
-}
-
-.chart-type-dropdown::-webkit-scrollbar-thumb:hover {
-  display: none !important;
-}
-
-/* REGRA DE DEBUG - FORÇAR VISIBILIDADE MÁXIMA */
-.nav-item-with-dropdown .chart-type-dropdown {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  position: fixed !important; /* Mudado para fixed */
-  z-index: 2147483647 !important; /* Z-index máximo possível */
-  background: #ffffff !important; /* Fundo completamente branco */
-  background-color: #ffffff !important; /* Garantia adicional */
-  border: 2px solid #002b55 !important;
-  border-radius: 8px !important;
-  margin-top: 0.25rem !important;
-  box-shadow: 0 8px 32px rgba(0, 43, 85, 0.4) !important;
-  max-height: 300px !important;
-  overflow-y: auto !important;
-  box-sizing: border-box !important;
-  backdrop-filter: none !important; /* Remover blur */
-  -webkit-backdrop-filter: none !important; /* Remover blur no Safari */
-}
-
-/* Garantir que os itens dentro do dropdown sejam visíveis */
-.nav-item-with-dropdown .chart-type-dropdown .chart-type-option {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  pointer-events: all !important;
-}
-
-/* Regra específica para largura do dropdown baseada na sidebar */
-.dashboard-sidebar .chart-type-dropdown {
-  width: 168px !important; /* Largura exata da sidebar desktop */
-  min-width: 168px !important;
-  max-width: 168px !important;
-}
-
-/* Responsivo para diferentes tamanhos de sidebar */
-@media (max-width: 1024px) {
-  .dashboard-sidebar .chart-type-dropdown {
-    width: 144px !important; /* Largura da sidebar em tablet */
-    min-width: 144px !important;
-    max-width: 144px !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-sidebar .chart-type-dropdown {
-    width: 60px !important; /* Largura da sidebar em mobile */
-    min-width: 60px !important;
-    max-width: 60px !important;
-  }
-}
-
-/* REGRA ABSOLUTA PARA FORÇAR DROPDOWN ACIMA DE TUDO */
-.chart-type-dropdown {
-  /* Forçar posição absoluta acima de QUALQUER elemento */
-  position: absolute !important; /* Mudei para absolute para funcionar com relative parent */
-  z-index: 2147483647 !important; /* Máximo valor de z-index */
-  isolation: isolate !important; /* Criar contexto de stacking próprio */
-  will-change: transform !important; /* Forçar nova camada */
-  
-  /* Garantir que seja renderizado acima de tudo */
-  transform: translateZ(0) !important; /* Forçar hardware acceleration */
-  backface-visibility: hidden !important; /* Otimização adicional */
-  
-  /* Fundo completamente opaco */
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  
-  /* Garantir visibilidade total */
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: block !important;
-  pointer-events: all !important;
-  
-  /* Remover qualquer filtro que possa causar transparência */
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  filter: none !important;
-  
-  /* Garantir que não seja afetado por overflow de elementos pai */
-  contain: none !important;
-  
-  /* Garantir que cubra qualquer elemento que possa estar sobrepondo */
-  min-height: auto !important;
-  overflow: hidden !important; /* Esconder scrollbars */
-  
-  /* Esconder todas as scrollbars em todos os navegadores */
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* IE/Edge */
-}
-
-/* Esconder scrollbars webkit em todos os dropdowns */
-.chart-type-dropdown::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
-}
-
-/* Garantir que o dropdown funcione mesmo em contextos de stacking complexos */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2147483646;
-  pointer-events: none;
-  background: transparent;
+  display: none;
 }
 
