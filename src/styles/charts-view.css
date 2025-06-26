@@ -152,7 +152,7 @@ body:has(.chart-overlay-simple) {
   box-shadow: 0 4px 12px rgba(0, 43, 85, 0.3);
 }
 
-/* Overlay expandido - ANIMAÇÃO REALISTA */
+/* Overlay expandido - EXPANSÃO SUAVE */
 .chart-overlay-simple {
   position: fixed !important;
   top: 0% !important;
@@ -177,101 +177,90 @@ body:has(.chart-overlay-simple) {
   overflow-y: auto !important;
   margin: 0 !important;
   
-  /* 🎬 ANIMAÇÃO REALISTA - Começar da posição original */
-  animation: expandFromOrigin 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-  transform-origin: var(--start-x, 50%) var(--start-y, 50%);
+  /* 🎬 EXPANSÃO SUAVE - Do ponto clicado */
+  transform-origin: var(--origin-x, 50%) var(--origin-y, 50%);
+  animation: smoothExpansion 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* 🎬 Animação de entrada - Do tamanho original para expandido */
-@keyframes expandFromOrigin {
+/* 🎬 Animação de expansão direcional */
+@keyframes smoothExpansion {
   0% {
-    opacity: 0.7;
-    left: var(--start-x, 50%);
-    top: var(--start-y, 50%);
-    right: auto;
-    bottom: auto;
-    width: var(--start-width, 300px);
-    height: var(--start-height, 200px);
-    transform: scale(1);
+    opacity: 0.6;
+    transform: scale(0.05);
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 43, 85, 0.1);
   }
-  20% {
-    opacity: 0.85;
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 43, 85, 0.15);
+  15% {
+    opacity: 0.75;
+    transform: scale(0.15);
+    border-radius: 7px;
+    box-shadow: 0 3px 12px rgba(0, 43, 85, 0.12);
   }
-  50% {
-    opacity: 0.95;
-    left: calc(var(--start-x, 50%) * 0.5);
-    top: calc(var(--start-y, 50%) * 0.5);
-    width: calc(var(--start-width, 300px) + (100% - var(--start-width, 300px)) * 0.5);
-    height: calc(var(--start-height, 200px) + (49.9% - var(--start-height, 200px)) * 0.5);
-    transform: scale(1.01);
-    border-radius: 9px;
-    box-shadow: 0 6px 24px rgba(0, 43, 85, 0.18);
+  35% {
+    opacity: 0.85;
+    transform: scale(0.4);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 43, 85, 0.14);
+  }
+  60% {
+    opacity: 0.93;
+    transform: scale(0.7);
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 43, 85, 0.17);
+  }
+  85% {
+    opacity: 0.98;
+    transform: scale(0.95);
+    border-radius: 11px;
+    box-shadow: 0 7px 28px rgba(0, 0, 0, 0.19);
   }
   100% {
     opacity: 1;
-    left: 0%;
-    top: 0%;
-    right: 0%;
-    bottom: 0%;
-    width: 100%;
-    height: 49.9%;
     transform: scale(1);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   }
 }
 
-/* 🎬 Animação de saída - Voltar para posição original */
+/* 🎬 Animação de saída - Recolher direcionalmente */
 .chart-overlay-simple.closing {
-  animation: collapseToOrigin 0.7s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+  animation: smoothCollapse 0.7s cubic-bezier(0.32, 0, 0.67, 0) forwards;
 }
 
-@keyframes collapseToOrigin {
+@keyframes smoothCollapse {
   0% {
     opacity: 1;
-    left: 0%;
-    top: 0%;
-    right: 0%;
-    bottom: 0%;
-    width: 100%;
-    height: 49.9%;
     transform: scale(1);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   }
-  25% {
-    opacity: 0.95;
-    transform: scale(0.98);
-    box-shadow: 0 6px 24px rgba(0, 43, 85, 0.18);
+  15% {
+    opacity: 0.98;
+    transform: scale(0.95);
+    border-radius: 11px;
+    box-shadow: 0 7px 28px rgba(0, 0, 0, 0.19);
   }
-  50% {
-    opacity: 0.8;
-    left: calc(var(--end-x, 50%) * 0.5);
-    top: calc(var(--end-y, 50%) * 0.5);
-    width: calc(var(--end-width, 300px) + (100% - var(--end-width, 300px)) * 0.5);
-    height: calc(var(--end-height, 200px) + (49.9% - var(--end-height, 200px)) * 0.5);
-    transform: scale(0.99);
-    border-radius: 9px;
-    box-shadow: 0 4px 16px rgba(0, 43, 85, 0.15);
+  40% {
+    opacity: 0.93;
+    transform: scale(0.7);
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 43, 85, 0.17);
   }
-  80% {
-    opacity: 0.4;
-    transform: scale(0.97);
+  65% {
+    opacity: 0.85;
+    transform: scale(0.4);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 43, 85, 0.14);
+  }
+  85% {
+    opacity: 0.6;
+    transform: scale(0.15);
+    border-radius: 7px;
     box-shadow: 0 3px 12px rgba(0, 43, 85, 0.12);
   }
   100% {
     opacity: 0;
-    left: var(--end-x, 50%);
-    top: var(--end-y, 50%);
-    right: auto;
-    bottom: auto;
-    width: var(--end-width, 300px);
-    height: var(--end-height, 200px);
-    transform: scale(0.95);
+    transform: scale(0.05);
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 43, 85, 0.1);
   }
@@ -288,7 +277,7 @@ body:has(.chart-overlay-simple) {
   /* 🎬 Animação do cabeçalho */
   opacity: 0;
   transform: translateY(-15px);
-  animation: slideInDown 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s forwards;
+  animation: slideInDown 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s forwards;
 }
 
 @keyframes slideInDown {
@@ -329,7 +318,7 @@ body:has(.chart-overlay-simple) {
   /* 🎬 Animação do botão fechar */
   opacity: 0;
   transform: rotate(-45deg) scale(0.9);
-  animation: rotateIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.45s forwards;
+  animation: rotateIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.45s forwards;
 }
 
 @keyframes rotateIn {
@@ -371,7 +360,7 @@ body:has(.chart-overlay-simple) {
   /* 🎬 Animação do total */
   opacity: 0;
   transform: scale(0.97) translateY(10px);
-  animation: fadeInScale 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s forwards;
+  animation: fadeInScale 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s forwards;
 }
 
 @keyframes fadeInScale {
@@ -417,7 +406,7 @@ body:has(.chart-overlay-simple) {
   /* 🎬 Animação do gráfico */
   opacity: 0;
   transform: translateY(20px) scale(0.98);
-  animation: slideInUp 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s forwards;
+  animation: slideInUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s forwards;
 }
 
 @keyframes slideInUp {

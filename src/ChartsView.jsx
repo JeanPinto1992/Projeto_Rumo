@@ -106,12 +106,6 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
         // 🎬 FECHAR COM ANIMAÇÃO (mesmo que clique)
         const overlay = document.querySelector('.chart-overlay-simple')
         if (overlay && animationOrigin) {
-          // Definir coordenadas de destino (posição original)
-          overlay.style.setProperty('--end-x', `${animationOrigin.x}px`)
-          overlay.style.setProperty('--end-y', `${animationOrigin.y}px`)
-          overlay.style.setProperty('--end-width', `${animationOrigin.width}px`)
-          overlay.style.setProperty('--end-height', `${animationOrigin.height}px`)
-          
           overlay.classList.add('closing')
           
           setTimeout(() => {
@@ -336,23 +330,17 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       
       const overlay = document.querySelector('.chart-overlay-simple')
       if (overlay && animationOrigin) {
-        // Definir coordenadas de destino (posição original)
-        overlay.style.setProperty('--end-x', `${animationOrigin.x}px`)
-        overlay.style.setProperty('--end-y', `${animationOrigin.y}px`)
-        overlay.style.setProperty('--end-width', `${animationOrigin.width}px`)
-        overlay.style.setProperty('--end-height', `${animationOrigin.height}px`)
-        
         overlay.classList.add('closing')
         
-                    setTimeout(() => {
-              setExpandedChart(null)
-              setAnimationOrigin(null)
-              if (clickedCardRef) {
-                clickedCardRef.style.opacity = '1'
-                clickedCardRef.classList.remove('clicked')
-                setClickedCardRef(null)
-              }
-            }, 700) // Duração da animação de fechamento
+        setTimeout(() => {
+          setExpandedChart(null)
+          setAnimationOrigin(null)
+          if (clickedCardRef) {
+            clickedCardRef.style.opacity = '1'
+            clickedCardRef.classList.remove('clicked')
+            setClickedCardRef(null)
+          }
+        }, 700) // Duração da animação de fechamento
       } else {
         // Fallback
         setExpandedChart(null)
@@ -367,16 +355,36 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       // 🎬 ABRIR COM ANIMAÇÃO - Começar da posição original
       console.log('📈 Abrindo overlay com animação para:', tableId)
       
-      // Capturar posição e tamanho do gráfico original
+      // 🎯 Sistema de expansão por posição no grid
       const rect = clickedElement.getBoundingClientRect()
-      const origin = {
-        x: rect.left,
-        y: rect.top,
-        width: rect.width,
-        height: rect.height
+      
+      // Definir direção de expansão baseada no gráfico
+      const expansionDirections = {
+        'administrativo': { originX: 0, originY: 0 }, // expandir direita + baixo
+        'almoxarifado': { originX: 50, originY: 0 }, // expandir direita + esquerda + baixo
+        'faturamento': { originX: 100, originY: 0 }, // expandir esquerda + baixo
+        'impostos': { originX: 0, originY: 50 }, // expandir cima + baixo + direita
+        'logistica': { originX: 50, originY: 50 }, // expandir todas as direções
+        'manutencao': { originX: 100, originY: 50 }, // expandir cima + baixo + esquerda
+        'rh_gastos_gerais': { originX: 0, originY: 100 }, // expandir cima + direita
+        'rh_custos_totais': { originX: 50, originY: 100 }, // expandir cima + esquerda + direita
+        'rh_passivo_trabalhista': { originX: 100, originY: 100 } // expandir cima + esquerda
       }
       
-      console.log('📐 Posição original capturada:', origin)
+      const direction = expansionDirections[tableId] || { originX: 50, originY: 50 }
+      
+      const origin = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        width: rect.width,
+        height: rect.height,
+        originX: direction.originX,
+        originY: direction.originY,
+        tableId: tableId
+      }
+      
+      console.log('📐 Gráfico:', tableId, 'Direção de expansão:', direction)
+      console.log('🎯 Transform-origin será:', `${direction.originX}% ${direction.originY}%`)
       setAnimationOrigin(origin)
       
       // Adicionar animação de pulso no cartão
@@ -437,10 +445,8 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
         className="chart-overlay-simple"
         style={{ 
           '--chart-color': table.color,
-          '--start-x': animationOrigin ? `${animationOrigin.x}px` : '50%',
-          '--start-y': animationOrigin ? `${animationOrigin.y}px` : '50%',
-          '--start-width': animationOrigin ? `${animationOrigin.width}px` : '300px',
-          '--start-height': animationOrigin ? `${animationOrigin.height}px` : '200px'
+          '--origin-x': animationOrigin ? `${animationOrigin.originX}%` : '50%',
+          '--origin-y': animationOrigin ? `${animationOrigin.originY}%` : '50%'
         }}
       >
         <div className="expanded-chart-header">
