@@ -358,28 +358,40 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       // 🎯 Sistema de expansão por posição no grid
       const rect = clickedElement.getBoundingClientRect()
       
-      // Definir direção de expansão baseada no gráfico
-      const expansionDirections = {
-        'administrativo': { originX: 0, originY: 0 }, // expandir direita + baixo
-        'almoxarifado': { originX: 50, originY: 0 }, // expandir direita + esquerda + baixo
-        'faturamento': { originX: 100, originY: 0 }, // expandir esquerda + baixo
-        'impostos': { originX: 0, originY: 50 }, // expandir cima + baixo + direita
-        'logistica': { originX: 50, originY: 50 }, // expandir todas as direções
-        'manutencao': { originX: 100, originY: 50 }, // expandir cima + baixo + esquerda
-        'rh_gastos_gerais': { originX: 0, originY: 100 }, // expandir cima + direita
-        'rh_custos_totais': { originX: 50, originY: 100 }, // expandir cima + esquerda + direita
-        'rh_passivo_trabalhista': { originX: 100, originY: 100 } // expandir cima + esquerda
-      }
+      // 🎯 Calcular transform-origin baseado na posição real do gráfico
+      let originX, originY
       
-      const direction = expansionDirections[tableId] || { originX: 50, originY: 50 }
+      if (tableId === 'administrativo') {
+        // Administrativo: puxar do canto inferior direito do gráfico
+        const bottomRightX = rect.left + rect.width
+        const bottomRightY = rect.top + rect.height
+        originX = (bottomRightX / window.innerWidth) * 100
+        originY = (bottomRightY / window.innerHeight) * 100
+      } else {
+        // Outros gráficos mantêm o sistema anterior
+        const expansionDirections = {
+          'almoxarifado': { originX: 50, originY: 0 }, // expandir direita + esquerda + baixo
+          'faturamento': { originX: 100, originY: 0 }, // expandir esquerda + baixo
+          'impostos': { originX: 0, originY: 50 }, // expandir cima + baixo + direita
+          'logistica': { originX: 50, originY: 50 }, // expandir todas as direções
+          'manutencao': { originX: 100, originY: 50 }, // expandir cima + baixo + esquerda
+          'rh_gastos_gerais': { originX: 0, originY: 100 }, // expandir cima + direita
+          'rh_custos_totais': { originX: 50, originY: 100 }, // expandir cima + esquerda + direita
+          'rh_passivo_trabalhista': { originX: 100, originY: 100 } // expandir cima + esquerda
+        }
+        
+        const direction = expansionDirections[tableId] || { originX: 50, originY: 50 }
+        originX = direction.originX
+        originY = direction.originY
+      }
       
       const origin = {
         x: rect.left + rect.width / 2,
         y: rect.top + rect.height / 2,
         width: rect.width,
         height: rect.height,
-        originX: direction.originX,
-        originY: direction.originY,
+        originX: originX,
+        originY: originY,
         tableId: tableId
       }
       
