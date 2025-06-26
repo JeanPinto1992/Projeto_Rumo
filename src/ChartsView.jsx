@@ -116,7 +116,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
               clickedCardRef.classList.remove('clicked')
               setClickedCardRef(null)
             }
-          }, 700) // Duração da animação de fechamento
+          }, 400) // Duração da animação de fechamento
         } else {
           // Fallback
           setExpandedChart(null)
@@ -340,7 +340,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
             clickedCardRef.classList.remove('clicked')
             setClickedCardRef(null)
           }
-        }, 700) // Duração da animação de fechamento
+        }, 400) // Duração da animação de fechamento
       } else {
         // Fallback
         setExpandedChart(null)
@@ -367,6 +367,18 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
         const bottomRightY = rect.top + rect.height
         originX = (bottomRightX / window.innerWidth) * 100
         originY = (bottomRightY / window.innerHeight) * 100
+        console.log('🎯 ADMINISTRATIVO: Posição do gráfico:', {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height
+        })
+        console.log('🎯 ADMINISTRATIVO: Canto inferior direito:', {
+          bottomRightX,
+          bottomRightY,
+          originX: `${originX}%`,
+          originY: `${originY}%`
+        })
       } else {
         // Outros gráficos mantêm o sistema anterior
         const expansionDirections = {
@@ -386,8 +398,8 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       }
       
       const origin = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
+        x: rect.left,
+        y: rect.top,
         width: rect.width,
         height: rect.height,
         originX: originX,
@@ -395,8 +407,8 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
         tableId: tableId
       }
       
-      console.log('📐 Gráfico:', tableId, 'Direção de expansão:', direction)
-      console.log('🎯 Transform-origin será:', `${direction.originX}% ${direction.originY}%`)
+      console.log('📐 Gráfico:', tableId, 'Transform-origin calculado:', { originX, originY })
+      console.log('🎯 Transform-origin será:', `${originX}% ${originY}%`)
       setAnimationOrigin(origin)
       
       // Adicionar animação de pulso no cartão
@@ -458,7 +470,11 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
         style={{ 
           '--chart-color': table.color,
           '--origin-x': animationOrigin ? `${animationOrigin.originX}%` : '50%',
-          '--origin-y': animationOrigin ? `${animationOrigin.originY}%` : '50%'
+          '--origin-y': animationOrigin ? `${animationOrigin.originY}%` : '50%',
+          '--start-left': animationOrigin ? `${animationOrigin.x}px` : '50%',
+          '--start-top': animationOrigin ? `${animationOrigin.y}px` : '50%',
+          '--start-width': animationOrigin ? `${animationOrigin.width}px` : '300px',
+          '--start-height': animationOrigin ? `${animationOrigin.height}px` : '200px'
         }}
       >
         <div className="expanded-chart-header">
