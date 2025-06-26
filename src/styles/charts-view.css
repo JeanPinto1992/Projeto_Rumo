@@ -3,11 +3,16 @@
   background: transparent;
   height: calc(100vh - 0.4rem);
   width: 100%;
-  overflow: hidden;
+  max-width: 100%;
+  overflow: visible; /* Permitir que overlay apareça */
   position: relative;
   z-index: 10;
   box-sizing: border-box;
-  opacity: 1;
+}
+
+/* Garantir que o overlay não cause scroll no body */
+body:has(.chart-overlay-simple) {
+  overflow: hidden !important;
 }
 
 .charts-grid {
@@ -21,7 +26,6 @@
   padding: 0;
   box-sizing: border-box;
   overflow: hidden;
-  position: relative;
 }
 
 .chart-card {
@@ -39,7 +43,6 @@
   min-height: 0;
   cursor: pointer;
   box-sizing: border-box;
-  position: relative;
 }
 
 .chart-card:hover {
@@ -119,45 +122,31 @@
   box-shadow: 0 4px 12px rgba(0, 43, 85, 0.3);
 }
 
-/* Overlay expandido com animação suave */
+/* Overlay expandido - AJUSTÁVEL */
 .chart-overlay-simple {
-  position: fixed;
-  top: 0rem;
-  left: 0rem;
-  width: calc(100vw - 12.4rem);
-  height: calc(100vh - 0rem);
-  max-height: calc(100vh - 0.4rem);
-  background: rgba(255, 255, 255, 0.98);
-  border: 3px solid var(--chart-color, #002b55);
-  border-radius: 12px;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
-  box-sizing: border-box;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  transform: scale(0.8);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  overflow: hidden;
-}
-
-.chart-overlay-simple.expanding {
-  /* Animação de entrada suave */
-  opacity: 1;
-  transform: scale(1);
-}
-
-.chart-overlay-simple.expanded {
-  /* Estado final expandido */
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* Animação de saída quando fechando */
-.chart-overlay-simple.expanding.closing {
-  opacity: 0;
-  transform: scale(0.8);
+  position: fixed !important;
+  top: 0% !important;
+  left: 0% !important;
+  right: 0% !important;
+  bottom: 0% !important;
+  width: 100% !important;
+  height: 49.9% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 3px solid var(--chart-color, #002b55) !important;
+  border-radius: 12px !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 1.5rem !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  margin: 0 !important;
+  transform: none !important;
 }
 
 .expanded-chart-header {
@@ -228,11 +217,13 @@
   position: relative;
   min-height: 0;
   max-height: 100%;
+  max-width: 100%;
   background: white;
   border-radius: 8px;
   padding: 1rem;
   box-shadow: inset 0 2px 8px rgba(0, 43, 85, 0.05);
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Responsividade */
@@ -278,11 +269,13 @@
   
   /* Ajuste do overlay para mobile */
   .chart-overlay-simple {
-    top: 0.5rem;
-    left: 0.5rem;
-    width: calc(100vw - 1rem);
-    height: calc(100vh - 1rem);
-    max-height: calc(100vh - 1rem);
-    padding: 1rem;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 1rem !important;
+    border-radius: 0 !important;
   }
 } 

@@ -100,20 +100,13 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   // Detectar tecla ESC para fechar overlay
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && expandedChart) {
-        // Fechar com animação
-        setIsClosing(true)
-        setIsZooming(true)
-        
-        setTimeout(() => {
-          setExpandedChart(null)
-          setIsZooming(false)
-          setIsClosing(false)
-          if (clickedCardRef) {
-            clickedCardRef.style.opacity = '1'
-            setClickedCardRef(null)
-          }
-        }, 300)
+              if (event.key === 'Escape' && expandedChart) {
+        // Fechar via ESC
+        setExpandedChart(null)
+        if (clickedCardRef) {
+          clickedCardRef.style.opacity = '1'
+          setClickedCardRef(null)
+        }
       }
     }
 
@@ -298,45 +291,41 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
 
   // 🔧 Sistema de animação SUAVE
   const handleChartClick = (tableId, event) => {
-    if (!isDataReady) return
+    console.log('🔥 CLIQUE DETECTADO:', tableId)
+    
+    if (!isDataReady) {
+      console.log('❌ Dados não prontos ainda')
+      return
+    }
     
     if (expandedChart === tableId) {
-      // Fechar com animação
-      setIsClosing(true)
-      setIsZooming(true)
-      
-      setTimeout(() => {
-        setExpandedChart(null)
-        setIsZooming(false)
-        setIsClosing(false)
-        if (clickedCardRef) {
-          clickedCardRef.style.opacity = '1'
-          setClickedCardRef(null)
-        }
-      }, 300) // Aguardar animação completar
+      // Fechar overlay
+      console.log('🔄 Fechando overlay para:', tableId)
+      setExpandedChart(null)
+      if (clickedCardRef) {
+        clickedCardRef.style.opacity = '1'
+        setClickedCardRef(null)
+      }
     } else {
-      // Abrir com animação
+      // Abrir overlay
+      console.log('📈 Abrindo overlay para:', tableId)
       const clickedElement = event.currentTarget
-      
-      // Esconder o gráfico original
-      clickedElement.style.opacity = '0'
-      
-      // Salvar referência e expandir
       setClickedCardRef(clickedElement)
       setExpandedChart(tableId)
-      setIsZooming(true)
       
-      // Completar animação de entrada
+      // Esconder gráfico original após renderizar overlay
       setTimeout(() => {
-        setIsZooming(false)
-      }, 50) // Pequeno delay para trigger da animação
+        console.log('👻 Escondendo gráfico original')
+        clickedElement.style.opacity = '0'
+      }, 10)
     }
   }
 
-  // 🔧 Renderizar overlay SIMPLES sem animações complexas
+  // 🔧 Renderizar overlay simples
   const renderExpandedChart = () => {
     if (!expandedChart) return null
     
+    console.log('🖼️ Renderizando overlay para:', expandedChart)
     const table = TABLES.find(t => t.id === expandedChart)
     const tableData = chartsData[expandedChart] || {}
     
@@ -367,7 +356,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
 
     return (
       <div 
-        className={`chart-overlay-simple ${isZooming ? 'expanding' : 'expanded'} ${isClosing ? 'closing' : ''}`}
+        className="chart-overlay-simple"
         style={{ 
           '--chart-color': table.color
         }}
