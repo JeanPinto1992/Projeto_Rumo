@@ -100,13 +100,41 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   // Detectar tecla ESC para fechar overlay
   useEffect(() => {
     const handleKeyDown = (event) => {
-              if (event.key === 'Escape' && expandedChart) {
-        // Fechar via ESC
-        setExpandedChart(null)
-        if (clickedCardRef) {
-          clickedCardRef.style.opacity = '1'
-          setClickedCardRef(null)
+      if (event.key === 'Escape' && expandedChart) {
+        console.log('🔑 ESC pressionado - fechando overlay com animação')
+        
+        // 🎬 FECHAR COM ANIMAÇÃO (mesmo que clique)
+        const overlay = document.querySelector('.chart-overlay-simple')
+        if (overlay && animationOrigin) {
+          // Definir coordenadas de destino (posição original)
+          overlay.style.setProperty('--end-x', `${animationOrigin.x}px`)
+          overlay.style.setProperty('--end-y', `${animationOrigin.y}px`)
+          overlay.style.setProperty('--end-width', `${animationOrigin.width}px`)
+          overlay.style.setProperty('--end-height', `${animationOrigin.height}px`)
+          
+          overlay.classList.add('closing')
+          
+          setTimeout(() => {
+            setExpandedChart(null)
+            setAnimationOrigin(null)
+            if (clickedCardRef) {
+              clickedCardRef.style.opacity = '1'
+              clickedCardRef.classList.remove('clicked')
+              setClickedCardRef(null)
+            }
+          }, 700) // Duração da animação de fechamento
+        } else {
+          // Fallback
+          setExpandedChart(null)
+          setAnimationOrigin(null)
+          if (clickedCardRef) {
+            clickedCardRef.style.opacity = '1'
+            clickedCardRef.classList.remove('clicked')
+            setClickedCardRef(null)
+          }
         }
+        
+        event.preventDefault()
       }
     }
 
@@ -289,7 +317,9 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     )
   }
 
-  // 🔧 Sistema de animação SUAVE
+  // 🎬 Sistema de animação REALISTA - Do tamanho original
+  const [animationOrigin, setAnimationOrigin] = useState(null)
+  
   const handleChartClick = (tableId, event) => {
     console.log('🔥 CLIQUE DETECTADO:', tableId)
     
@@ -298,26 +328,74 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       return
     }
     
+    const clickedElement = event.currentTarget
+    
     if (expandedChart === tableId) {
-      // Fechar overlay
-      console.log('🔄 Fechando overlay para:', tableId)
-      setExpandedChart(null)
-      if (clickedCardRef) {
-        clickedCardRef.style.opacity = '1'
-        setClickedCardRef(null)
+      // 🎬 FECHAR COM ANIMAÇÃO - Voltar para posição original
+      console.log('🔄 Fechando overlay com animação para:', tableId)
+      
+      const overlay = document.querySelector('.chart-overlay-simple')
+      if (overlay && animationOrigin) {
+        // Definir coordenadas de destino (posição original)
+        overlay.style.setProperty('--end-x', `${animationOrigin.x}px`)
+        overlay.style.setProperty('--end-y', `${animationOrigin.y}px`)
+        overlay.style.setProperty('--end-width', `${animationOrigin.width}px`)
+        overlay.style.setProperty('--end-height', `${animationOrigin.height}px`)
+        
+        overlay.classList.add('closing')
+        
+                    setTimeout(() => {
+              setExpandedChart(null)
+              setAnimationOrigin(null)
+              if (clickedCardRef) {
+                clickedCardRef.style.opacity = '1'
+                clickedCardRef.classList.remove('clicked')
+                setClickedCardRef(null)
+              }
+            }, 700) // Duração da animação de fechamento
+      } else {
+        // Fallback
+        setExpandedChart(null)
+        setAnimationOrigin(null)
+        if (clickedCardRef) {
+          clickedCardRef.style.opacity = '1'
+          clickedCardRef.classList.remove('clicked')
+          setClickedCardRef(null)
+        }
       }
     } else {
-      // Abrir overlay
-      console.log('📈 Abrindo overlay para:', tableId)
-      const clickedElement = event.currentTarget
+      // 🎬 ABRIR COM ANIMAÇÃO - Começar da posição original
+      console.log('📈 Abrindo overlay com animação para:', tableId)
+      
+      // Capturar posição e tamanho do gráfico original
+      const rect = clickedElement.getBoundingClientRect()
+      const origin = {
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height
+      }
+      
+      console.log('📐 Posição original capturada:', origin)
+      setAnimationOrigin(origin)
+      
+      // Adicionar animação de pulso no cartão
+      clickedElement.classList.add('clicked')
+      
+      // Limpar cartão anterior se existir
+      if (clickedCardRef) {
+        clickedCardRef.style.opacity = '1'
+        clickedCardRef.classList.remove('clicked')
+      }
+      
       setClickedCardRef(clickedElement)
       setExpandedChart(tableId)
       
-      // Esconder gráfico original após renderizar overlay
+      // Esconder gráfico original após pequeno delay
       setTimeout(() => {
         console.log('👻 Escondendo gráfico original')
-        clickedElement.style.opacity = '0'
-      }, 10)
+        clickedElement.style.opacity = '0.1'
+      }, 100)
     }
   }
 
@@ -358,7 +436,11 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       <div 
         className="chart-overlay-simple"
         style={{ 
-          '--chart-color': table.color
+          '--chart-color': table.color,
+          '--start-x': animationOrigin ? `${animationOrigin.x}px` : '50%',
+          '--start-y': animationOrigin ? `${animationOrigin.y}px` : '50%',
+          '--start-width': animationOrigin ? `${animationOrigin.width}px` : '300px',
+          '--start-height': animationOrigin ? `${animationOrigin.height}px` : '200px'
         }}
       >
         <div className="expanded-chart-header">
