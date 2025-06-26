@@ -30,17 +30,36 @@ ChartJS.register(
   ChartDataLabels
 )
 
+// Array reorganizado na ordem correta para grid 3x3
 const TABLES = [
+  // Linha 1
   { id: 'administrativo', name: 'Administrativo', icon: '🏢', color: '#008dd0' },
   { id: 'almoxarifado', name: 'Almoxarifado', icon: '📦', color: '#95c6eb' },
   { id: 'faturamento', name: 'Faturamento', icon: '💰', color: '#4ba3d1' },
+  // Linha 2
   { id: 'impostos', name: 'Impostos', icon: '🧾', color: '#006ba3' },
   { id: 'logistica', name: 'Logística', icon: '🚛', color: '#005a8a' },
   { id: 'manutencao', name: 'Manutenção', icon: '🔧', color: '#004e75' },
+  // Linha 3
   { id: 'rh_gastos_gerais', name: 'RH - Gastos Gerais', icon: '💸', color: '#8B5CF6' },
   { id: 'rh_custos_totais', name: 'RH - Custos Totais', icon: '📈', color: '#7C3AED' },
   { id: 'rh_passivo_trabalhista', name: 'RH - Passivo Trabalhista', icon: '⚖️', color: '#6D28D9' }
 ]
+
+// 🎯 Mapeamento explícito de posições no grid 3x3
+const CHART_POSITIONS = {
+  'administrativo': { row: 1, col: 1, order: 1 },
+  'almoxarifado': { row: 1, col: 2, order: 2 },
+  'faturamento': { row: 1, col: 3, order: 3 },
+  'impostos': { row: 2, col: 1, order: 4 },
+  'logistica': { row: 2, col: 2, order: 5 },
+  'manutencao': { row: 2, col: 3, order: 6 },
+  'rh_gastos_gerais': { row: 3, col: 1, order: 7 },
+  'rh_custos_totais': { row: 3, col: 2, order: 8 },
+  'rh_passivo_trabalhista': { row: 3, col: 3, order: 9 }
+}
+
+
 
 const monthNames = {
   1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 
@@ -58,18 +77,16 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   const [error, setError] = useState(null)
   const [expandedChart, setExpandedChart] = useState(null)
   const [isDataReady, setIsDataReady] = useState(false)
-  // 🚀 OTIMIZAÇÃO 6: Cache básico para evitar recarregamentos desnecessários
+  // Cache para otimização
   const [dataCache, setDataCache] = useState({})
   const [lastCacheKey, setLastCacheKey] = useState('')
   
-  // ✨ Estados para efeito de zoom no lugar
+  // Estados para overlay com animação
   const [isZooming, setIsZooming] = useState(false)
-  const [zoomOrigin, setZoomOrigin] = useState({ 
-    startX: 0, startY: 0, startWidth: 0, startHeight: 0,
-    endX: 0, endY: 0, endWidth: 0, endHeight: 0 
-  })
-  const [zoomDirection, setZoomDirection] = useState('in')
+  const [isClosing, setIsClosing] = useState(false)
   const [clickedCardRef, setClickedCardRef] = useState(null)
+
+
 
   useEffect(() => {
     loadChartsData()
@@ -80,43 +97,23 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     setIsDataReady(false)
   }, [])
 
-  // Detectar tecla ESC para sair do modo expandido com zoom
+  // Detectar tecla ESC para fechar overlay
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape' && expandedChart) {
-        // ✨ Fechar com efeito de zoom out com alinhamento perfeito
-        
-        // ✨ Recapturar a posição atual do gráfico original para alinhamento perfeito
-        if (clickedCardRef) {
-          const currentRect = clickedCardRef.getBoundingClientRect()
-          // Atualizar as coordenadas de destino com a posição atual real
-          setZoomOrigin(prev => ({
-            ...prev,
-            startX: currentRect.left,
-            startY: currentRect.top,
-            startWidth: currentRect.width,
-            startHeight: currentRect.height
-          }))
-          
-          // ✨ Pequeno delay para garantir que as coordenadas sejam aplicadas ao CSS
-          setTimeout(() => {
-            setZoomDirection('out')
-            setIsZooming(true)
-            
-            // ✨ Restaurar opacidade quase imediatamente para transição suave
-            setTimeout(() => {
-              clickedCardRef.style.opacity = '1'
-            }, 50)
-          }, 10)
-        } else {
-          setZoomDirection('out')
-          setIsZooming(true)
-        }
+        // Fechar com animação
+        setIsClosing(true)
+        setIsZooming(true)
         
         setTimeout(() => {
           setExpandedChart(null)
           setIsZooming(false)
-        }, 620)
+          setIsClosing(false)
+          if (clickedCardRef) {
+            clickedCardRef.style.opacity = '1'
+            setClickedCardRef(null)
+          }
+        }, 300)
       }
     }
 
@@ -286,8 +283,6 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     }
   }
 
-
-
   if (error) {
     return (
       <div className="charts-error">
@@ -301,84 +296,44 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     )
   }
 
-  // Função para expandir/contrair gráfico inflando no lugar
+  // 🔧 Sistema de animação SUAVE
   const handleChartClick = (tableId, event) => {
+    if (!isDataReady) return
+    
     if (expandedChart === tableId) {
-      // ✨ Minimizar - "desinflar" de volta para posição original ATUALIZADA
+      // Fechar com animação
+      setIsClosing(true)
+      setIsZooming(true)
       
-      // ✨ Recapturar a posição atual do gráfico original para alinhamento perfeito
-      if (clickedCardRef) {
-        const currentRect = clickedCardRef.getBoundingClientRect()
-        // Atualizar as coordenadas de destino com a posição atual real
-        setZoomOrigin(prev => ({
-          ...prev,
-          startX: currentRect.left,
-          startY: currentRect.top,
-          startWidth: currentRect.width,
-          startHeight: currentRect.height
-        }))
-        
-        // ✨ Pequeno delay para garantir que as coordenadas sejam aplicadas ao CSS
-        setTimeout(() => {
-          setZoomDirection('out')
-          setIsZooming(true)
-          
-          // ✨ Restaurar opacidade quase imediatamente para transição suave
-          setTimeout(() => {
-            clickedCardRef.style.opacity = '1'
-          }, 50)
-        }, 10)
-      } else {
-        setZoomDirection('out')
-        setIsZooming(true)
-      }
-      
-      // Aguardar animação de deflação completa para limpar estados
       setTimeout(() => {
         setExpandedChart(null)
         setIsZooming(false)
-        setClickedCardRef(null)
-      }, 620) // Aumentar um pouco devido ao delay inicial
+        setIsClosing(false)
+        if (clickedCardRef) {
+          clickedCardRef.style.opacity = '1'
+          setClickedCardRef(null)
+        }
+      }, 300) // Aguardar animação completar
     } else {
-      // ✨ Expandir - "inflar" da posição original para posição final específica
+      // Abrir com animação
       const clickedElement = event.currentTarget
-      const rect = clickedElement.getBoundingClientRect()
       
-      // ✨ Usar posição final específica corrigida pelo usuário
-      const finalLeft = 0 // Posição corrigida
-      const finalTop = 0 // Posição corrigida  
-      const finalWidth = window.innerWidth * 0.896 // calc(89.6vw - 0px)
-      const finalHeight = window.innerHeight - 5 // calc(100vh - 5px)
-      
-      // ✨ Capturar posições específicas do gráfico clicado
-      setZoomOrigin({
-        // Posição original
-        startX: rect.left,
-        startY: rect.top,
-        startWidth: rect.width,
-        startHeight: rect.height,
-        // Posição final específica corrigida
-        endX: finalLeft,
-        endY: finalTop,
-        endWidth: finalWidth,
-        endHeight: finalHeight
-      })
-      
-      setClickedCardRef(clickedElement)
-      setZoomDirection('in')
-      setIsZooming(true)
-      setExpandedChart(tableId)
-      
-      // ✨ Ocultar gráfico original imediatamente para parecer que ele próprio está expandindo
+      // Esconder o gráfico original
       clickedElement.style.opacity = '0'
       
+      // Salvar referência e expandir
+      setClickedCardRef(clickedElement)
+      setExpandedChart(tableId)
+      setIsZooming(true)
+      
+      // Completar animação de entrada
       setTimeout(() => {
         setIsZooming(false)
-      }, 600)
+      }, 50) // Pequeno delay para trigger da animação
     }
   }
 
-  // ✨ Renderizar componente expandido como overlay (sem esconder os outros gráficos)
+  // 🔧 Renderizar overlay SIMPLES sem animações complexas
   const renderExpandedChart = () => {
     if (!expandedChart) return null
     
@@ -412,17 +367,9 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
 
     return (
       <div 
-        className={`chart-overlay ${isZooming ? `zoom-${zoomDirection}` : 'zoom-ready'}`}
+        className={`chart-overlay-simple ${isZooming ? 'expanding' : 'expanded'} ${isClosing ? 'closing' : ''}`}
         style={{ 
-          '--start-x': `${zoomOrigin.startX}px`,
-          '--start-y': `${zoomOrigin.startY}px`,
-          '--start-width': `${zoomOrigin.startWidth}px`,
-          '--start-height': `${zoomOrigin.startHeight}px`,
-          '--end-x': `${zoomOrigin.endX}px`,
-          '--end-y': `${zoomOrigin.endY}px`,
-          '--end-width': `${zoomOrigin.endWidth}px`,
-          '--end-height': `${zoomOrigin.endHeight}px`,
-          borderColor: table.color
+          '--chart-color': table.color
         }}
       >
         <div className="expanded-chart-header">
@@ -602,16 +549,19 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     )
   }
 
+
+
   return (
-    <div className={`charts-view ${isZooming ? 'zooming' : ''}`}>
-      {/* ✨ Renderizar overlay expandido quando necessário */}
+    <div className="charts-view">
+      {/* Renderizar overlay quando expandido */}
       {renderExpandedChart()}
       
       <div className="charts-grid">
         
-        {/* Gráfico individual para cada tabela */}
-        {TABLES.map(table => {
+        {/* 🎯 Gráficos renderizados na ordem correta com posicionamento explícito */}
+        {TABLES.map((table) => {
           const tableData = chartsData[table.id] || {}
+          const position = CHART_POSITIONS[table.id]
           
           // Determinar quais dados mostrar baseado no modo
           let dataToShow, labelsToShow, totalValue
@@ -643,9 +593,17 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
           return (
             <div 
               key={table.id} 
-              className="chart-card"
+              className={`chart-card`}
+              data-chart-id={table.id}
               onClick={(e) => handleChartClick(table.id, e)}
-              style={{ borderColor: table.color }}
+              style={{ 
+                borderColor: table.color,
+                // 🎯 Posicionamento explícito no grid
+                gridColumn: position.col,
+                gridRow: position.row,
+                order: position.order
+              }}
+
             >
               <div className="chart-header">
                 <h3>
