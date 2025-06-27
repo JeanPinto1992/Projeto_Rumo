@@ -434,6 +434,58 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       totalValue = tableData.total || 0
     }
 
+    // 📊 Calcular variações percentuais entre meses
+    const calculatePercentageChange = (current, previous) => {
+      if (previous === 0) return current > 0 ? 100 : 0
+      return ((current - previous) / previous) * 100
+    }
+
+    // 📊 Plugin customizado para variações percentuais coloridas
+    const percentageVariationPlugin = {
+      id: 'percentageVariation',
+      afterDatasetsDraw: function(chart) {
+        const ctx = chart.ctx
+        
+        chart.data.datasets[0].data.forEach((value, index) => {
+          if (index === 0) return // Primeiro mês não tem comparação
+          
+          const currentValue = dataToShow[index]
+          const previousValue = dataToShow[index - 1]
+          const percentChange = calculatePercentageChange(currentValue, previousValue)
+          
+          if (Math.abs(percentChange) < 0.1) return // Variação muito pequena
+          
+          const meta = chart.getDatasetMeta(0)
+          const element = meta.data[index]
+          
+          if (!element || !element.x || !element.y) return
+          
+          const sign = percentChange > 0 ? '+' : ''
+          const percentText = `${sign}${percentChange.toFixed(1)}%`
+          const color = percentChange > 0 ? '#16a34a' : '#dc2626'
+          
+          ctx.save()
+          ctx.font = 'bold 14px Arial'
+          ctx.fillStyle = color
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'bottom'
+          
+          // Posicionar acima da barra/ponto
+          const yPosition = element.y - (chartType === 'bar' ? 35 : 45)
+          
+          // Adicionar fundo branco para melhor legibilidade
+          const textWidth = ctx.measureText(percentText).width
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+          ctx.fillRect(element.x - textWidth/2 - 3, yPosition - 12, textWidth + 6, 14)
+          
+          // Desenhar o texto
+          ctx.fillStyle = color
+          ctx.fillText(percentText, element.x, yPosition)
+          ctx.restore()
+        })
+      }
+    }
+
     const individualChartData = {
       labels: labelsToShow,
       datasets: [
@@ -533,6 +585,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
           ) : chartType === 'line' ? (
             <Line 
               data={individualChartData}
+              plugins={[percentageVariationPlugin]}
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
@@ -554,14 +607,14 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
                       weight: 'bold',
                       size: 14
                     },
-                    formatter: function(value) {
-                      return formatCurrency(value)
-                    },
                     backgroundColor: 'rgba(255, 255, 255, 0.8)',
                     borderColor: table.color,
                     borderWidth: 1,
                     borderRadius: 4,
-                    padding: 6
+                    padding: 6,
+                    formatter: function(value) {
+                      return formatCurrency(value)
+                    }
                   }
                 },
                 scales: {
@@ -577,7 +630,12 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
                     }
                   },
                   y: {
-                    display: false
+                    display: false,
+                    max: function(context) {
+                      // Adicionar espaço extra no topo para as variações percentuais
+                      const maxValue = Math.max(...context.chart.data.datasets[0].data)
+                      return maxValue * 1.2
+                    }
                   }
                 }
               }}
@@ -585,6 +643,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
           ) : (
             <Bar 
               data={individualChartData}
+              plugins={[percentageVariationPlugin]}
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
@@ -624,7 +683,12 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
                     }
                   },
                   y: {
-                    display: false
+                    display: false,
+                    max: function(context) {
+                      // Adicionar espaço extra no topo para as variações percentuais
+                      const maxValue = Math.max(...context.chart.data.datasets[0].data)
+                      return maxValue * 1.15
+                    }
                   }
                 }
               }}
