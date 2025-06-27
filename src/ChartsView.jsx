@@ -10,10 +10,9 @@ import {
   Legend,
   LineElement,
   PointElement,
-  ArcElement,
 } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-import { Bar, Line, Doughnut } from 'react-chartjs-2'
+import { Bar, Line } from 'react-chartjs-2'
 import './styles/charts-view.css'
 
 // Registrar componentes do Chart.js
@@ -26,7 +25,6 @@ ChartJS.register(
   Legend,
   LineElement,
   PointElement,
-  ArcElement,
   ChartDataLabels
 )
 
@@ -73,6 +71,16 @@ const monthLabels = [
 ]
 
 export default function ChartsView({ selectedMonth, selectedYear, viewMode, chartType = 'bar' }) {
+  // Garantir compatibilidade removendo gráfico circular
+  const safeChartType = chartType === 'circle' ? 'bar' : chartType
+  
+  // 🛠️ Função utilitária para verificar se dados são válidos
+  const hasValidChartData = (data) => {
+    return data && Array.isArray(data) && data.some(value => 
+      value !== null && value !== undefined && !isNaN(value) && value > 0
+    )
+  }
+  
   const [chartsData, setChartsData] = useState({})
   const [error, setError] = useState(null)
   const [expandedChart, setExpandedChart] = useState(null)
@@ -92,6 +100,27 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     loadChartsData()
   }, [selectedMonth, selectedYear, viewMode])
 
+  // 🔄 Forçar atualização quando dados mudarem e houver gráfico expandido
+  useEffect(() => {
+    if (expandedChart && isDataReady) {
+      // Forçar re-render do gráfico expandido quando dados mudarem
+      const tableData = chartsData[expandedChart] || {}
+      const dataToCheck = viewMode === 'yearly' ? tableData.monthlyData : tableData.cumulativeData
+      const hasData = hasValidChartData(dataToCheck)
+      
+      if (!hasData) {
+        // Fechar automaticamente se não há mais dados válidos
+        setExpandedChart(null)
+        setAnimationOrigin(null)
+        if (clickedCardRef) {
+          clickedCardRef.style.opacity = '1'
+          clickedCardRef.classList.remove('clicked')
+          setClickedCardRef(null)
+        }
+      }
+    }
+  }, [chartsData, expandedChart, isDataReady, viewMode, selectedMonth, selectedYear])
+
   // Estado inicial - começar sempre com isDataReady = false para animação
   useEffect(() => {
     setIsDataReady(false)
@@ -101,7 +130,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape' && expandedChart) {
-        console.log('🔑 ESC pressionado - fechando overlay com animação')
+
         
         // 🎬 FECHAR COM ANIMAÇÃO (mesmo que clique)
         const overlay = document.querySelector('.chart-overlay-simple')
@@ -315,23 +344,34 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
   const [animationOrigin, setAnimationOrigin] = useState(null)
   
   const handleChartClick = (tableId, event) => {
-    console.log('🔥 CLIQUE DETECTADO:', tableId)
-    
     if (!isDataReady) {
-      console.log('❌ Dados não prontos ainda')
       return
+    }
+    
+    // 🚫 Verificar se há dados válidos antes de expandir
+    const tableData = chartsData[tableId] || {}
+    let dataToCheck
+    
+    if (viewMode === 'yearly') {
+      dataToCheck = tableData.monthlyData || []
+    } else {
+      dataToCheck = tableData.cumulativeData || []
+    }
+    
+    const hasValidData = hasValidChartData(dataToCheck)
+    
+    if (!hasValidData) {
+      return // Não permitir clique em gráficos sem dados
     }
     
     const clickedElement = event.currentTarget
     
     if (expandedChart === tableId) {
       // 🎬 FECHAR COM ANIMAÇÃO - Voltar para posição original
-      console.log('🔄 Fechando overlay com animação para:', tableId)
       
       const overlay = document.querySelector('.chart-overlay-simple')
       if (overlay && animationOrigin) {
         overlay.classList.add('closing')
-        console.log('🔄 Iniciando animação de fechamento')
         
         setTimeout(() => {
           setExpandedChart(null)
@@ -354,7 +394,6 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       }
     } else {
       // 🎬 ABRIR COM ANIMAÇÃO - Começar da posição original
-      console.log('📈 Abrindo overlay com animação para:', tableId)
       
       // 🎯 Sistema de expansão por posição no grid
       const rect = clickedElement.getBoundingClientRect()
@@ -383,12 +422,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
         height: rect.height
       }
       
-      console.log('📐 Gráfico:', tableId, 'Posição configurada:', { 
-        left: origin.left + 'px', 
-        top: origin.top + 'px', 
-        width: origin.width + 'px', 
-        height: origin.height + 'px' 
-      })
+
       
       setAnimationOrigin({...origin, tableId: tableId})
       
@@ -406,7 +440,6 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       
       // Esconder gráfico original após pequeno delay
       setTimeout(() => {
-        console.log('👻 Escondendo gráfico original')
         clickedElement.style.opacity = '0.1'
       }, 100)
       
@@ -414,12 +447,13 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
     }
   }
 
-  // 🔧 Renderizar overlay simples
+      // 🔧 Renderizar overlay simples
   const renderExpandedChart = () => {
     if (!expandedChart) return null
     
-    console.log('🖼️ Renderizando overlay para:', expandedChart)
     const table = TABLES.find(t => t.id === expandedChart)
+    if (!table) return null
+    
     const tableData = chartsData[expandedChart] || {}
     
     let dataToShow, labelsToShow, totalValue
@@ -434,26 +468,95 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       totalValue = tableData.total || 0
     }
 
-    // 📊 Calcular variações percentuais entre meses
-    const calculatePercentageChange = (current, previous) => {
-      if (previous === 0) return current > 0 ? 100 : 0
-      return ((current - previous) / previous) * 100
+    // 🚫 Não renderizar se não houver dados válidos
+    const hasValidData = hasValidChartData(dataToShow)
+    
+    if (!hasValidData) {
+      return (
+        <div 
+          className="chart-overlay-simple"
+          style={{ 
+            '--chart-color': table.color,
+            '--start-left': animationOrigin ? `${animationOrigin.left}px` : '50vw',
+            '--start-top': animationOrigin ? `${animationOrigin.top}px` : '50vh',
+            '--start-width': animationOrigin ? `${animationOrigin.width}px` : '300px',
+            '--start-height': animationOrigin ? `${animationOrigin.height}px` : '200px'
+          }}
+        >
+          <div className="expanded-chart-header">
+            <h2>
+              <span style={{ marginRight: '0.5rem' }}>{table.icon}</span>
+              {table.name}
+            </h2>
+            <button 
+              className="close-expanded-btn"
+              onClick={(e) => handleChartClick(table.id, e)}
+              title="Pressione ESC para fechar"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="expanded-chart-total">
+            <span className="total-label">Nenhum dado disponível para {selectedYear}</span>
+          </div>
+        </div>
+      )
     }
 
-    // 📊 Plugin customizado para variações percentuais coloridas
-    const percentageVariationPlugin = {
+    // 📊 Calcular variações percentuais entre meses
+    const calculatePercentageChange = (current, previous) => {
+      // Verificar se os valores são válidos
+      if (current === undefined || previous === undefined || 
+          current === null || previous === null ||
+          isNaN(current) || isNaN(previous)) {
+        return NaN
+      }
+      
+      // Converter para números se necessário
+      const curr = Number(current)
+      const prev = Number(previous)
+      
+      if (prev === 0) {
+        return curr > 0 ? 100 : (curr < 0 ? -100 : 0)
+      }
+      
+      const result = ((curr - prev) / prev) * 100
+      return isFinite(result) ? result : NaN
+    }
+
+    // 📊 Plugin customizado para variações percentuais coloridas - RECRIAR SEMPRE
+    const createPercentageVariationPlugin = (currentData) => ({
       id: 'percentageVariation',
       afterDatasetsDraw: function(chart) {
         const ctx = chart.ctx
         
+        // Usar os dados atuais passados como parâmetro
+        if (!chart.data.datasets[0] || !chart.data.datasets[0].data || !Array.isArray(currentData)) {
+          return
+        }
+        
         chart.data.datasets[0].data.forEach((value, index) => {
           if (index === 0) return // Primeiro mês não tem comparação
           
-          const currentValue = dataToShow[index]
-          const previousValue = dataToShow[index - 1]
+          // Verificar se os índices são válidos
+          if (index >= currentData.length || index - 1 < 0) {
+            return
+          }
+          
+          const currentValue = currentData[index]
+          const previousValue = currentData[index - 1]
+          
+          // Verificar se os valores são válidos
+          if (currentValue === undefined || previousValue === undefined || 
+              currentValue === null || previousValue === null ||
+              isNaN(currentValue) || isNaN(previousValue)) {
+            return
+          }
+          
           const percentChange = calculatePercentageChange(currentValue, previousValue)
           
-          if (Math.abs(percentChange) < 0.1) return // Variação muito pequena
+          // Verificar se o percentChange é válido
+          if (isNaN(percentChange) || !isFinite(percentChange) || Math.abs(percentChange) < 0.1) return
           
           const meta = chart.getDatasetMeta(0)
           const element = meta.data[index]
@@ -471,20 +574,48 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
           ctx.textBaseline = 'bottom'
           
           // Posicionar acima da barra/ponto
-          const yPosition = element.y - (chartType === 'bar' ? 35 : 45)
+          const yPosition = element.y - (safeChartType === 'bar' ? 35 : 45)
           
           // Adicionar fundo branco para melhor legibilidade
           const textWidth = ctx.measureText(percentText).width
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
-          ctx.fillRect(element.x - textWidth/2 - 3, yPosition - 12, textWidth + 6, 14)
+          const textHeight = 14
           
-          // Desenhar o texto
-          ctx.fillStyle = color
-          ctx.fillText(percentText, element.x, yPosition)
+          // Garantir que o texto não saia dos limites do canvas
+          const canvasWidth = chart.width
+          const canvasHeight = chart.height
+          
+          let textX = element.x
+          let backgroundX = element.x - textWidth/2 - 3
+          
+          // Ajustar posição se estiver muito próximo das bordas
+          if (backgroundX < 10) {
+            backgroundX = 10
+            textX = backgroundX + textWidth/2 + 3
+          } else if (backgroundX + textWidth + 6 > canvasWidth - 10) {
+            backgroundX = canvasWidth - textWidth - 16
+            textX = backgroundX + textWidth/2 + 3
+          }
+          
+          // Verificar se está dentro dos limites verticais
+          if (yPosition - textHeight/2 > 20 && yPosition < canvasHeight - 20) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+            ctx.fillRect(backgroundX, yPosition - 12, textWidth + 6, textHeight)
+            
+            // Desenhar o texto
+            ctx.fillStyle = color
+            ctx.fillText(percentText, textX, yPosition)
+          }
+          
           ctx.restore()
         })
       }
-    }
+    })
+
+    // Criar plugin com dados atuais
+    const percentageVariationPlugin = createPercentageVariationPlugin(dataToShow)
+    
+    // ✅ Chave única para forçar re-render quando dados mudarem
+    const chartKey = `${expandedChart}-${selectedYear}-${selectedMonth}-${viewMode}-${dataToShow?.join(',')}`
 
     const individualChartData = {
       labels: labelsToShow,
@@ -530,65 +661,22 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
           </span>
         </div>
         <div className="expanded-chart">
-          {chartType === 'circle' ? (
-            <Doughnut 
-              data={{
-                labels: labelsToShow,
-                datasets: [
-                  {
-                    data: dataToShow,
-                    backgroundColor: [
-                      table.color,
-                      table.color + '80',
-                      table.color + '60',
-                      table.color + '40',
-                      table.color + '20'
-                    ].slice(0, dataToShow.length),
-                    borderWidth: 0,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: {
-                      padding: 20,
-                      font: {
-                        size: 14
-                      }
-                    }
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: function(context) {
-                        return `${context.label}: ${formatCurrency(context.parsed)}`
-                      }
-                    }
-                  },
-                  datalabels: {
-                    display: true,
-                    color: 'white',
-                    font: {
-                      weight: 'bold',
-                      size: 14
-                    },
-                    formatter: function(value) {
-                      return formatCurrency(value)
-                    }
-                  }
-                }
-              }} 
-            />
-          ) : chartType === 'line' ? (
+          {safeChartType === 'line' ? (
             <Line 
+              key={chartKey}
               data={individualChartData}
               plugins={[percentageVariationPlugin]}
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                  padding: {
+                    top: 50, // Espaço extra para variações percentuais
+                    bottom: 25,
+                    left: 80, // Mais espaço à esquerda
+                    right: 80 // Mais espaço à direita
+                  }
+                },
                 plugins: {
                   legend: {
                     display: false,
@@ -607,11 +695,11 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
                       weight: 'bold',
                       size: 14
                     },
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
                     borderColor: table.color,
-                    borderWidth: 1,
-                    borderRadius: 4,
-                    padding: 6,
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    padding: 8,
                     formatter: function(value) {
                       return formatCurrency(value)
                     }
@@ -631,10 +719,19 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
                   },
                   y: {
                     display: false,
-                    max: function(context) {
+                    beginAtZero: true,
+                    suggestedMax: function(context) {
                       // Adicionar espaço extra no topo para as variações percentuais
-                      const maxValue = Math.max(...context.chart.data.datasets[0].data)
-                      return maxValue * 1.2
+                      try {
+                        const data = context.chart.data.datasets[0].data
+                        const validValues = data.filter(v => v !== null && v !== undefined && !isNaN(v) && isFinite(v) && v > 0)
+                        if (validValues.length === 0) return 100 // Valor padrão se não houver dados válidos
+                        const maxValue = Math.max(...validValues)
+                        return isFinite(maxValue) ? maxValue * 1.4 : 100 // Verificar se maxValue é finito
+                      } catch (error) {
+                        console.warn('Erro ao calcular suggestedMax:', error)
+                        return 100 // Valor padrão em caso de erro
+                      }
                     }
                   }
                 }
@@ -642,6 +739,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
             />
           ) : (
             <Bar 
+              key={chartKey}
               data={individualChartData}
               plugins={[percentageVariationPlugin]}
               options={{
@@ -686,8 +784,16 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
                     display: false,
                     max: function(context) {
                       // Adicionar espaço extra no topo para as variações percentuais
-                      const maxValue = Math.max(...context.chart.data.datasets[0].data)
-                      return maxValue * 1.15
+                      try {
+                        const data = context.chart.data.datasets[0].data
+                        const validValues = data.filter(v => v !== null && v !== undefined && !isNaN(v) && isFinite(v) && v > 0)
+                        if (validValues.length === 0) return 100 // Valor padrão se não houver dados válidos
+                        const maxValue = Math.max(...validValues)
+                        return isFinite(maxValue) ? maxValue * 1.15 : 100 // Verificar se maxValue é finito
+                      } catch (error) {
+                        console.warn('Erro ao calcular max para barras:', error)
+                        return 100 // Valor padrão em caso de erro
+                      }
                     }
                   }
                 }
@@ -724,6 +830,14 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
             dataToShow = tableData.cumulativeData || new Array(selectedMonth).fill(0)
             labelsToShow = monthLabels.slice(0, selectedMonth)
             totalValue = tableData.total || 0
+          }
+
+          // 🚫 Verificar se há dados válidos para mostrar o gráfico
+          const hasValidData = hasValidChartData(dataToShow)
+          
+          // Se não há dados válidos, não renderizar o cartão do gráfico
+          if (!hasValidData) {
+            return null
           }
 
           // Dados específicos para esta tabela
@@ -768,24 +882,9 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
                 </div>
               </div>
               <div className="chart-container">
-                {chartType === 'circle' ? (
-                  <Doughnut 
-                    data={{
-                      labels: labelsToShow,
-                      datasets: [
-                        {
-                          data: dataToShow,
-                          backgroundColor: [
-                            table.color,
-                            table.color + '80',
-                            table.color + '60',
-                            table.color + '40',
-                            table.color + '20'
-                          ].slice(0, dataToShow.length),
-                          borderWidth: 0,
-                        },
-                      ],
-                    }}
+                {safeChartType === 'line' ? (
+                  <Line 
+                    data={individualChartData}
                     options={{
                       responsive: true,
                       maintainAspectRatio: false,
@@ -796,95 +895,72 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
                         tooltip: {
                           callbacks: {
                             label: function(context) {
-                              return `${context.label}: ${formatCurrency(context.parsed)}`
+                              return formatCurrency(context.parsed.y)
                             }
                           }
                         },
                         datalabels: {
                           display: false
                         }
+                      },
+                      scales: {
+                        x: {
+                          grid: {
+                            display: false
+                          },
+                          ticks: {
+                            font: {
+                              size: 9,
+                              weight: 'bold'
+                            }
+                          }
+                        },
+                        y: {
+                          display: false
+                        }
                       }
-                    }} 
+                    }}
                   />
-                ) : chartType === 'line' ? (
-                    <Line 
-                      data={individualChartData}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            display: false,
-                          },
-                          tooltip: {
-                            callbacks: {
-                              label: function(context) {
-                                return formatCurrency(context.parsed.y)
-                              }
+                ) : (
+                  <Bar 
+                    data={individualChartData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          display: false,
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              return formatCurrency(context.parsed.y)
                             }
-                          },
-                          datalabels: {
-                            display: false
                           }
                         },
-                        scales: {
-                          x: {
-                            grid: {
-                              display: false
-                            },
-                            ticks: {
-                              font: {
-                                size: 9,
-                                weight: 'bold'
-                              }
-                            }
-                          },
-                          y: {
-                            display: false
-                          }
+                        datalabels: {
+                          display: false
                         }
-                      }}
-                    />
-                  ) : (
-                    <Bar 
-                      data={individualChartData}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            display: false,
-                          },
-                          tooltip: {
-                            callbacks: {
-                              label: function(context) {
-                                return formatCurrency(context.parsed.y)
-                              }
-                            }
-                          },
-                          datalabels: {
+                      },
+                      scales: {
+                        x: {
+                          grid: {
                             display: false
+                          },
+                          ticks: {
+                            font: {
+                              size: 9,
+                              weight: 'bold'
+                            }
                           }
                         },
-                        scales: {
-                          x: {
-                            grid: {
-                              display: false
-                            },
-                            ticks: {
-                              font: {
-                                size: 9,
-                                weight: 'bold'
-                              }
-                            }
-                          },
-                          y: {
-                            display: false
-                          }
+                        y: {
+                          display: false
                         }
-                      }}
-                    />
-                  )}
+                      }
+                    }}
+                  />
+                )}
               </div>
             </div>
           )

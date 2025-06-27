@@ -26,7 +26,7 @@ export default function Dashboard({ user, onLogout }) {
   const [selectedYear, setSelectedYear] = useState(2025)
   const [viewMode, setViewMode] = useState('monthly') // 'monthly' ou 'yearly'
   const [tabCache, setTabCache] = useState(new Set()) // Cache para abas já visitadas
-  const [chartType, setChartType] = useState('bar') // 'bar', 'line', 'circle'
+  const [chartType, setChartType] = useState('bar') // 'bar', 'line'
   const [showChartTypeDropdown, setShowChartTypeDropdown] = useState(false)
   const [showSectorsDropdown, setShowSectorsDropdown] = useState(false)
   // Estado para transições removido - mudanças agora instantâneas
@@ -343,14 +343,6 @@ export default function Dashboard({ user, onLogout }) {
                         }}
                       >
                         📈 Linhas
-                      </button>
-                      <button 
-                        className={`chart-type-option ${chartType === 'circle' ? 'active' : ''}`}
-                        onClick={() => {
-                          setChartType('circle')
-                        }}
-                      >
-                        🥧 Círculo
                       </button>
                     </div>
                   )}
