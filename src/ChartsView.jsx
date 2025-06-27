@@ -341,7 +341,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
             clickedCardRef.classList.remove('clicked')
             setClickedCardRef(null)
           }
-        }, 500) // Duração da animação de fechamento
+        }, 400) // Duração da animação de fechamento
       } else {
         // Fallback
         setExpandedChart(null)
