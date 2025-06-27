@@ -358,58 +358,38 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       // 🎯 Sistema de expansão por posição no grid
       const rect = clickedElement.getBoundingClientRect()
       
-      // 🎯 Calcular transform-origin baseado na posição real do gráfico
-      let originX, originY
-      
-      if (tableId === 'administrativo') {
-        // Administrativo: puxar do canto inferior direito do gráfico
-        const bottomRightX = rect.left + rect.width
-        const bottomRightY = rect.top + rect.height
-        originX = (bottomRightX / window.innerWidth) * 100
-        originY = (bottomRightY / window.innerHeight) * 100
-        console.log('🎯 ADMINISTRATIVO: Posição do gráfico:', {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height
-        })
-        console.log('🎯 ADMINISTRATIVO: Canto inferior direito:', {
-          bottomRightX,
-          bottomRightY,
-          originX: `${originX}%`,
-          originY: `${originY}%`
-        })
-      } else {
-        // Outros gráficos mantêm o sistema anterior
-        const expansionDirections = {
-          'almoxarifado': { originX: 50, originY: 0 }, // expandir direita + esquerda + baixo
-          'faturamento': { originX: 100, originY: 0 }, // expandir esquerda + baixo
-          'impostos': { originX: 0, originY: 50 }, // expandir cima + baixo + direita
-          'logistica': { originX: 50, originY: 50 }, // expandir todas as direções
-          'manutencao': { originX: 100, originY: 50 }, // expandir cima + baixo + esquerda
-          'rh_gastos_gerais': { originX: 0, originY: 100 }, // expandir cima + direita
-          'rh_custos_totais': { originX: 50, originY: 100 }, // expandir cima + esquerda + direita
-          'rh_passivo_trabalhista': { originX: 100, originY: 100 } // expandir cima + esquerda
-        }
-        
-        const direction = expansionDirections[tableId] || { originX: 50, originY: 50 }
-        originX = direction.originX
-        originY = direction.originY
+      // 🎯 POSIÇÕES REAIS DOS GRÁFICOS - Capturadas e configuradas
+      const MANUAL_POSITIONS = {
+        'administrativo': { left: 1, top: 1, width: 570, height: 310 },
+        'almoxarifado': { left: 572, top: 1, width: 570, height: 310 },
+        'faturamento': { left: 1143,top: 1, width: 570, height: 310 },
+        'impostos': { left: 1,top: 320, width: 570, height: 310 },
+        'logistica': { left: 572, top: 320, width: 570, height: 310 },
+        'manutencao': { left: 1143,top: 320, width: 570, height: 310 },
+        'rh_gastos_gerais': { left: 1, top: 635, width: 570, height: 310 },
+        'rh_custos_totais': { left: 572, top: 635,width: 570, height: 310 },
+        'rh_passivo_trabalhista': { left: 1143, top: 635, width: 570, height: 310 }
       }
       
-      const origin = {
-        x: rect.left,
-        y: rect.top,
+      // Usar posição manual se definida, caso contrário usar a posição real
+      const manualPos = MANUAL_POSITIONS[tableId]
+      const useManual = manualPos ? true : false
+      
+      const origin = useManual ? manualPos : {
+        left: rect.left,
+        top: rect.top,
         width: rect.width,
-        height: rect.height,
-        originX: originX,
-        originY: originY,
-        tableId: tableId
+        height: rect.height
       }
       
-      console.log('📐 Gráfico:', tableId, 'Transform-origin calculado:', { originX, originY })
-      console.log('🎯 Transform-origin será:', `${originX}% ${originY}%`)
-      setAnimationOrigin(origin)
+      console.log('📐 Gráfico:', tableId, 'Posição configurada:', { 
+        left: origin.left + 'px', 
+        top: origin.top + 'px', 
+        width: origin.width + 'px', 
+        height: origin.height + 'px' 
+      })
+      
+      setAnimationOrigin({...origin, tableId: tableId})
       
       // Adicionar animação de pulso no cartão
       clickedElement.classList.add('clicked')
@@ -469,10 +449,8 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
         className="chart-overlay-simple"
         style={{ 
           '--chart-color': table.color,
-          '--origin-x': animationOrigin ? `${animationOrigin.originX}%` : '50%',
-          '--origin-y': animationOrigin ? `${animationOrigin.originY}%` : '50%',
-          '--start-left': animationOrigin ? `${animationOrigin.x}px` : '50%',
-          '--start-top': animationOrigin ? `${animationOrigin.y}px` : '50%',
+          '--start-left': animationOrigin ? `${animationOrigin.left}px` : '50vw',
+          '--start-top': animationOrigin ? `${animationOrigin.top}px` : '50vh',
           '--start-width': animationOrigin ? `${animationOrigin.width}px` : '300px',
           '--start-height': animationOrigin ? `${animationOrigin.height}px` : '200px'
         }}
