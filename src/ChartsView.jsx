@@ -331,6 +331,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
       const overlay = document.querySelector('.chart-overlay-simple')
       if (overlay && animationOrigin) {
         overlay.classList.add('closing')
+        console.log('🔄 Iniciando animação de fechamento')
         
         setTimeout(() => {
           setExpandedChart(null)
@@ -340,7 +341,7 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
             clickedCardRef.classList.remove('clicked')
             setClickedCardRef(null)
           }
-        }, 400) // Duração da animação de fechamento
+        }, 500) // Duração da animação de fechamento
       } else {
         // Fallback
         setExpandedChart(null)
@@ -408,6 +409,8 @@ export default function ChartsView({ selectedMonth, selectedYear, viewMode, char
         console.log('👻 Escondendo gráfico original')
         clickedElement.style.opacity = '0.1'
       }, 100)
+      
+      // ✅ A animação CSS já mantém o estado final com animation-fill-mode: forwards
     }
   }
 
